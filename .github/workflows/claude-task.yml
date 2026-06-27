@@ -1,0 +1,95 @@
+name: Claude Task
+
+on:
+  repository_dispatch:
+    types: [telegram-task]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run task
+        id: task
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TASK: ${{ github.event.client_payload.task }}
+          CMD_TYPE: ${{ github.event.client_payload.cmd_type }}
+        run: |
+          START=$(date +%s)
+
+          if [ "$CMD_TYPE" = "git_status" ]; then
+            git status --short > /tmp/out.txt 2>&1
+            echo "" >> /tmp/out.txt
+            git log --oneline -5 >> /tmp/out.txt 2>&1
+
+          elif [ "$CMD_TYPE" = "git_commit" ]; then
+            git config user.email "bot@telegram" && git config user.name "TelegramBot"
+            git add -A
+            git commit -m "$TASK" > /tmp/out.txt 2>&1 || true
+
+          elif [ "$CMD_TYPE" = "git_push" ]; then
+            git push > /tmp/out.txt 2>&1 || true
+
+          elif [ "$CMD_TYPE" = "git_diff" ]; then
+            git diff --stat > /tmp/out.txt 2>&1
+
+          else
+            claude --dangerously-skip-permissions -p "$TASK" > /tmp/out.txt 2>&1 || true
+          fi
+
+          END=$(date +%s)
+          echo "elapsed=$((END - START))" >> $GITHUB_OUTPUT
+
+      - name: Send result to Telegram
+        if: always()
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_DEV_BOT_TOKEN }}
+          CHAT_ID: ${{ github.event.client_payload.chat_id }}
+          ELAPSED: ${{ steps.task.outputs.elapsed }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, urllib.request
+
+          token = os.environ['TELEGRAM_TOKEN']
+          chat_id = os.environ['CHAT_ID']
+          elapsed = os.environ.get('ELAPSED', '?')
+
+          try:
+              with open('/tmp/out.txt', encoding='utf-8', errors='replace') as f:
+                  output = f.read().strip()
+          except FileNotFoundError:
+              output = '(출력 없음)'
+
+          if not output:
+              output = '(출력 없음)'
+
+          if len(output) > 3500:
+              output = output[:3500] + '\n...(이하 생략)'
+
+          text = f'✅ 완료 ({elapsed}s)\n\n{output}'
+
+          payload = {
+              'chat_id': chat_id,
+              'text': text[:4000],
+              'disable_web_page_preview': True,
+          }
+          data = json.dumps(payload).encode()
+          req = urllib.request.Request(
+              f'https://api.telegram.org/bot{token}/sendMessage',
+              data=data,
+              headers={'Content-Type': 'application/json'},
+              method='POST',
+          )
+          urllib.request.urlopen(req, timeout=10)
+          EOF
