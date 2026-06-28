@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import BottomNav from '../components/BottomNav';
 
 interface LocationState {
   score: number;
@@ -32,7 +33,7 @@ export default function SessionCompleteScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex items-center justify-center p-4 pb-20">
       <div className="max-w-md w-full text-center">
         <div className="text-6xl mb-4 animate-bounce">
           {percent === 100 ? '🎉' : percent >= 80 ? '⭐' : percent >= 60 ? '👍' : '📖'}
@@ -73,6 +74,7 @@ export default function SessionCompleteScreen() {
           홈으로 가기
         </button>
       </div>
+      <BottomNav />
     </div>
   );
 }

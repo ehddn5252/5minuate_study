@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
+import { requestPermission, scheduleLocalReminder, cancelReminder } from '../services/notification';
+import BottomNav from '../components/BottomNav';
 
 export default function SettingsScreen() {
   const navigate = useNavigate();
   const { appState, updateAppState } = useAppStore();
   const [apiKey, setApiKey] = useState(appState.geminiApiKey);
   const [saved, setSaved] = useState(false);
+  const [notifTime, setNotifTime] = useState(appState.notificationTime || '20:00');
+  const [notifGranted, setNotifGranted] = useState(appState.notificationGranted);
 
   const handleSave = () => {
     updateAppState({ geminiApiKey: apiKey.trim() });
@@ -14,8 +18,32 @@ export default function SettingsScreen() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleNotifToggle = async () => {
+    if (notifGranted) {
+      cancelReminder();
+      updateAppState({ notificationGranted: false });
+      setNotifGranted(false);
+    } else {
+      const granted = await requestPermission();
+      if (granted) {
+        scheduleLocalReminder(notifTime);
+        updateAppState({ notificationGranted: true, notificationTime: notifTime });
+        setNotifGranted(true);
+      } else {
+        alert('알림 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.');
+      }
+    }
+  };
+
+  const handleNotifTimeSave = () => {
+    updateAppState({ notificationTime: notifTime });
+    if (notifGranted) {
+      scheduleLocalReminder(notifTime);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16">
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
           <button
@@ -59,12 +87,56 @@ export default function SettingsScreen() {
           </button>
         </div>
 
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+          <h2 className="font-semibold text-gray-900 mb-3">학습 알림</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm font-medium text-gray-700">알림 허용</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {notifGranted ? '알림이 활성화되어 있습니다' : '알림이 비활성화되어 있습니다'}
+              </p>
+            </div>
+            <button
+              onClick={handleNotifToggle}
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                notifGranted ? 'bg-indigo-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  notifGranted ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          {notifGranted && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">알림 시각</label>
+              <div className="flex gap-2">
+                <input
+                  type="time"
+                  value={notifTime}
+                  onChange={(e) => setNotifTime(e.target.value)}
+                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+                />
+                <button
+                  onClick={handleNotifTimeSave}
+                  className="px-4 py-3 bg-indigo-600 text-white rounded-xl text-sm font-medium min-h-[44px]"
+                >
+                  적용
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
           <p className="text-amber-700 text-sm">
             API 키는 이 기기의 localStorage에만 저장되며 서버로 전송되지 않습니다.
           </p>
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 }

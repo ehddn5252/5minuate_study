@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGoalStore, useSessionStore, useQuizStore } from '../store';
-import { getTodaySession, saveSession, addToWrongPool } from '../utils/storage';
+import { getTodaySession, saveSession, addToWrongPool, getSessions, getActiveWrongPool } from '../utils/storage';
 import { generateId } from '../utils/id';
 import type { Quiz } from '../types';
 
@@ -152,8 +152,20 @@ export default function TestScreen() {
   useEffect(() => {
     if (!goal) return;
     const pool = quizzes.filter((q) => goal.quizPoolIds.includes(q.id));
-    const selected = shuffleArray(pool).slice(0, 5);
-    setTestQuizzes(selected);
+    const TARGET = Math.max(2, Math.min(5, pool.length));
+
+    // F-09: prioritise wrong answers (up to 50% of TARGET)
+    const wrongPoolEntries = getActiveWrongPool(goal.id);
+    const wrongQuizIds = new Set(wrongPoolEntries.map((w) => w.quizId));
+    const wrongQuizzes = shuffleArray(pool.filter((q) => wrongQuizIds.has(q.id)));
+    const correctQuizzes = shuffleArray(pool.filter((q) => !wrongQuizIds.has(q.id)));
+
+    const maxWrong = Math.floor(TARGET * 0.5);
+    const fromWrong = wrongQuizzes.slice(0, maxWrong);
+    const remaining = TARGET - fromWrong.length;
+    const fromCorrect = correctQuizzes.slice(0, remaining);
+
+    setTestQuizzes([...fromWrong, ...fromCorrect].slice(0, TARGET));
   }, [goal, quizzes]);
 
   if (!goal || testQuizzes.length === 0) {
@@ -227,8 +239,15 @@ export default function TestScreen() {
         updateSession(newSession);
       }
 
-      // Update streak
-      const newStreak = goal.streak + 1; // simplified
+      // Update streak: +1 if there was a completed session yesterday, else reset to 1
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      const allSessions = getSessions();
+      const hadYesterdaySession = allSessions.some(
+        (s) => s.goalId === goal.id && s.date === yesterdayStr && s.status === 'completed'
+      );
+      const newStreak = hadYesterdaySession ? goal.streak + 1 : 1;
       const updatedGoal = {
         ...goal,
         completedSessions: goal.completedSessions + 1,

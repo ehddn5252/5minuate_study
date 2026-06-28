@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoalStore } from '../store';
 import type { Goal } from '../types';
+import BottomNav from '../components/BottomNav';
 
 function DaysLeft({ deadline }: { deadline: string }) {
   const today = new Date().toISOString().split('T')[0];
@@ -13,6 +14,29 @@ function DaysLeft({ deadline }: { deadline: string }) {
   if (diff === 0) return <span className="text-orange-500 text-xs font-semibold">오늘 마감!</span>;
   if (diff <= 3) return <span className="text-orange-400 text-xs">D-{diff}</span>;
   return <span className="text-gray-400 text-xs">D-{diff}</span>;
+}
+
+function DelayLabel({ goal }: { goal: Goal }) {
+  if (goal.status !== 'active' || goal.totalSessions === 0) return null;
+
+  const today = new Date().toISOString().split('T')[0];
+  const created = goal.createdAt.split('T')[0];
+  const daysPassed = Math.max(
+    Math.ceil((new Date(today).getTime() - new Date(created).getTime()) / (1000 * 60 * 60 * 24)),
+    0
+  );
+  const daysTotal = goal.totalSessions;
+  const expectedProgress = daysTotal > 0 ? Math.min(daysPassed / daysTotal, 1) : 0;
+  const actualProgress = goal.completedSessions / goal.totalSessions;
+  const gap = expectedProgress - actualProgress;
+
+  if (gap <= 0.05) {
+    return <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">정상 진행 중</span>;
+  } else if (gap <= 0.2) {
+    return <span className="text-xs font-medium text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">조금 뒤처지고 있어요</span>;
+  } else {
+    return <span className="text-xs font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">서둘러야 해요!</span>;
+  }
 }
 
 function GoalItem({ goal, onDeactivate }: { goal: Goal; onDeactivate: (id: string) => void }) {
@@ -29,24 +53,36 @@ function GoalItem({ goal, onDeactivate }: { goal: Goal; onDeactivate: (id: strin
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-gray-900 truncate">{goal.topic}</h3>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <DaysLeft deadline={goal.deadline} />
             {goal.streak > 0 && (
               <span className="text-xs text-orange-500">🔥 {goal.streak}일 연속</span>
             )}
+            <DelayLabel goal={goal} />
           </div>
         </div>
-        <span
-          className={`ml-2 flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${
-            goal.status === 'active'
-              ? 'bg-green-100 text-green-600'
-              : goal.status === 'completed'
-              ? 'bg-blue-100 text-blue-600'
-              : 'bg-gray-100 text-gray-400'
-          }`}
-        >
-          {goal.status === 'active' ? '진행중' : goal.status === 'completed' ? '완료' : '중단'}
-        </span>
+        <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+          {goal.status === 'active' && (
+            <button
+              onClick={() => navigate(`/goals/edit/${goal.id}`)}
+              className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 min-h-[36px] min-w-[36px] flex items-center justify-center"
+              title="목표 수정"
+            >
+              ✏️
+            </button>
+          )}
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              goal.status === 'active'
+                ? 'bg-green-100 text-green-600'
+                : goal.status === 'completed'
+                ? 'bg-blue-100 text-blue-600'
+                : 'bg-gray-100 text-gray-400'
+            }`}
+          >
+            {goal.status === 'active' ? '진행중' : goal.status === 'completed' ? '완료' : '중단'}
+          </span>
+        </div>
       </div>
 
       <div className="mb-4">
@@ -121,7 +157,7 @@ export default function GoalListScreen() {
   const filtered = filter === 'all' ? goals : goals.filter((g) => g.status === filter);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16">
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
           <button
@@ -175,6 +211,7 @@ export default function GoalListScreen() {
           ))
         )}
       </div>
+      <BottomNav />
     </div>
   );
 }

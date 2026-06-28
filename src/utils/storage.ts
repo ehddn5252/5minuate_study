@@ -128,6 +128,13 @@ export function getWrongPoolByGoal(goalId: string): WrongPool[] {
   return getWrongPool().filter((w) => w.goalId === goalId);
 }
 
+// Returns only unresolved (still wrong) entries for a given goal
+export function getActiveWrongPool(goalId: string): WrongPool[] {
+  return getWrongPool().filter(
+    (w) => w.goalId === goalId && !w.resolvedAt
+  );
+}
+
 export function addToWrongPool(entry: WrongPool): void {
   const pool = getWrongPool();
   const idx = pool.findIndex(
@@ -156,6 +163,8 @@ const DEFAULT_APP_STATE: AppState = {
   lastOpenedDate: '',
   urgentGoalIds: [],
   geminiApiKey: '',
+  notificationGranted: false,
+  notificationTime: '20:00',
 };
 
 export function getAppState(): AppState {

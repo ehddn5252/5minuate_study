@@ -1,6 +1,8 @@
 import type { Quiz } from '../types';
 import { generateId } from '../utils/id';
 
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
 interface GeminiQuizRaw {
   question: string;
   type: 'multiple_choice' | 'short_answer';
@@ -59,7 +61,7 @@ JSON만 응답하고 다른 텍스트는 포함하지 마세요.
 `.trim();
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -69,7 +71,8 @@ JSON만 응답하고 다른 텍스트는 포함하지 마세요.
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 4096,
+          maxOutputTokens: 8192,
+          responseMimeType: 'application/json',
         },
       }),
     }

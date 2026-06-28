@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoalStore, useSessionStore, useAppStore } from '../store';
-import { getTodaySession, saveSession } from '../utils/storage';
+import { getTodaySession, saveSession, getSessions } from '../utils/storage';
 import { generateId } from '../utils/id';
 import type { Goal } from '../types';
+import BottomNav from '../components/BottomNav';
 
 function DaysLeft({ deadline }: { deadline: string }) {
   const today = new Date().toISOString().split('T')[0];
@@ -88,16 +89,97 @@ function GoalCard({ goal }: { goal: Goal }) {
   );
 }
 
+function UrgentBanner({ goals, onStart }: { goals: Goal[]; onStart: (goalId: string) => void }) {
+  const today = new Date().toISOString().split('T')[0];
+  const dismissKey = `urgentBannerDismissed_${today}`;
+  const [dismissed, setDismissed] = useState(() => {
+    return localStorage.getItem(dismissKey) === '1';
+  });
+
+  const urgentGoal = goals.find((goal) => {
+    if (goal.status !== 'active' || goal.totalSessions === 0) return false;
+
+    // Check 2 consecutive days of no completion
+    const allSessions = getSessions().filter((s) => s.goalId === goal.id && s.status === 'completed');
+    const completedDates = new Set(allSessions.map((s) => s.date));
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yStr = yesterday.toISOString().split('T')[0];
+    const tdStr = twoDaysAgo.toISOString().split('T')[0];
+    const twoDaysMissed = !completedDates.has(yStr) && !completedDates.has(tdStr);
+
+    // Check progress gap >= 30%
+    const created = goal.createdAt.split('T')[0];
+    const daysPassed = Math.max(
+      Math.ceil((new Date(today).getTime() - new Date(created).getTime()) / (1000 * 60 * 60 * 24)),
+      0
+    );
+    const expectedProgress = Math.min(daysPassed / goal.totalSessions, 1);
+    const actualProgress = goal.completedSessions / goal.totalSessions;
+    const bigGap = expectedProgress - actualProgress >= 0.3;
+
+    return twoDaysMissed || bigGap;
+  });
+
+  if (!urgentGoal || dismissed) return null;
+
+  const handleDismiss = () => {
+    localStorage.setItem(dismissKey, '1');
+    setDismissed(true);
+  };
+
+  return (
+    <div
+      className="mx-4 mb-4 p-4 bg-indigo-600 rounded-2xl flex items-center gap-3 cursor-pointer active:opacity-90 transition-opacity"
+      onClick={() => onStart(urgentGoal.id)}
+    >
+      <div className="flex-1">
+        <p className="text-white font-semibold text-sm">
+          📢 {urgentGoal.topic}을 잊지 않았죠? 오늘 딱 5분만요!
+        </p>
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDismiss();
+        }}
+        className="text-indigo-200 hover:text-white p-1 min-h-[36px] min-w-[36px] flex items-center justify-center"
+      >
+        ✕
+      </button>
+    </div>
+  );
+}
+
 export default function HomeScreen() {
   const navigate = useNavigate();
   const { goals, loadGoals } = useGoalStore();
+  const { loadSessions } = useSessionStore();
   const { appState } = useAppStore();
 
   useEffect(() => {
     loadGoals();
-  }, [loadGoals]);
+    loadSessions();
+  }, [loadGoals, loadSessions]);
 
   const activeGoals = goals.filter((g) => g.status === 'active');
+
+  const handleBannerStart = (goalId: string) => {
+    let session = getTodaySession(goalId);
+    if (!session) {
+      session = {
+        id: generateId(),
+        goalId,
+        date: new Date().toISOString().split('T')[0],
+        status: 'in_progress',
+        selectedQuizIds: [],
+      };
+      saveSession(session);
+    }
+    navigate(`/learn/${goalId}`);
+  };
 
   if (!appState.geminiApiKey) {
     return (
@@ -120,7 +202,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16">
+      <UrgentBanner goals={activeGoals} onStart={handleBannerStart} />
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -171,6 +254,7 @@ export default function HomeScreen() {
           </>
         )}
       </div>
+      <BottomNav />
     </div>
   );
 }

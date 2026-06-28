@@ -147,7 +147,7 @@ export default function GoalCreateScreen() {
           <div className="bg-indigo-50 rounded-xl p-4">
             <p className="text-indigo-700 text-sm">
               AI가 학습 요약과 퀴즈 15개를 자동으로 생성합니다.
-              Gemini 1.5 Flash를 사용하며 약 10~20초 소요됩니다.
+              Gemini 2.0 Flash Lite를 사용하며 약 10~20초 소요됩니다.
             </p>
           </div>
 

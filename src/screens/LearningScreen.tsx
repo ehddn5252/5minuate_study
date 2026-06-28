@@ -39,10 +39,12 @@ export default function LearningScreen() {
     if (!goal) return;
     const session = getTodaySession(goal.id);
     if (session) {
-      updateSession({
+      const updated = {
         ...session,
         summaryViewedAt: new Date().toISOString(),
-      });
+      };
+      saveSession(updated);
+      updateSession(updated);
     }
     navigate(`/test/${goal.id}`);
   };
