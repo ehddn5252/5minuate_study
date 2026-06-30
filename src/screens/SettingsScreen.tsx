@@ -130,6 +130,19 @@ export default function SettingsScreen() {
           )}
         </div>
 
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+          <h2 className="font-semibold text-gray-900 mb-3">학습 데이터</h2>
+          <button
+            onClick={() => navigate('/wrong-pool')}
+            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
+          >
+            <span>오답 목록 보기</span>
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
         <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
           <p className="text-amber-700 text-sm">
             API 키는 이 기기의 localStorage에만 저장되며 서버로 전송되지 않습니다.

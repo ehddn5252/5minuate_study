@@ -256,17 +256,26 @@ export default function TestScreen() {
         (s) => s.goalId === goal.id && s.date === yesterdayStr && s.status === 'completed'
       );
       const newStreak = hadYesterdaySession ? goal.streak + 1 : 1;
+      const newCompletedSessions = goal.completedSessions + 1;
+      const isGoalComplete = goal.totalSessions > 0 && newCompletedSessions >= goal.totalSessions;
       const updatedGoal = {
         ...goal,
-        completedSessions: goal.completedSessions + 1,
+        completedSessions: newCompletedSessions,
         streak: newStreak,
         bestStreak: Math.max(goal.bestStreak, newStreak),
+        ...(isGoalComplete ? { status: 'completed' as const, completedAt: new Date().toISOString() } : {}),
       };
       updateGoal(updatedGoal);
 
-      navigate(`/complete/${sessionId}`, {
-        state: { score, total, streak: newStreak },
-      });
+      if (isGoalComplete) {
+        navigate(`/goal-complete/${goal.id}`, {
+          state: { score, total, streak: newStreak, completedSessions: newCompletedSessions },
+        });
+      } else {
+        navigate(`/complete/${sessionId}`, {
+          state: { score, total, streak: newStreak },
+        });
+      }
     } else {
       setCurrentIndex((i) => i + 1);
       setAnswered(false);

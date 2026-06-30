@@ -17,6 +17,22 @@ function DaysLeft({ deadline }: { deadline: string }) {
   return <span className="text-indigo-500 text-sm">D-{diff}</span>;
 }
 
+function DelayLabel({ goal }: { goal: Goal }) {
+  if (goal.totalSessions === 0) return null;
+  const today = new Date().toISOString().split('T')[0];
+  const daysPassed = Math.max(
+    Math.ceil((new Date(today).getTime() - new Date(goal.createdAt.split('T')[0]).getTime()) / (1000 * 60 * 60 * 24)),
+    0
+  );
+  const expected = Math.min(daysPassed / goal.totalSessions, 1);
+  const actual = goal.completedSessions / goal.totalSessions;
+  const gap = expected - actual;
+  if (gap <= 0.05) return null;
+  if (gap <= 0.2)
+    return <span className="text-xs font-medium text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">조금 뒤처지고 있어요</span>;
+  return <span className="text-xs font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">서둘러야 해요!</span>;
+}
+
 function GoalCard({ goal }: { goal: Goal }) {
   const navigate = useNavigate();
   const { loadSessions } = useSessionStore();
@@ -49,7 +65,10 @@ function GoalCard({ goal }: { goal: Goal }) {
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="font-semibold text-gray-900 text-lg">{goal.topic}</h3>
-          <DaysLeft deadline={goal.deadline} />
+          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+            <DaysLeft deadline={goal.deadline} />
+            <DelayLabel goal={goal} />
+          </div>
         </div>
         {goal.streak > 0 && (
           <div className="flex items-center gap-1 bg-orange-50 rounded-full px-3 py-1">
