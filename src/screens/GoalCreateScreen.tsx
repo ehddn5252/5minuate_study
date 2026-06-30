@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGoalStore, useQuizStore, useAppStore } from '../store';
 import { generateGoalContent } from '../services/gemini';
 import { generateId } from '../utils/id';
+import { TEMPLATES } from '../data/templates';
 import type { Goal } from '../types';
 
 export default function GoalCreateScreen() {
@@ -16,10 +17,21 @@ export default function GoalCreateScreen() {
   const [rawContent, setRawContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
   const minDateStr = minDate.toISOString().split('T')[0];
+
+  const handleSelectTemplate = (id: string) => {
+    const tpl = TEMPLATES.find((t) => t.id === id);
+    if (!tpl) return;
+    setSelectedTemplateId(id);
+    setTopic(tpl.topic);
+    const d = new Date();
+    d.setDate(d.getDate() + tpl.recommendedDays);
+    setDeadline(d.toISOString().split('T')[0]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +105,44 @@ export default function GoalCreateScreen() {
           <h1 className="text-xl font-bold text-gray-900">새 학습 목표</h1>
         </div>
 
+        {/* Template picker */}
+        <div className="mb-6">
+          <p className="text-sm font-semibold text-gray-700 mb-3">🚀 빠른 시작 — 자격증 템플릿</p>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none">
+            {TEMPLATES.map((tpl) => (
+              <button
+                key={tpl.id}
+                onClick={() => handleSelectTemplate(tpl.id)}
+                disabled={loading}
+                className={`flex-shrink-0 flex flex-col items-center gap-1.5 w-20 py-3 px-2 rounded-2xl border-2 transition-all ${
+                  selectedTemplateId === tpl.id
+                    ? 'border-indigo-500 bg-indigo-50'
+                    : 'border-gray-200 bg-white hover:border-indigo-200'
+                }`}
+              >
+                <span className="text-2xl">{tpl.icon}</span>
+                <span className={`text-xs font-medium text-center leading-tight ${
+                  selectedTemplateId === tpl.id ? 'text-indigo-700' : 'text-gray-600'
+                }`}>
+                  {tpl.name}
+                </span>
+                <span className="text-xs text-gray-400">{tpl.recommendedDays}일</span>
+              </button>
+            ))}
+          </div>
+          {selectedTemplateId && (
+            <p className="text-xs text-indigo-500 mt-2 px-1">
+              ✓ 템플릿 적용됨 — 주제와 기한이 자동 입력됐어요. 수정 가능합니다.
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400 font-medium">직접 입력</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -101,7 +151,7 @@ export default function GoalCreateScreen() {
             <input
               type="text"
               value={topic}
-              onChange={(e) => setTopic(e.target.value)}
+              onChange={(e) => { setTopic(e.target.value); setSelectedTemplateId(null); }}
               placeholder="예: 리액트 훅의 개념과 활용"
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
               required
@@ -147,7 +197,7 @@ export default function GoalCreateScreen() {
           <div className="bg-indigo-50 rounded-xl p-4">
             <p className="text-indigo-700 text-sm">
               AI가 학습 요약과 퀴즈 15개를 자동으로 생성합니다.
-              Gemini 2.0 Flash Lite를 사용하며 약 10~20초 소요됩니다.
+              약 10~20초 소요됩니다.
             </p>
           </div>
 
