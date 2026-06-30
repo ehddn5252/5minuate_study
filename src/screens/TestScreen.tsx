@@ -150,7 +150,7 @@ export default function TestScreen() {
   const [answered, setAnswered] = useState(false);
 
   useEffect(() => {
-    if (!goal) return;
+    if (!goal || testQuizzes.length > 0) return;
     const pool = quizzes.filter((q) => goal.quizPoolIds.includes(q.id));
     const TARGET = Math.max(2, Math.min(5, pool.length));
 
@@ -166,7 +166,7 @@ export default function TestScreen() {
     const fromCorrect = correctQuizzes.slice(0, remaining);
 
     setTestQuizzes([...fromWrong, ...fromCorrect].slice(0, TARGET));
-  }, [goal, quizzes]);
+  }, [goal, quizzes, testQuizzes.length]);
 
   if (!goal || testQuizzes.length === 0) {
     return (
@@ -212,10 +212,12 @@ export default function TestScreen() {
       const total = testQuizzes.length;
 
       // Update session
-      const session = getTodaySession(goal.id);
-      if (session) {
+      const existingSession = getTodaySession(goal.id);
+      let sessionId: string;
+      if (existingSession) {
+        sessionId = existingSession.id;
         const updatedSession = {
-          ...session,
+          ...existingSession,
           status: 'completed' as const,
           completedAt: new Date().toISOString(),
           selectedQuizIds: testQuizzes.map((q) => q.id),
@@ -225,8 +227,9 @@ export default function TestScreen() {
         saveSession(updatedSession);
         updateSession(updatedSession);
       } else {
+        sessionId = generateId();
         const newSession = {
-          id: generateId(),
+          id: sessionId,
           goalId: goal.id,
           date: new Date().toISOString().split('T')[0],
           status: 'completed' as const,
@@ -256,7 +259,6 @@ export default function TestScreen() {
       };
       updateGoal(updatedGoal);
 
-      const sessionId = session?.id ?? generateId();
       navigate(`/complete/${sessionId}`, {
         state: { score, total, streak: newStreak },
       });
