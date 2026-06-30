@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGoalStore, useSessionStore, useQuizStore } from '../store';
-import { getTodaySession, saveSession, addToWrongPool, getSessions, getActiveWrongPool } from '../utils/storage';
+import { getTodaySession, saveSession, addToWrongPool, removeFromWrongPool, getSessions, getActiveWrongPool } from '../utils/storage';
 import { generateId } from '../utils/id';
 import type { Quiz } from '../types';
 
@@ -148,11 +148,14 @@ export default function TestScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [answered, setAnswered] = useState(false);
+  const initialized = useRef(false);
 
   useEffect(() => {
-    if (!goal || testQuizzes.length > 0) return;
+    if (!goal || initialized.current) return;
+    initialized.current = true;
+
     const pool = quizzes.filter((q) => goal.quizPoolIds.includes(q.id));
-    const TARGET = Math.max(2, Math.min(5, pool.length));
+    const TARGET = Math.min(5, pool.length);
 
     // F-09: prioritise wrong answers (up to 50% of TARGET)
     const wrongPoolEntries = getActiveWrongPool(goal.id);
@@ -166,7 +169,7 @@ export default function TestScreen() {
     const fromCorrect = correctQuizzes.slice(0, remaining);
 
     setTestQuizzes([...fromWrong, ...fromCorrect].slice(0, TARGET));
-  }, [goal, quizzes, testQuizzes.length]);
+  }, [goal, quizzes]);
 
   if (!goal || testQuizzes.length === 0) {
     return (
@@ -201,8 +204,10 @@ export default function TestScreen() {
     } else {
       updateQuiz({
         ...quiz,
+        isWrong: false,
         lastAttemptedAt: new Date().toISOString(),
       });
+      removeFromWrongPool(goal.id, quiz.id);
     }
   };
 
