@@ -16,6 +16,11 @@ interface GenerateGoalContentResult {
   quizPool: Quiz[];
 }
 
+interface GenerateDailyContentResult {
+  summary: string;
+  quizzes: Quiz[];
+}
+
 export async function generateGoalContent(
   goalId: string,
   topic: string,
@@ -116,4 +121,93 @@ JSON만 응답하고 다른 텍스트는 포함하지 마세요.
     summary: parsed.summary,
     quizPool,
   };
+}
+
+export async function generateDailyContent(
+  goalId: string,
+  topic: string,
+  dayNum: number,
+  totalDays: number,
+  apiKey: string,
+  rawContent?: string
+): Promise<GenerateDailyContentResult> {
+  const prompt = `
+당신은 학습 도우미입니다. 아래 주제를 ${totalDays}일에 걸쳐 단계적으로 학습하는 커리큘럼에서 오늘(${dayNum}일째) 배울 내용을 생성해주세요.
+
+주제: ${topic}
+오늘: ${dayNum}일째 / 전체 ${totalDays}일
+${rawContent ? `참고 자료:\n${rawContent}\n` : ''}
+
+규칙:
+- 전체 ${totalDays}일을 균등하게 나눠 각 날짜마다 새로운 내용을 다룹니다.
+- ${dayNum}일째에 해당하는 진도(앞 날들과 겹치지 않는 새 내용)를 다루세요.
+- 초반(1~${Math.ceil(totalDays * 0.3)}일): 기초 개념, 중반(${Math.ceil(totalDays * 0.3) + 1}~${Math.ceil(totalDays * 0.7)}일): 핵심 내용, 후반(${Math.ceil(totalDays * 0.7) + 1}~${totalDays}일): 심화/응용.
+
+다음 JSON 형식으로만 응답하세요:
+{
+  "summary": "오늘(${dayNum}일째) 배울 핵심 내용을 3~5개 불릿 포인트로 정리. 각 항목은 '• '으로 시작하고 줄바꿈으로 구분",
+  "quizzes": [
+    {
+      "question": "질문",
+      "type": "multiple_choice",
+      "options": ["선택지1", "선택지2", "선택지3", "선택지4"],
+      "answer": "정답 선택지 텍스트",
+      "explanation": "해설"
+    }
+  ]
+}
+
+퀴즈는 정확히 5개. multiple_choice 3개, short_answer 2개. 오늘 배운 내용 기반으로 출제.
+JSON만 응답하세요.
+`.trim();
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 4096,
+          responseMimeType: 'application/json',
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Gemini API 오류: ${response.status} - ${err}`);
+  }
+
+  const data = await response.json() as {
+    candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+  };
+
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('Gemini 응답에서 JSON을 찾을 수 없습니다.');
+
+  const parsed = JSON.parse(jsonMatch[0]) as {
+    summary: string;
+    quizzes: GeminiQuizRaw[];
+  };
+
+  const quizzes: Quiz[] = parsed.quizzes.map((q) => ({
+    id: generateId(),
+    goalId,
+    question: q.question,
+    type: q.type,
+    options: q.options,
+    answer: q.answer,
+    explanation: q.explanation,
+    isWrong: false,
+    wrongCount: 0,
+  }));
+
+  return { summary: parsed.summary, quizzes };
 }

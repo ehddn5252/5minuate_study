@@ -31,6 +31,8 @@ export interface Session {
   selectedQuizIds: string[];
   quizScore?: number;
   quizTotal?: number;
+  summaryContent?: string;
+  dailyQuizIds?: string[];
 }
 
 export interface Quiz {

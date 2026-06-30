@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGoalStore, useSessionStore, useQuizStore } from '../store';
-import { getTodaySession, saveSession, addToWrongPool, removeFromWrongPool, getSessions, getActiveWrongPool } from '../utils/storage';
+import { getTodaySession, saveSession, addToWrongPool, removeFromWrongPool, getSessions, getActiveWrongPool, getQuizzes } from '../utils/storage';
 import { checkAndAwardBadges } from '../utils/badges';
 import { generateId } from '../utils/id';
 import type { Quiz } from '../types';
@@ -155,7 +155,14 @@ export default function TestScreen() {
     if (!goal || initialized.current) return;
     initialized.current = true;
 
-    const pool = quizzes.filter((q) => goal.quizPoolIds.includes(q.id));
+    // 오늘 세션의 dailyQuizIds 우선 사용, 없으면 goal.quizPoolIds fallback
+    const todaySession = getTodaySession(goal.id);
+    const allQuizzes = getQuizzes();
+    const dailyIds = todaySession?.dailyQuizIds ?? [];
+    const pool = dailyIds.length > 0
+      ? allQuizzes.filter((q) => dailyIds.includes(q.id))
+      : allQuizzes.filter((q) => goal.quizPoolIds.includes(q.id));
+
     const TARGET = Math.min(5, pool.length);
 
     // F-09: prioritise wrong answers (up to 50% of TARGET)
