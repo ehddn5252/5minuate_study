@@ -10,6 +10,7 @@ import SessionCompleteScreen from './screens/SessionCompleteScreen';
 import GoalCompleteScreen from './screens/GoalCompleteScreen';
 import WrongPoolScreen from './screens/WrongPoolScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import AchievementsScreen from './screens/AchievementsScreen';
 import { initReminder } from './services/notification';
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/complete/:sessionId" element={<SessionCompleteScreen />} />
         <Route path="/goal-complete/:goalId" element={<GoalCompleteScreen />} />
         <Route path="/wrong-pool" element={<WrongPoolScreen />} />
+        <Route path="/achievements" element={<AchievementsScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
       </Routes>
     </BrowserRouter>

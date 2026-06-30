@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGoalStore, useSessionStore, useQuizStore } from '../store';
 import { getTodaySession, saveSession, addToWrongPool, removeFromWrongPool, getSessions, getActiveWrongPool } from '../utils/storage';
+import { checkAndAwardBadges } from '../utils/badges';
 import { generateId } from '../utils/id';
 import type { Quiz } from '../types';
 
@@ -267,13 +268,15 @@ export default function TestScreen() {
       };
       updateGoal(updatedGoal);
 
+      const newBadges = checkAndAwardBadges(goal.id, score, total, newStreak);
+
       if (isGoalComplete) {
         navigate(`/goal-complete/${goal.id}`, {
-          state: { score, total, streak: newStreak, completedSessions: newCompletedSessions },
+          state: { score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges },
         });
       } else {
         navigate(`/complete/${sessionId}`, {
-          state: { score, total, streak: newStreak },
+          state: { score, total, streak: newStreak, newBadges },
         });
       }
     } else {

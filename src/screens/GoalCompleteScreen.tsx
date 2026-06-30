@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useGoalStore } from '../store';
+import { getBadgeDef } from '../utils/badges';
+import type { BadgeId } from '../types';
 
 interface LocationState {
   score: number;
   total: number;
   streak: number;
   completedSessions: number;
+  newBadges?: BadgeId[];
 }
 
 export default function GoalCompleteScreen() {
@@ -21,6 +24,7 @@ export default function GoalCompleteScreen() {
   const total = state?.total ?? 5;
   const streak = state?.streak ?? 1;
   const completedSessions = state?.completedSessions ?? goal?.completedSessions ?? 0;
+  const newBadges = state?.newBadges ?? [];
   const percent = Math.round((score / total) * 100);
 
   useEffect(() => {
@@ -56,6 +60,23 @@ export default function GoalCompleteScreen() {
             </div>
           </div>
         </div>
+
+        {newBadges.length > 0 && (
+          <div className="bg-yellow-50 rounded-2xl p-4 mb-4 border border-yellow-200">
+            <p className="text-yellow-700 font-semibold text-sm mb-3">🎉 뱃지 획득!</p>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {newBadges.map((id) => {
+                const def = getBadgeDef(id);
+                return (
+                  <div key={id} className="flex flex-col items-center gap-1">
+                    <span className="text-3xl">{def.icon}</span>
+                    <span className="text-xs font-medium text-yellow-700">{def.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <p className="text-gray-400 text-sm mb-4">6초 후 홈으로 이동합니다</p>
 

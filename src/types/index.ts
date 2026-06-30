@@ -54,6 +54,18 @@ export interface WrongPool {
   resolvedAt?: string;
 }
 
+export type BadgeId =
+  | 'first_step'
+  | 'flame_7'
+  | 'persistence_30'
+  | 'perfect_5'
+  | 'zero_wrong';
+
+export interface Badge {
+  id: BadgeId;
+  unlockedAt: string;
+}
+
 export interface AppState {
   activeGoalIds: string[];
   lastOpenedDate: string;

@@ -1,4 +1,4 @@
-import type { Goal, Session, Quiz, WrongPool, AppState } from '../types';
+import type { Goal, Session, Quiz, WrongPool, AppState, Badge, BadgeId } from '../types';
 
 const KEYS = {
   GOALS: 'goals',
@@ -155,6 +155,23 @@ export function removeFromWrongPool(goalId: string, quizId: string): void {
       (w) => !(w.goalId === goalId && w.quizId === quizId)
     )
   );
+}
+
+// Badges
+export function getBadges(): Badge[] {
+  return getItem<Badge>('badges');
+}
+
+export function hasBadge(id: BadgeId): boolean {
+  return getBadges().some((b) => b.id === id);
+}
+
+export function saveBadge(badge: Badge): void {
+  const badges = getBadges();
+  if (!badges.some((b) => b.id === badge.id)) {
+    badges.push(badge);
+    localStorage.setItem('badges', JSON.stringify(badges));
+  }
 }
 
 // AppState

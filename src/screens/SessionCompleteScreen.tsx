@@ -1,11 +1,14 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
+import { getBadgeDef } from '../utils/badges';
+import type { BadgeId } from '../types';
 
 interface LocationState {
   score: number;
   total: number;
   streak: number;
+  newBadges?: BadgeId[];
 }
 
 export default function SessionCompleteScreen() {
@@ -16,6 +19,7 @@ export default function SessionCompleteScreen() {
   const score = state?.score ?? 0;
   const total = state?.total ?? 5;
   const streak = state?.streak ?? 1;
+  const newBadges = state?.newBadges ?? [];
   const percent = Math.round((score / total) * 100);
 
   useEffect(() => {
@@ -64,6 +68,23 @@ export default function SessionCompleteScreen() {
             </div>
           </div>
         </div>
+
+        {newBadges.length > 0 && (
+          <div className="bg-indigo-50 rounded-2xl p-4 mb-4 border border-indigo-100">
+            <p className="text-indigo-700 font-semibold text-sm mb-3">🎉 뱃지 획득!</p>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {newBadges.map((id) => {
+                const def = getBadgeDef(id);
+                return (
+                  <div key={id} className="flex flex-col items-center gap-1">
+                    <span className="text-3xl">{def.icon}</span>
+                    <span className="text-xs font-medium text-indigo-600">{def.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <p className="text-gray-400 text-sm mb-4">4초 후 홈으로 이동합니다</p>
 
