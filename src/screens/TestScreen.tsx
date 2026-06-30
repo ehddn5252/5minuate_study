@@ -272,11 +272,11 @@ export default function TestScreen() {
 
       if (isGoalComplete) {
         navigate(`/goal-complete/${goal.id}`, {
-          state: { score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges },
+          state: { score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges, topic: goal.topic },
         });
       } else {
         navigate(`/complete/${sessionId}`, {
-          state: { score, total, streak: newStreak, newBadges },
+          state: { score, total, streak: newStreak, newBadges, topic: goal.topic },
         });
       }
     } else {

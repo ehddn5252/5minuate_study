@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import { getBadgeDef } from '../utils/badges';
+import { shareOrDownload } from '../utils/shareCard';
 import type { BadgeId } from '../types';
 
 interface LocationState {
@@ -9,6 +10,7 @@ interface LocationState {
   total: number;
   streak: number;
   newBadges?: BadgeId[];
+  topic?: string;
 }
 
 export default function SessionCompleteScreen() {
@@ -20,7 +22,9 @@ export default function SessionCompleteScreen() {
   const total = state?.total ?? 5;
   const streak = state?.streak ?? 1;
   const newBadges = state?.newBadges ?? [];
+  const topic = state?.topic ?? '학습';
   const percent = Math.round((score / total) * 100);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -88,6 +92,20 @@ export default function SessionCompleteScreen() {
 
         <p className="text-gray-400 text-sm mb-4">4초 후 홈으로 이동합니다</p>
 
+        <button
+          onClick={async () => {
+            setSharing(true);
+            try {
+              await shareOrDownload({ topic, streak, score, total, isGoalComplete: false });
+            } finally {
+              setSharing(false);
+            }
+          }}
+          disabled={sharing}
+          className="w-full mb-3 py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold min-h-[44px] disabled:opacity-50"
+        >
+          {sharing ? '생성 중...' : '📤 결과 공유하기'}
+        </button>
         <button
           onClick={() => navigate('/')}
           className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"

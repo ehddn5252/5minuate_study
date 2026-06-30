@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useGoalStore } from '../store';
 import { getBadgeDef } from '../utils/badges';
+import { shareOrDownload } from '../utils/shareCard';
 import type { BadgeId } from '../types';
 
 interface LocationState {
@@ -26,6 +27,7 @@ export default function GoalCompleteScreen() {
   const completedSessions = state?.completedSessions ?? goal?.completedSessions ?? 0;
   const newBadges = state?.newBadges ?? [];
   const percent = Math.round((score / total) * 100);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => navigate('/'), 6000);
@@ -81,8 +83,22 @@ export default function GoalCompleteScreen() {
         <p className="text-gray-400 text-sm mb-4">6초 후 홈으로 이동합니다</p>
 
         <button
+          onClick={async () => {
+            setSharing(true);
+            try {
+              await shareOrDownload({ topic: goal?.topic ?? '학습 목표', streak, score, total, isGoalComplete: true });
+            } finally {
+              setSharing(false);
+            }
+          }}
+          disabled={sharing}
+          className="w-full mb-3 py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px] disabled:opacity-50"
+        >
+          {sharing ? '생성 중...' : '📤 목표 달성 공유하기'}
+        </button>
+        <button
           onClick={() => navigate('/goals/create')}
-          className="w-full mb-3 py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"
+          className="w-full mb-3 py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold min-h-[44px]"
         >
           새 목표 만들기
         </button>
