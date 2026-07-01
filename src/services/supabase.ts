@@ -1,0 +1,87 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export async function signInWithGoogle(): Promise<void> {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin },
+  });
+  if (error) throw error;
+}
+
+export async function signOut(): Promise<void> {
+  await supabase.auth.signOut();
+}
+
+export async function getCurrentUser() {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+
+// localStorage 전체를 Supabase에 저장
+export async function syncToCloud(userId: string): Promise<void> {
+  const localAppState = JSON.parse(localStorage.getItem('appState') ?? '{}') as Record<string, unknown>;
+  // API 키는 클라우드에 저장하지 않음
+  const { geminiApiKey: _removed, ...appStateWithoutKey } = localAppState as { geminiApiKey?: string } & Record<string, unknown>;
+
+  const payload = {
+    user_id: userId,
+    goals: JSON.parse(localStorage.getItem('goals') ?? '[]'),
+    sessions: JSON.parse(localStorage.getItem('sessions') ?? '[]'),
+    quizzes: JSON.parse(localStorage.getItem('quizzes') ?? '[]'),
+    wrong_pool: JSON.parse(localStorage.getItem('wrongPool') ?? '[]'),
+    badges: JSON.parse(localStorage.getItem('badges') ?? '[]'),
+    app_state: appStateWithoutKey,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase.from('user_data').upsert(payload);
+  if (error) console.error('[Supabase] 동기화 오류:', error.message);
+}
+
+// Supabase에서 데이터를 내려받아 localStorage에 저장
+export async function loadFromCloud(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('user_data')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) return false;
+
+  // 로컬 API 키 보존 후 병합
+  const localAppState = JSON.parse(localStorage.getItem('appState') ?? '{}') as Record<string, unknown>;
+  const cloudAppState = (data.app_state ?? {}) as Record<string, unknown>;
+  const mergedAppState = {
+    ...cloudAppState,
+    geminiApiKey: (localAppState.geminiApiKey as string) || (cloudAppState.geminiApiKey as string) || '',
+  };
+
+  localStorage.setItem('goals', JSON.stringify(data.goals ?? []));
+  localStorage.setItem('sessions', JSON.stringify(data.sessions ?? []));
+  localStorage.setItem('quizzes', JSON.stringify(data.quizzes ?? []));
+  localStorage.setItem('wrongPool', JSON.stringify(data.wrong_pool ?? []));
+  localStorage.setItem('badges', JSON.stringify(data.badges ?? []));
+  localStorage.setItem('appState', JSON.stringify(mergedAppState));
+
+  return true;
+}
+
+// 로컬에 데이터가 없고 클라우드에도 없으면 false, 있으면 업로드
+export async function migrateLocalToCloud(userId: string): Promise<void> {
+  const { data } = await supabase
+    .from('user_data')
+    .select('user_id')
+    .eq('user_id', userId)
+    .single();
+
+  if (!data) {
+    // 신규 계정 → 기존 로컬 데이터 업로드
+    await syncToCloud(userId);
+  }
+  // 기존 계정이면 클라우드 우선
+}

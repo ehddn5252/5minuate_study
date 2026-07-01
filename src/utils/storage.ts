@@ -19,6 +19,7 @@ function getItem<T>(key: string): T[] {
 
 function setItem<T>(key: string, data: T[]): void {
   localStorage.setItem(key, JSON.stringify(data));
+  window.dispatchEvent(new Event('storage-sync'));
 }
 
 // Goals
@@ -197,6 +198,7 @@ export function getAppState(): AppState {
 
 export function saveAppState(state: AppState): void {
   localStorage.setItem(KEYS.APP_STATE, JSON.stringify(state));
+  window.dispatchEvent(new Event('storage-sync'));
 }
 
 export function updateAppState(partial: Partial<AppState>): void {
