@@ -5,6 +5,7 @@ export interface Template {
   topic: string;
   recommendedDays: number;
   category: string;
+  curriculumId?: string;
 }
 
 export const TEMPLATES: Template[] = [
@@ -87,5 +88,14 @@ export const TEMPLATES: Template[] = [
     topic: 'Python 기초 문법 및 자료구조',
     recommendedDays: 21,
     category: '개발',
+  },
+  {
+    id: 'english_grammar',
+    icon: '📖',
+    name: '영어 문법 완전 정복',
+    topic: '영어 문법 완전 정복 - 8품사부터 가정법까지',
+    recommendedDays: 30,
+    category: '어학',
+    curriculumId: 'english_grammar',
   },
 ];

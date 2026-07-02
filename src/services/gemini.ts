@@ -157,7 +157,7 @@ ${rawContent ? `참고 자료:\n${rawContent}\n` : ''}
   ]
 }
 
-퀴즈는 정확히 5개. multiple_choice 3개, short_answer 2개. 오늘 배운 내용 기반으로 출제.
+퀴즈는 정확히 8개. multiple_choice 6개, short_answer 2개. 오늘 배운 내용 기반으로 출제.
 JSON만 응답하세요.
 `.trim();
 

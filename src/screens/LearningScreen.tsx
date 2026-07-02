@@ -4,6 +4,7 @@ import { useGoalStore, useSessionStore, useQuizStore, useAppStore } from '../sto
 import { getTodaySession, saveSession } from '../utils/storage';
 import { generateDailyContent } from '../services/gemini';
 import { generateId } from '../utils/id';
+import { getCurriculumDay } from '../data/curriculum';
 
 export default function LearningScreen() {
   const { goalId } = useParams<{ goalId: string }>();
@@ -19,6 +20,7 @@ export default function LearningScreen() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [todayTopic, setTodayTopic] = useState('');
 
   useEffect(() => {
     if (!goal) return;
@@ -38,6 +40,11 @@ export default function LearningScreen() {
     // 이미 오늘 콘텐츠가 생성된 경우 → 그대로 표시
     if (session.summaryContent) {
       setSummary(session.summaryContent);
+      if (goal.curriculumId) {
+        const dayNum = goal.completedSessions + 1;
+        const curricDay = getCurriculumDay(goal.curriculumId, dayNum);
+        if (curricDay) setTodayTopic(curricDay.topic);
+      }
       return;
     }
 
@@ -51,6 +58,16 @@ export default function LearningScreen() {
     const totalDays = goal.totalSessions;
     const capturedSession = session;
 
+    // 커리큘럼이 있으면 해당 날짜 내용을 rawContent로 사용
+    let effectiveRawContent = goal.rawContent;
+    if (goal.curriculumId) {
+      const curricDay = getCurriculumDay(goal.curriculumId, dayNum);
+      if (curricDay) {
+        setTodayTopic(curricDay.topic);
+        effectiveRawContent = curricDay.content;
+      }
+    }
+
     setGenerating(true);
     generateDailyContent(
       goal.id,
@@ -58,7 +75,7 @@ export default function LearningScreen() {
       dayNum,
       totalDays,
       appState.geminiApiKey,
-      goal.rawContent
+      effectiveRawContent
     )
       .then(({ summary: s, quizzes }) => {
         addQuizzes(quizzes);
@@ -163,11 +180,16 @@ export default function LearningScreen() {
           style={{ maxHeight: 'calc(100vh - 260px)' }}
           onScroll={handleScroll}
         >
-          <div className="flex items-center gap-2 mb-4">
-            <span className="bg-indigo-100 text-indigo-600 text-xs font-semibold px-3 py-1 rounded-full">
-              Day {dayNum}
-            </span>
-            <h2 className="text-sm font-semibold text-gray-500">오늘의 핵심 내용</h2>
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="bg-indigo-100 text-indigo-600 text-xs font-semibold px-3 py-1 rounded-full">
+                Day {dayNum}
+              </span>
+              <h2 className="text-sm font-semibold text-gray-500">오늘의 핵심 내용</h2>
+            </div>
+            {todayTopic && (
+              <p className="text-base font-bold text-gray-800">{todayTopic}</p>
+            )}
           </div>
           <ul className="space-y-4">
             {bullets.map((line, i) => {

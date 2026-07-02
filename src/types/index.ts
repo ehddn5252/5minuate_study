@@ -16,6 +16,7 @@ export interface Goal {
   notificationTime: string;
   notificationEnabled: boolean;
   rawContent?: string;
+  curriculumId?: string;
   dailyPlan: string;
   summaryContent: string;
   quizPoolIds: string[];
