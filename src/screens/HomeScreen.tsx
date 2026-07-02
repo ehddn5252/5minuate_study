@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoalStore, useSessionStore } from '../store';
+import { TEMPLATES as TEMPLATES_PREVIEW } from '../data/templates';
 import { getTodaySession, saveSession, getSessions } from '../utils/storage';
 import { generateId } from '../utils/id';
 import type { Goal } from '../types';
@@ -241,18 +242,36 @@ export default function HomeScreen() {
         </div>
 
         {activeGoals.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="text-center py-10">
             <div className="text-5xl mb-4">📚</div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">학습 목표가 없어요</h2>
-            <p className="text-gray-500 text-sm mb-8">
-              새로운 목표를 추가하고<br />하루 5분 학습을 시작해보세요!
+            <p className="text-gray-500 text-sm mb-6">
+              새로운 목표를 추가하거나<br />쇼츠로 먼저 체험해보세요!
             </p>
             <button
               onClick={() => navigate('/goals/create')}
-              className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px]"
+              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] mb-3"
             >
-              첫 목표 만들기
+              목표 만들기
             </button>
+            <p className="text-xs text-gray-400 mb-3">또는 지금 바로 맛보기</p>
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+              {(['english_grammar', 'iip_practical', 'driving_written'] as const).map((tid) => {
+                const tpl = TEMPLATES_PREVIEW.find((t) => t.id === tid);
+                if (!tpl) return null;
+                return (
+                  <button
+                    key={tid}
+                    onClick={() => navigate(`/shorts/${tid}`)}
+                    className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-sm font-medium text-indigo-700"
+                  >
+                    <span>{tpl.icon}</span>
+                    <span>{tpl.name}</span>
+                    <span className="text-xs bg-indigo-600 text-white px-1.5 py-0.5 rounded-full">⚡ 쇼츠</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         ) : (
           <>

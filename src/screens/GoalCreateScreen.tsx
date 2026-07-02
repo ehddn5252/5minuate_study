@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGoalStore, useQuizStore, useAppStore } from '../store';
 import { generateGoalContent } from '../services/gemini';
 import { generateId } from '../utils/id';
@@ -8,18 +8,33 @@ import type { Goal } from '../types';
 
 export default function GoalCreateScreen() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { addGoal } = useGoalStore();
   const { addQuizzes } = useQuizStore();
   const { appState } = useAppStore();
 
-  const [topic, setTopic] = useState('');
-  const [deadline, setDeadline] = useState('');
+  const [topic, setTopic] = useState(() => {
+    const tplId = searchParams.get('templateId');
+    const tpl = TEMPLATES.find((t) => t.id === tplId);
+    return tpl ? tpl.topic : '';
+  });
+  const [deadline, setDeadline] = useState(() => {
+    const tplId = searchParams.get('templateId');
+    const tpl = TEMPLATES.find((t) => t.id === tplId);
+    if (!tpl) return '';
+    const d = new Date();
+    d.setDate(d.getDate() + tpl.recommendedDays);
+    return d.toISOString().split('T')[0];
+  });
   const [rawContent, setRawContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
-  const [selectedCurriculumId, setSelectedCurriculumId] = useState<string | undefined>(undefined);
-  const [pickedTemplateId, setPickedTemplateId] = useState<string | undefined>(undefined);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(() => searchParams.get('templateId'));
+  const [selectedCurriculumId, setSelectedCurriculumId] = useState<string | undefined>(() => {
+    const tplId = searchParams.get('templateId');
+    return TEMPLATES.find((t) => t.id === tplId)?.curriculumId;
+  });
+  const [pickedTemplateId, setPickedTemplateId] = useState<string | undefined>(() => searchParams.get('templateId') ?? undefined);
 
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
@@ -111,24 +126,31 @@ export default function GoalCreateScreen() {
           <p className="text-sm font-semibold text-gray-700 mb-3">🚀 빠른 시작 — 자격증 템플릿</p>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none">
             {TEMPLATES.map((tpl) => (
-              <button
-                key={tpl.id}
-                onClick={() => handleSelectTemplate(tpl.id)}
-                disabled={loading}
-                className={`flex-shrink-0 flex flex-col items-center gap-1.5 w-20 py-3 px-2 rounded-2xl border-2 transition-all ${
-                  selectedTemplateId === tpl.id
-                    ? 'border-indigo-500 bg-indigo-50'
-                    : 'border-gray-200 bg-white hover:border-indigo-200'
-                }`}
-              >
-                <span className="text-2xl">{tpl.icon}</span>
-                <span className={`text-xs font-medium text-center leading-tight ${
-                  selectedTemplateId === tpl.id ? 'text-indigo-700' : 'text-gray-600'
-                }`}>
-                  {tpl.name}
-                </span>
-                <span className="text-xs text-gray-400">{tpl.recommendedDays}일</span>
-              </button>
+              <div key={tpl.id} className="flex-shrink-0 flex flex-col gap-1">
+                <button
+                  onClick={() => handleSelectTemplate(tpl.id)}
+                  disabled={loading}
+                  className={`flex flex-col items-center gap-1.5 w-20 py-3 px-2 rounded-2xl border-2 transition-all ${
+                    selectedTemplateId === tpl.id
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 bg-white hover:border-indigo-200'
+                  }`}
+                >
+                  <span className="text-2xl">{tpl.icon}</span>
+                  <span className={`text-xs font-medium text-center leading-tight ${
+                    selectedTemplateId === tpl.id ? 'text-indigo-700' : 'text-gray-600'
+                  }`}>
+                    {tpl.name}
+                  </span>
+                  <span className="text-xs text-gray-400">{tpl.recommendedDays}일</span>
+                </button>
+                <button
+                  onClick={() => navigate(`/shorts/${tpl.id}`)}
+                  className="text-xs text-indigo-500 text-center py-0.5 hover:text-indigo-700"
+                >
+                  ⚡ 쇼츠
+                </button>
+              </div>
             ))}
           </div>
           {selectedTemplateId && (
