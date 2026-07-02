@@ -1,15 +1,63 @@
 /**
- * 5minuate_study Telegram → GitHub Actions 브릿지
+ * 5minuate_study Cloudflare Worker
  *
- * Cloudflare Worker 환경 변수 (대시보드 > Settings > Variables):
- *   TELEGRAM_BOT_TOKEN  — TELEGRAM_DEV_BOT_TOKEN 값
- *   TELEGRAM_CHAT_ID    — TELEGRAM_DEV_CHAT_ID 값
- *   GITHUB_TOKEN        — GitHub PAT (repo + workflow 권한)
- *   GITHUB_REPO         — "ehddn5252/5minuate_study"
+ * 역할 1: Gemini API 프록시 (POST /api/generate)
+ *   - GEMINI_API_KEY 시크릿으로 서버 측 Gemini 호출
+ *   - RATE_LIMIT KV로 IP당 하루 20회 제한
+ *
+ * 역할 2: Telegram → GitHub Actions 브릿지 (그 외 POST)
+ *   Worker 환경 변수:
+ *   TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID / GITHUB_TOKEN / GITHUB_REPO / GEMINI_API_KEY
  */
+
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const DAILY_LIMIT = 20;
+
+async function handleGenerate(request, env) {
+  // IP 기반 레이트 리밋
+  const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+  const today = new Date().toISOString().split('T')[0];
+  const rlKey = `${ip}:${today}`;
+
+  if (env.RATE_LIMIT) {
+    const val = await env.RATE_LIMIT.get(rlKey);
+    const count = val ? parseInt(val, 10) : 0;
+    if (count >= DAILY_LIMIT) {
+      return Response.json(
+        { error: `하루 무료 생성 한도(${DAILY_LIMIT}회)를 초과했습니다. 설정에서 개인 API 키를 입력하면 무제한으로 사용할 수 있어요.` },
+        { status: 429 }
+      );
+    }
+    await env.RATE_LIMIT.put(rlKey, String(count + 1), { expirationTtl: 86400 });
+  }
+
+  if (!env.GEMINI_API_KEY) {
+    return Response.json({ error: '서버 API 키가 설정되지 않았습니다.' }, { status: 500 });
+  }
+
+  // Gemini로 그대로 전달
+  const body = await request.text();
+  const geminiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${env.GEMINI_API_KEY}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }
+  );
+
+  const data = await geminiRes.text();
+  return new Response(data, {
+    status: geminiRes.status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+
+    // Gemini 프록시
+    if (url.pathname === '/api/generate' && request.method === 'POST') {
+      return handleGenerate(request, env);
+    }
+
     if (request.method !== 'POST') return new Response('OK');
 
     let update;

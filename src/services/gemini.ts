@@ -3,6 +3,33 @@ import { generateId } from '../utils/id';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
+interface GeminiResponse {
+  candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+}
+
+// API 키가 있으면 직접 호출, 없으면 CF Worker 프록시 사용
+async function callGemini(body: object, apiKey: string): Promise<GeminiResponse> {
+  const url = apiKey
+    ? `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`
+    : '/api/generate';
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (response.status === 429) {
+    const err = await response.json() as { error: string };
+    throw new Error(err.error ?? '일일 생성 한도를 초과했습니다.');
+  }
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`생성 오류: ${response.status} — ${err.slice(0, 200)}`);
+  }
+  return response.json() as Promise<GeminiResponse>;
+}
+
 interface GeminiQuizRaw {
   question: string;
   type: 'multiple_choice' | 'short_answer';
@@ -25,7 +52,7 @@ export async function generateGoalContent(
   goalId: string,
   topic: string,
   deadline: string,
-  apiKey: string,
+  apiKey = '',
   rawContent?: string
 ): Promise<GenerateGoalContentResult> {
   const today = new Date().toISOString().split('T')[0];
@@ -65,34 +92,16 @@ ${rawContent ? `참고 자료:\n${rawContent}` : ''}
 JSON만 응답하고 다른 텍스트는 포함하지 마세요.
 `.trim();
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 8192,
-          responseMimeType: 'application/json',
-        },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Gemini API 오류: ${response.status} - ${err}`);
-  }
-
-  const data = await response.json() as {
-    candidates: Array<{
-      content: { parts: Array<{ text: string }> };
-    }>;
-  };
+  const data = await callGemini({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 8192,
+      responseMimeType: 'application/json',
+    },
+  }, apiKey);
 
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -128,7 +137,7 @@ export async function generateDailyContent(
   topic: string,
   dayNum: number,
   totalDays: number,
-  apiKey: string,
+  apiKey = '',
   rawContent?: string
 ): Promise<GenerateDailyContentResult> {
   const prompt = `
@@ -161,32 +170,16 @@ ${rawContent ? `참고 자료:\n${rawContent}\n` : ''}
 JSON만 응답하세요.
 `.trim();
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 4096,
-          responseMimeType: 'application/json',
-        },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Gemini API 오류: ${response.status} - ${err}`);
-  }
-
-  const data = await response.json() as {
-    candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
-  };
+  const data = await callGemini({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 4096,
+      responseMimeType: 'application/json',
+    },
+  }, apiKey);
 
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   const jsonMatch = text.match(/\{[\s\S]*\}/);

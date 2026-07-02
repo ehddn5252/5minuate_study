@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGoalStore, useSessionStore, useAppStore } from '../store';
+import { useGoalStore, useSessionStore } from '../store';
 import { getTodaySession, saveSession, getSessions } from '../utils/storage';
 import { generateId } from '../utils/id';
 import type { Goal } from '../types';
@@ -192,7 +192,6 @@ export default function HomeScreen() {
   const navigate = useNavigate();
   const { goals, loadGoals } = useGoalStore();
   const { loadSessions } = useSessionStore();
-  const { appState } = useAppStore();
 
   useEffect(() => {
     loadGoals();
@@ -215,26 +214,6 @@ export default function HomeScreen() {
     }
     navigate(`/learn/${goalId}`);
   };
-
-  if (!appState.geminiApiKey) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
-          <div className="text-4xl mb-4">🔑</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">API 키 설정 필요</h2>
-          <p className="text-gray-500 text-sm mb-6">
-            Gemini API 키를 입력해야 학습 콘텐츠를 생성할 수 있습니다.
-          </p>
-          <button
-            onClick={() => navigate('/settings')}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"
-          >
-            API 키 입력하기
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16">

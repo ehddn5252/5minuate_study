@@ -48,12 +48,6 @@ export default function LearningScreen() {
       return;
     }
 
-    // 오늘 콘텐츠 새로 생성
-    if (!appState.geminiApiKey) {
-      setError('Gemini API 키가 설정되지 않았습니다. 설정에서 입력해주세요.');
-      return;
-    }
-
     const dayNum = goal.completedSessions + 1;
     const totalDays = goal.totalSessions;
     const capturedSession = session;
@@ -139,15 +133,22 @@ export default function LearningScreen() {
 
   // 에러 화면
   if (error) {
+    const isRateLimit = error.includes('한도');
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-6">
-        <p className="text-red-500 text-center">{error}</p>
-        <button
-          onClick={() => navigate('/settings')}
-          className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold"
-        >
-          설정으로 이동
-        </button>
+        <div className="text-4xl">{isRateLimit ? '⏳' : '⚠️'}</div>
+        <p className="text-gray-700 text-center font-medium">
+          {isRateLimit ? '오늘 무료 생성 한도를 채웠어요' : '콘텐츠 생성 실패'}
+        </p>
+        <p className="text-gray-500 text-sm text-center">{error}</p>
+        {isRateLimit && (
+          <button
+            onClick={() => navigate('/settings')}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold"
+          >
+            개인 API 키 설정하기
+          </button>
+        )}
         <button onClick={() => navigate('/')} className="text-gray-400 text-sm">
           홈으로
         </button>

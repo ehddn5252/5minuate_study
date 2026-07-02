@@ -86,9 +86,13 @@ export default function SettingsScreen() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
-          <h2 className="font-semibold text-gray-900 mb-1">Gemini API 키</h2>
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="font-semibold text-gray-900">Gemini API 키</h2>
+            <span className="text-xs bg-green-100 text-green-600 font-medium px-2 py-0.5 rounded-full">선택 사항</span>
+          </div>
           <p className="text-gray-500 text-sm mb-4">
-            Google AI Studio에서 무료로 발급받을 수 있습니다.
+            입력하지 않아도 하루 20회 무료로 사용할 수 있어요.
+            더 많이 사용하려면 개인 키를 입력하세요.
             <br />
             <a
               href="https://aistudio.google.com/app/apikey"
@@ -96,22 +100,22 @@ export default function SettingsScreen() {
               rel="noopener noreferrer"
               className="text-indigo-600 underline"
             >
-              API 키 발급하기 →
+              무료 API 키 발급하기 →
             </a>
           </p>
           <input
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="AIza..."
+            placeholder="입력 시 개인 키 사용 (무제한)"
             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base mb-3"
           />
           <button
             onClick={handleSave}
-            disabled={!apiKey.trim()}
+            disabled={apiKey === appState.geminiApiKey}
             className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px] disabled:opacity-40"
           >
-            {saved ? '저장됨!' : '저장'}
+            {saved ? '저장됨!' : apiKey.trim() ? '저장' : '저장 (키 없음으로 초기화)'}
           </button>
         </div>
 

@@ -38,11 +38,6 @@ export default function GoalCreateScreen() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim() || !deadline) return;
-    if (!appState.geminiApiKey) {
-      setError('Gemini API 키가 설정되지 않았습니다. 설정 화면에서 입력해주세요.');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
