@@ -19,6 +19,7 @@ export default function GoalCreateScreen() {
   const [error, setError] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [selectedCurriculumId, setSelectedCurriculumId] = useState<string | undefined>(undefined);
+  const [pickedTemplateId, setPickedTemplateId] = useState<string | undefined>(undefined);
 
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
@@ -30,6 +31,7 @@ export default function GoalCreateScreen() {
     setSelectedTemplateId(id);
     setTopic(tpl.topic);
     setSelectedCurriculumId(tpl.curriculumId);
+    setPickedTemplateId(tpl.id);
     const d = new Date();
     d.setDate(d.getDate() + tpl.recommendedDays);
     setDeadline(d.toISOString().split('T')[0]);
@@ -70,6 +72,7 @@ export default function GoalCreateScreen() {
         notificationTime: '09:00',
         notificationEnabled: false,
         rawContent: rawContent || undefined,
+        templateId: pickedTemplateId,
         curriculumId: selectedCurriculumId,
         dailyPlan: '',
         summaryContent: summary,
@@ -149,7 +152,7 @@ export default function GoalCreateScreen() {
             <input
               type="text"
               value={topic}
-              onChange={(e) => { setTopic(e.target.value); setSelectedTemplateId(null); setSelectedCurriculumId(undefined); }}
+              onChange={(e) => { setTopic(e.target.value); setSelectedTemplateId(null); setSelectedCurriculumId(undefined); setPickedTemplateId(undefined); }}
               placeholder="예: 리액트 훅의 개념과 활용"
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
               required

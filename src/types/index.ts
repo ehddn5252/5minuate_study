@@ -16,6 +16,7 @@ export interface Goal {
   notificationTime: string;
   notificationEnabled: boolean;
   rawContent?: string;
+  templateId?: string;
   curriculumId?: string;
   notes?: string;
   dailyPlan: string;
@@ -68,6 +69,14 @@ export type BadgeId =
 export interface Badge {
   id: BadgeId;
   unlockedAt: string;
+}
+
+export interface SharedQuiz {
+  question: string;
+  type: QuizType;
+  options?: string[];
+  answer: string;
+  explanation: string;
 }
 
 export interface AppState {

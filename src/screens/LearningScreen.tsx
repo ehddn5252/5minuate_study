@@ -5,6 +5,8 @@ import { getTodaySession, saveSession } from '../utils/storage';
 import { generateDailyContent } from '../services/gemini';
 import { generateId } from '../utils/id';
 import { getCurriculumDay } from '../data/curriculum';
+import { buildCacheKey, fetchFromPool, saveToPool } from '../services/contentPool';
+import type { Quiz } from '../types';
 
 export default function LearningScreen() {
   const { goalId } = useParams<{ goalId: string }>();
@@ -21,6 +23,7 @@ export default function LearningScreen() {
   const [error, setError] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [todayTopic, setTodayTopic] = useState('');
+  const [poolHit, setPoolHit] = useState<{ useCount: number } | null>(null);
 
   useEffect(() => {
     if (!goal) return;
@@ -62,28 +65,71 @@ export default function LearningScreen() {
       }
     }
 
+    // 템플릿 목표면 공유 풀 먼저 확인
+    const cacheKey = goal.templateId ? buildCacheKey(goal.templateId, dayNum) : null;
+
+    const applyContent = (s: string, quizzes: Quiz[]) => {
+      addQuizzes(quizzes);
+      const updated = {
+        ...capturedSession,
+        summaryContent: s,
+        dailyQuizIds: quizzes.map((q) => q.id),
+      };
+      saveSession(updated);
+      updateSession(updated);
+      setSummary(s);
+    };
+
     setGenerating(true);
-    generateDailyContent(
-      goal.id,
-      goal.topic,
-      dayNum,
-      totalDays,
-      appState.geminiApiKey,
-      effectiveRawContent
-    )
-      .then(({ summary: s, quizzes }) => {
-        addQuizzes(quizzes);
-        const updated = {
-          ...capturedSession,
-          summaryContent: s,
-          dailyQuizIds: quizzes.map((q) => q.id),
-        };
-        saveSession(updated);
-        updateSession(updated);
-        setSummary(s);
-      })
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setGenerating(false));
+
+    (async () => {
+      // 1) 공유 풀 조회
+      if (cacheKey) {
+        const poolData = await fetchFromPool(cacheKey);
+        if (poolData) {
+          const quizzes: Quiz[] = poolData.quizzes.map((q) => ({
+            ...q,
+            id: generateId(),
+            goalId: goal.id,
+            isWrong: false,
+            wrongCount: 0,
+          }));
+          applyContent(poolData.summary, quizzes);
+          setPoolHit({ useCount: poolData.useCount });
+          setGenerating(false);
+          return;
+        }
+      }
+
+      // 2) 풀 미스 → Gemini 생성
+      try {
+        const { summary: s, quizzes } = await generateDailyContent(
+          goal.id,
+          goal.topic,
+          dayNum,
+          totalDays,
+          appState.geminiApiKey,
+          effectiveRawContent
+        );
+        applyContent(s, quizzes);
+
+        // 3) 생성 성공 시 풀에 저장 (fire & forget)
+        if (cacheKey && goal.templateId) {
+          saveToPool({
+            cacheKey,
+            templateId: goal.templateId,
+            topic: goal.topic,
+            dayNum,
+            summary: s,
+            quizzes: quizzes.map(({ id: _id, goalId: _g, isWrong: _w, wrongCount: _c, lastAttemptedAt: _l, ...q }) => q),
+          });
+        }
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setGenerating(false);
+      }
+    })();
   // goal.id만 의존: 목표가 바뀔 때만 재실행
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goal?.id]);
@@ -182,11 +228,16 @@ export default function LearningScreen() {
           onScroll={handleScroll}
         >
           <div className="mb-4">
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className="bg-indigo-100 text-indigo-600 text-xs font-semibold px-3 py-1 rounded-full">
                 Day {dayNum}
               </span>
               <h2 className="text-sm font-semibold text-gray-500">오늘의 핵심 내용</h2>
+              {poolHit && (
+                <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2.5 py-1 rounded-full font-medium">
+                  ⚡ {poolHit.useCount > 1 ? `${poolHit.useCount.toLocaleString()}명이 함께 공부 중` : '풀에서 즉시 로드'}
+                </span>
+              )}
             </div>
             {todayTopic && (
               <p className="text-base font-bold text-gray-800">{todayTopic}</p>
