@@ -10,6 +10,7 @@ import SessionCompleteScreen from './screens/SessionCompleteScreen';
 import GoalCompleteScreen from './screens/GoalCompleteScreen';
 import WrongPoolScreen from './screens/WrongPoolScreen';
 import AchievementsScreen from './screens/AchievementsScreen';
+import StudyMaterialsScreen from './screens/StudyMaterialsScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import { initReminder } from './services/notification';
 import { supabase, loadFromCloud, migrateLocalToCloud, syncToCloud } from './services/supabase';
@@ -90,6 +91,7 @@ export default function App() {
         <Route path="/goal-complete/:goalId" element={<GoalCompleteScreen />} />
         <Route path="/wrong-pool" element={<WrongPoolScreen />} />
         <Route path="/achievements" element={<AchievementsScreen />} />
+        <Route path="/materials/:goalId" element={<StudyMaterialsScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
       </Routes>
     </BrowserRouter>

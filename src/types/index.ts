@@ -17,6 +17,7 @@ export interface Goal {
   notificationEnabled: boolean;
   rawContent?: string;
   curriculumId?: string;
+  notes?: string;
   dailyPlan: string;
   summaryContent: string;
   quizPoolIds: string[];
