@@ -1,15 +1,8 @@
 import { supabase } from './supabase';
+import { sanitizeQuizzes } from '../utils/quizValidation';
 import type { QuizLevel, SharedQuiz } from '../types';
 
 const MIN_BANK_QUIZZES = 8;
-
-interface BankRow {
-  question: string;
-  type: 'multiple_choice' | 'short_answer';
-  options: string[] | null;
-  answer: string;
-  explanation: string;
-}
 
 // 사전 제작된 문제 데이터셋에서 조회 (커리큘럼 + 날짜 + 난이도 일치)
 export async function fetchFromBank(
@@ -25,18 +18,13 @@ export async function fetchFromBank(
       .eq('day_num', dayNum)
       .eq('difficulty', level);
 
-    if (error || !data || data.length < MIN_BANK_QUIZZES) return null;
+    if (error || !data) return null;
 
-    const rows = data as BankRow[];
-    const quizzes: SharedQuiz[] = rows.map((r) => ({
-      question: r.question,
-      type: r.type,
-      options: r.options ?? undefined,
-      answer: r.answer,
-      explanation: r.explanation,
-    }));
+    // 저장된 문제 중 정답-선택지가 안 맞는 등 손상된 항목은 걸러내고, 남은 게 너무 적으면 미스로 취급
+    const validQuizzes = sanitizeQuizzes(data);
+    if (validQuizzes.length < MIN_BANK_QUIZZES) return null;
 
-    return { quizzes };
+    return { quizzes: validQuizzes };
   } catch {
     return null;
   }

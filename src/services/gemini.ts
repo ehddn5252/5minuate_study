@@ -1,7 +1,12 @@
 import type { Quiz, QuizLevel, MateTone } from '../types';
 import { generateId } from '../utils/id';
+import { sanitizeQuizzes } from '../utils/quizValidation';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
+
+// AI가 문제를 충분히·제대로 만들지 못했을 때(형식 오류, 정답-선택지 불일치 등)를 대비한 최소 유효 문항 수
+const MIN_VALID_GOAL_QUIZZES = 5; // 15개 요청
+const MIN_VALID_DAILY_QUIZZES = 3; // 8개 요청
 
 const LEVEL_DESC: Record<QuizLevel, string> = {
   beginner: '초급 — 기초 개념 위주로 쉬운 어휘와 단순한 문장 구조로 설명하고 출제하세요.',
@@ -44,14 +49,6 @@ async function callGemini(body: object, apiKey: string): Promise<GeminiResponse>
     throw new Error(`생성 오류: ${response.status} — ${err.slice(0, 200)}`);
   }
   return response.json() as Promise<GeminiResponse>;
-}
-
-interface GeminiQuizRaw {
-  question: string;
-  type: 'multiple_choice' | 'short_answer';
-  options?: string[];
-  answer: string;
-  explanation: string;
 }
 
 interface GenerateGoalContentResult {
@@ -132,14 +129,24 @@ JSON만 응답하고 다른 텍스트는 포함하지 마세요.
     throw new Error('Gemini 응답에서 JSON을 찾을 수 없습니다.');
   }
 
-  let parsed: { summary: string; quizzes: GeminiQuizRaw[] };
+  let parsed: { summary?: string; quizzes?: unknown };
   try {
     parsed = JSON.parse(jsonMatch[0]);
   } catch {
     throw new Error('AI 응답이 잘려서 처리하지 못했습니다. 다시 시도해주세요.');
   }
 
-  const quizPool: Quiz[] = parsed.quizzes.map((q) => ({
+  if (!parsed.summary || typeof parsed.summary !== 'string' || !parsed.summary.trim()) {
+    throw new Error('AI가 요약을 만들지 못했습니다. 다시 시도해주세요.');
+  }
+
+  // 정답이 선택지와 안 맞는 등 채점 불가능한 문제는 걸러내고, 남은 문제가 너무 적으면 실패로 처리한다.
+  const validQuizzes = sanitizeQuizzes(parsed.quizzes);
+  if (validQuizzes.length < MIN_VALID_GOAL_QUIZZES) {
+    throw new Error('AI가 문제를 제대로 만들지 못했습니다. 다시 시도해주세요.');
+  }
+
+  const quizPool: Quiz[] = validQuizzes.map((q) => ({
     id: generateId(),
     goalId,
     question: q.question,
@@ -217,14 +224,23 @@ JSON만 응답하세요.
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('Gemini 응답에서 JSON을 찾을 수 없습니다.');
 
-  let parsed: { summary: string; quizzes: GeminiQuizRaw[] };
+  let parsed: { summary?: string; quizzes?: unknown };
   try {
     parsed = JSON.parse(jsonMatch[0]);
   } catch {
     throw new Error('AI 응답이 잘려서 처리하지 못했습니다. 다시 시도해주세요.');
   }
 
-  const quizzes: Quiz[] = parsed.quizzes.map((q) => ({
+  if (!parsed.summary || typeof parsed.summary !== 'string' || !parsed.summary.trim()) {
+    throw new Error('AI가 요약을 만들지 못했습니다. 다시 시도해주세요.');
+  }
+
+  const validQuizzes = sanitizeQuizzes(parsed.quizzes);
+  if (validQuizzes.length < MIN_VALID_DAILY_QUIZZES) {
+    throw new Error('AI가 문제를 제대로 만들지 못했습니다. 다시 시도해주세요.');
+  }
+
+  const quizzes: Quiz[] = validQuizzes.map((q) => ({
     id: generateId(),
     goalId,
     question: q.question,

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { sanitizeQuizzes } from '../utils/quizValidation';
 import type { SharedQuiz } from '../types';
 
 interface PoolEntry {
@@ -6,6 +7,9 @@ interface PoolEntry {
   quizzes: SharedQuiz[];
   useCount: number;
 }
+
+// 공유 풀 히트를 신뢰하기 위한 최소 유효 문항 수 (다른 사용자가 남긴 데이터가 손상됐을 가능성 대비)
+const MIN_VALID_POOL_QUIZZES = 3;
 
 // 캐시 키: "t:{templateId}:d{dayNum}"
 export function buildCacheKey(templateId: string, dayNum: number): string {
@@ -21,7 +25,11 @@ export async function fetchFromPool(cacheKey: string): Promise<PoolEntry | null>
       .eq('cache_key', cacheKey)
       .single();
 
-    if (error || !data) return null;
+    if (error || !data || !data.summary) return null;
+
+    // 정답-선택지가 안 맞는 등 손상된 문제는 걸러내고, 남은 게 너무 적으면 캐시 미스로 취급
+    const validQuizzes = sanitizeQuizzes(data.quizzes);
+    if (validQuizzes.length < MIN_VALID_POOL_QUIZZES) return null;
 
     // 사용 횟수 증가 (fire & forget)
     supabase
@@ -32,7 +40,7 @@ export async function fetchFromPool(cacheKey: string): Promise<PoolEntry | null>
 
     return {
       summary: data.summary as string,
-      quizzes: data.quizzes as SharedQuiz[],
+      quizzes: validQuizzes,
       useCount: data.use_count as number,
     };
   } catch {
@@ -49,6 +57,10 @@ export async function saveToPool(params: {
   summary: string;
   quizzes: SharedQuiz[];
 }): Promise<void> {
+  // 손상된 문제가 공유 풀에 저장되어 다른 사용자에게 퍼지지 않도록 저장 전에도 한 번 더 검증한다.
+  const validQuizzes = sanitizeQuizzes(params.quizzes);
+  if (validQuizzes.length < MIN_VALID_POOL_QUIZZES) return;
+
   try {
     await supabase.from('shared_content').insert({
       cache_key: params.cacheKey,
@@ -56,7 +68,7 @@ export async function saveToPool(params: {
       topic: params.topic,
       day_num: params.dayNum,
       summary: params.summary,
-      quizzes: params.quizzes,
+      quizzes: validQuizzes,
       use_count: 1,
     });
     // unique 제약으로 중복이면 그냥 무시됨

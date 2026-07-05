@@ -5,6 +5,7 @@ import { getTodaySession, saveSession, addToWrongPool, removeFromWrongPool, getS
 import { checkAndAwardBadges } from '../utils/badges';
 import { generateId } from '../utils/id';
 import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, isPaused } from '../utils/speech';
+import { sanitizeQuiz } from '../utils/quizValidation';
 import type { Quiz } from '../types';
 
 const SPEECH_RATES = [1, 1.25, 1.5];
@@ -220,10 +221,12 @@ export default function TestScreen() {
     }
 
     // 오늘 세션의 dailyQuizIds 우선 사용, 없으면 goal.quizPoolIds fallback
+    // 정답-선택지가 안 맞는 등 손상된 문제(과거에 저장된 데이터 포함)는 출제 대상에서 제외
     const dailyIds = todaySession?.dailyQuizIds ?? [];
-    const pool = dailyIds.length > 0
+    const pool = (dailyIds.length > 0
       ? allQuizzes.filter((q) => dailyIds.includes(q.id))
-      : allQuizzes.filter((q) => goal.quizPoolIds.includes(q.id));
+      : allQuizzes.filter((q) => goal.quizPoolIds.includes(q.id))
+    ).filter((q) => sanitizeQuiz(q) !== null);
 
     const TARGET = Math.min(5, pool.length);
 
