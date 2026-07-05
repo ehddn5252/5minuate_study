@@ -56,6 +56,10 @@ function GoalCard({ goal }: { goal: Goal }) {
 
   const todaySession = getTodaySession(goal.id);
   const isDone = todaySession?.status === 'completed';
+  // F-23: 퀴즈 도중 중단한 세션이 있으면 "이어하기" 상태로 우선 안내
+  const answeredCount = todaySession?.quizAnswers?.length ?? 0;
+  const totalQuizCount = todaySession?.testQuizIds?.length ?? 0;
+  const isMidQuiz = !isDone && totalQuizCount > 0 && answeredCount < totalQuizCount;
   const progress =
     goal.totalSessions > 0
       ? Math.round((goal.completedSessions / goal.totalSessions) * 100)
@@ -112,6 +116,21 @@ function GoalCard({ goal }: { goal: Goal }) {
               📚
             </button>
           </div>
+        </div>
+      ) : isMidQuiz ? (
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate(`/test/${goal.id}`)}
+            className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
+          >
+            이어하기 · {totalQuizCount - answeredCount}문항 남음
+          </button>
+          <button
+            onClick={() => navigate(`/materials/${goal.id}`)}
+            className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-600 font-medium text-sm min-h-[44px]"
+          >
+            📚
+          </button>
         </div>
       ) : (
         <div className="flex gap-2">

@@ -65,8 +65,8 @@ export default function LearningScreen() {
       effectiveRawContent = curricDay.content;
     }
 
-    // 템플릿 목표면 공유 풀 먼저 확인
-    const cacheKey = goal.templateId ? buildCacheKey(goal.templateId, dayNum) : null;
+    // 템플릿 목표면 공유 풀 먼저 확인 (단, 실무 연계 모드는 개인화 콘텐츠라 풀/뱅크를 쓰지 않음)
+    const cacheKey = goal.templateId && !goal.practicalMode ? buildCacheKey(goal.templateId, dayNum) : null;
 
     const applyContent = (s: string, quizzes: Quiz[]) => {
       addQuizzes(quizzes);
@@ -84,7 +84,8 @@ export default function LearningScreen() {
 
     (async () => {
       // 0) 사전 제작 문제 데이터셋 조회 (커리큘럼 + 날짜 + 난이도 일치 시 Gemini 호출 없이 즉시 사용)
-      if (goal.curriculumId && curricDay) {
+      // 실무 연계 모드는 개인화 콘텐츠이므로 사전 제작 뱅크를 건너뛴다
+      if (goal.curriculumId && curricDay && !goal.practicalMode) {
         const bankData = await fetchFromBank(goal.curriculumId, dayNum, goal.level ?? 'intermediate');
         if (bankData) {
           const quizzes: Quiz[] = bankData.quizzes.map((q) => ({
@@ -127,12 +128,13 @@ export default function LearningScreen() {
           totalDays,
           goal.level,
           appState.geminiApiKey,
-          effectiveRawContent
+          effectiveRawContent,
+          goal.practicalMode
         );
         applyContent(s, quizzes);
 
-        // 3) 생성 성공 시 풀에 저장 (fire & forget)
-        if (cacheKey && goal.templateId) {
+        // 3) 생성 성공 시 풀에 저장 (fire & forget) — 실무 연계 모드는 개인화 콘텐츠라 저장하지 않음
+        if (cacheKey && goal.templateId && !goal.practicalMode) {
           saveToPool({
             cacheKey,
             templateId: goal.templateId,

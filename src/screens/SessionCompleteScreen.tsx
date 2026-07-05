@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
+import { getIdentityStatement } from '../utils/identity';
 import type { BadgeId } from '../types';
 
 interface LocationState {
@@ -11,6 +12,7 @@ interface LocationState {
   streak: number;
   newBadges?: BadgeId[];
   topic?: string;
+  usedFreeze?: boolean;
 }
 
 export default function SessionCompleteScreen() {
@@ -23,6 +25,9 @@ export default function SessionCompleteScreen() {
   const streak = state?.streak ?? 1;
   const newBadges = state?.newBadges ?? [];
   const topic = state?.topic ?? '학습';
+  const usedFreeze = state?.usedFreeze ?? false;
+  // F-22: 정체성 서사는 매일 노출하지 않고 7일/30일 스트릭 마일스톤에서만 노출(피로도 방지)
+  const isStreakMilestone = newBadges.includes('flame_7') || newBadges.includes('persistence_30');
   const percent = Math.round((score / total) * 100);
   const [sharing, setSharing] = useState(false);
 
@@ -72,6 +77,22 @@ export default function SessionCompleteScreen() {
             </div>
           </div>
         </div>
+
+        {usedFreeze && (
+          <div className="bg-sky-50 rounded-2xl p-4 mb-4 border border-sky-100">
+            <p className="text-sky-700 text-sm font-medium">
+              🧊 리듬 유지권을 사용했어요 — 어제 못 했어도 스트릭은 이어져요
+            </p>
+          </div>
+        )}
+
+        {isStreakMilestone && (
+          <div className="bg-indigo-600 rounded-2xl p-5 mb-4">
+            <p className="text-white font-semibold leading-relaxed">
+              "{getIdentityStatement(topic)}"
+            </p>
+          </div>
+        )}
 
         {newBadges.length > 0 && (
           <div className="bg-indigo-50 rounded-2xl p-4 mb-4 border border-indigo-100">

@@ -9,6 +9,9 @@ const LEVEL_DESC: Record<QuizLevel, string> = {
   advanced: '고급 — 심화 개념과 실전 수준의 응용 문제를 포함하고, 헷갈리기 쉬운 선택지를 활용하세요.',
 };
 
+const PRACTICAL_MODE_INSTRUCTION =
+  '각 요약 항목 또는 퀴즈 해설 중 적절한 곳에, 실무에서 어떻게 적용되는지 보여주는 예시를 1줄 이내로 자연스럽게 포함하세요. 항목 수나 분량 제한은 그대로 지키세요.';
+
 interface GeminiResponse {
   candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
 }
@@ -60,7 +63,8 @@ export async function generateGoalContent(
   deadline: string,
   level: QuizLevel = 'intermediate',
   apiKey = '',
-  rawContent?: string
+  rawContent?: string,
+  practicalMode = false
 ): Promise<GenerateGoalContentResult> {
   const today = new Date().toISOString().split('T')[0];
   const daysLeft = Math.ceil(
@@ -75,6 +79,7 @@ export async function generateGoalContent(
 난이도: ${LEVEL_DESC[level]}
 마감일: ${deadline} (오늘로부터 ${daysLeft}일 후)
 ${rawContent ? `참고 자료:\n${rawContent}` : ''}
+${practicalMode ? PRACTICAL_MODE_INSTRUCTION : ''}
 
 다음 JSON 형식으로 응답하세요:
 {
@@ -147,7 +152,8 @@ export async function generateDailyContent(
   totalDays: number,
   level: QuizLevel = 'intermediate',
   apiKey = '',
-  rawContent?: string
+  rawContent?: string,
+  practicalMode = false
 ): Promise<GenerateDailyContentResult> {
   const prompt = `
 당신은 학습 도우미입니다. 아래 주제를 ${totalDays}일에 걸쳐 단계적으로 학습하는 커리큘럼에서 오늘(${dayNum}일째) 배울 내용을 생성해주세요.
@@ -156,6 +162,7 @@ export async function generateDailyContent(
 난이도: ${LEVEL_DESC[level]}
 오늘: ${dayNum}일째 / 전체 ${totalDays}일
 ${rawContent ? `참고 자료:\n${rawContent}\n` : ''}
+${practicalMode ? PRACTICAL_MODE_INSTRUCTION : ''}
 
 규칙:
 - 전체 ${totalDays}일을 균등하게 나눠 각 날짜마다 새로운 내용을 다룹니다.

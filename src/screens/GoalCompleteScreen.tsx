@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useGoalStore } from '../store';
 import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
+import { getIdentityStatement } from '../utils/identity';
 import type { BadgeId } from '../types';
 
 interface LocationState {
@@ -62,6 +63,14 @@ export default function GoalCompleteScreen() {
             </div>
           </div>
         </div>
+
+        {goal && (
+          <div className="bg-indigo-600 rounded-2xl p-5 mb-4">
+            <p className="text-white font-semibold leading-relaxed">
+              "{getIdentityStatement(goal.topic)}"
+            </p>
+          </div>
+        )}
 
         {newBadges.length > 0 && (
           <div className="bg-yellow-50 rounded-2xl p-4 mb-4 border border-yellow-200">

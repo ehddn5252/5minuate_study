@@ -184,6 +184,8 @@ const DEFAULT_APP_STATE: AppState = {
   geminiApiKey: '',
   notificationGranted: false,
   notificationTime: '20:00',
+  quietHoursStart: '21:30',
+  quietHoursEnd: '07:00',
 };
 
 export function getAppState(): AppState {

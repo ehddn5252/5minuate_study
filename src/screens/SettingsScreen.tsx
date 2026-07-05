@@ -11,6 +11,9 @@ export default function SettingsScreen() {
   const { appState, updateAppState } = useAppStore();
   const [notifTime, setNotifTime] = useState(appState.notificationTime || '20:00');
   const [notifGranted, setNotifGranted] = useState(appState.notificationGranted);
+  const [quietStart, setQuietStart] = useState(appState.quietHoursStart || '21:30');
+  const [quietEnd, setQuietEnd] = useState(appState.quietHoursEnd || '07:00');
+  const [quietSaved, setQuietSaved] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
@@ -60,6 +63,12 @@ export default function SettingsScreen() {
     if (notifGranted) {
       scheduleLocalReminder(notifTime);
     }
+  };
+
+  const handleQuietHoursSave = () => {
+    updateAppState({ quietHoursStart: quietStart, quietHoursEnd: quietEnd });
+    setQuietSaved(true);
+    setTimeout(() => setQuietSaved(false), 2000);
   };
 
   return (
@@ -154,7 +163,7 @@ export default function SettingsScreen() {
             </button>
           </div>
           {notifGranted && (
-            <div>
+            <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">알림 시각</label>
               <div className="flex gap-2">
                 <input
@@ -172,6 +181,33 @@ export default function SettingsScreen() {
               </div>
             </div>
           )}
+
+          <div className={notifGranted ? 'pt-4 border-t border-gray-100' : ''}>
+            <label className="block text-sm font-medium text-gray-700 mb-1">방해 금지 시간대</label>
+            <p className="text-xs text-gray-400 mb-2">이 시간대에는 알림을 보내지 않아요 (예: 가족·취침 시간)</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="time"
+                value={quietStart}
+                onChange={(e) => setQuietStart(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              />
+              <span className="text-gray-400 text-sm">~</span>
+              <input
+                type="time"
+                value={quietEnd}
+                onChange={(e) => setQuietEnd(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              />
+              <button
+                onClick={handleQuietHoursSave}
+                className="px-4 py-3 bg-indigo-600 text-white rounded-xl text-sm font-medium min-h-[44px] disabled:opacity-40"
+                disabled={quietStart === appState.quietHoursStart && quietEnd === appState.quietHoursEnd}
+              >
+                {quietSaved ? '저장됨!' : '적용'}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">

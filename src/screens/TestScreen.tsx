@@ -184,9 +184,23 @@ export default function TestScreen() {
     if (!goal || initialized.current) return;
     initialized.current = true;
 
-    // 오늘 세션의 dailyQuizIds 우선 사용, 없으면 goal.quizPoolIds fallback
     const todaySession = getTodaySession(goal.id);
     const allQuizzes = getQuizzes();
+
+    // F-19: 이전에 저장된 문항 순서가 있으면 그대로 복원(중단 후 재개)
+    if (todaySession?.testQuizIds && todaySession.testQuizIds.length > 0) {
+      const restored = todaySession.testQuizIds
+        .map((id) => allQuizzes.find((q) => q.id === id))
+        .filter((q): q is Quiz => q !== undefined);
+      const savedAnswers = todaySession.quizAnswers ?? [];
+      setTestQuizzes(restored);
+      setAnswers(savedAnswers);
+      setCurrentIndex(Math.min(savedAnswers.length, Math.max(restored.length - 1, 0)));
+      setAnswered(savedAnswers.length >= restored.length);
+      return;
+    }
+
+    // 오늘 세션의 dailyQuizIds 우선 사용, 없으면 goal.quizPoolIds fallback
     const dailyIds = todaySession?.dailyQuizIds ?? [];
     const pool = dailyIds.length > 0
       ? allQuizzes.filter((q) => dailyIds.includes(q.id))
@@ -205,7 +219,15 @@ export default function TestScreen() {
     const remaining = TARGET - fromWrong.length;
     const fromCorrect = correctQuizzes.slice(0, remaining);
 
-    setTestQuizzes([...fromWrong, ...fromCorrect].slice(0, TARGET));
+    const selected = [...fromWrong, ...fromCorrect].slice(0, TARGET);
+    setTestQuizzes(selected);
+
+    // F-19: 문항 순서를 세션에 고정 저장해 중단 후에도 같은 문항으로 재개되게 함
+    if (todaySession) {
+      const updated = { ...todaySession, testQuizIds: selected.map((q) => q.id), quizAnswers: [] };
+      saveSession(updated);
+      updateSession(updated);
+    }
   }, [goal, quizzes]);
 
   if (!goal || testQuizzes.length === 0) {
@@ -220,8 +242,17 @@ export default function TestScreen() {
   const isLast = currentIndex === testQuizzes.length - 1;
 
   const handleAnswer = (correct: boolean) => {
-    setAnswers((prev) => [...prev, correct]);
+    const nextAnswers = [...answers, correct];
+    setAnswers(nextAnswers);
     setAnswered(true);
+
+    // F-19: 진행 상황을 즉시 저장해 중단 후에도 이어서 진행할 수 있게 함
+    const todaySession = getTodaySession(goal.id);
+    if (todaySession) {
+      const updatedSession = { ...todaySession, quizAnswers: nextAnswers };
+      saveSession(updatedSession);
+      updateSession(updatedSession);
+    }
 
     const quiz = testQuizzes[currentIndex];
     if (!correct) {
@@ -297,18 +328,33 @@ export default function TestScreen() {
       const hadYesterdaySession = allSessions.some(
         (s) => s.goalId === goal.id && s.date === yesterdayStr && s.status === 'completed'
       );
+      // F-18: 어제 세션이 없어도, 남은 "리듬 유지권"이 있으면 스트릭을 끊지 않고 이어감
+      const freezeAvailable = (goal.streakFreezeRemaining ?? 0) > 0 && goal.streak > 0;
+      const canUseFreeze = !alreadyCompletedToday && !hadYesterdaySession && freezeAvailable;
+      const usedFreeze = canUseFreeze;
       const newStreak = alreadyCompletedToday
         ? goal.streak
-        : hadYesterdaySession
+        : hadYesterdaySession || canUseFreeze
           ? goal.streak + 1
           : 1;
       const newCompletedSessions = goal.completedSessions + 1;
       const isGoalComplete = goal.totalSessions > 0 && newCompletedSessions >= goal.totalSessions;
+
+      // 30세션마다 리듬 유지권 1개 재충전(최대 2개)
+      const FREEZE_CAP = 2;
+      const freezeAfterUse = usedFreeze
+        ? (goal.streakFreezeRemaining ?? 0) - 1
+        : (goal.streakFreezeRemaining ?? 0);
+      const newFreezeRemaining = newCompletedSessions % 30 === 0
+        ? Math.min(FREEZE_CAP, freezeAfterUse + 1)
+        : freezeAfterUse;
+
       const updatedGoal = {
         ...goal,
         completedSessions: newCompletedSessions,
         streak: newStreak,
         bestStreak: Math.max(goal.bestStreak, newStreak),
+        streakFreezeRemaining: newFreezeRemaining,
         ...(isGoalComplete ? { status: 'completed' as const, completedAt: new Date().toISOString() } : {}),
       };
       updateGoal(updatedGoal);
@@ -321,7 +367,7 @@ export default function TestScreen() {
         });
       } else {
         navigate(`/complete/${sessionId}`, {
-          state: { score, total, streak: newStreak, newBadges, topic: goal.topic },
+          state: { score, total, streak: newStreak, newBadges, topic: goal.topic, usedFreeze },
         });
       }
     } else {

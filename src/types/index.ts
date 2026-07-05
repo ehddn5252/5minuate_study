@@ -24,6 +24,8 @@ export interface Goal {
   summaryContent: string;
   quizPoolIds: string[];
   level: QuizLevel;
+  streakFreezeRemaining: number;
+  practicalMode?: boolean;
 }
 
 export interface Session {
@@ -38,6 +40,8 @@ export interface Session {
   quizTotal?: number;
   summaryContent?: string;
   dailyQuizIds?: string[];
+  testQuizIds?: string[];
+  quizAnswers?: boolean[];
 }
 
 export interface Quiz {
@@ -88,4 +92,6 @@ export interface AppState {
   geminiApiKey: string;
   notificationGranted: boolean;
   notificationTime: string;
+  quietHoursStart: string;
+  quietHoursEnd: string;
 }
