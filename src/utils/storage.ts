@@ -61,7 +61,8 @@ export function getSessionsByGoal(goalId: string): Session[] {
 
 export function getTodaySession(goalId: string): Session | undefined {
   const today = new Date().toISOString().split('T')[0];
-  return getSessions().find((s) => s.goalId === goalId && s.date === today);
+  const matches = getSessions().filter((s) => s.goalId === goalId && s.date === today);
+  return matches[matches.length - 1];
 }
 
 export function saveSession(session: Session): void {

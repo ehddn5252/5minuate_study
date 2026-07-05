@@ -94,16 +94,24 @@ function GoalCard({ goal }: { goal: Goal }) {
       </div>
 
       {isDone ? (
-        <div className="flex gap-2">
-          <div className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-green-50 text-green-600 font-medium text-sm">
-            <span>오늘 학습 완료!</span>
+        <div>
+          <div className="flex items-center justify-center gap-2 py-2 mb-2 rounded-xl bg-green-50 text-green-600 font-medium text-sm">
+            <span>✓ 오늘 학습 완료!</span>
           </div>
-          <button
-            onClick={() => navigate(`/materials/${goal.id}`)}
-            className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-600 font-medium text-sm min-h-[44px]"
-          >
-            📚 자료
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleStart}
+              className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
+            >
+              다음 학습 계속하기
+            </button>
+            <button
+              onClick={() => navigate(`/materials/${goal.id}`)}
+              className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-600 font-medium text-sm min-h-[44px]"
+            >
+              📚
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex gap-2">

@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import type { User } from '@supabase/supabase-js';
 import HomeScreen from './screens/HomeScreen';
+import LoginScreen from './screens/LoginScreen';
 import GoalCreateScreen from './screens/GoalCreateScreen';
 import GoalListScreen from './screens/GoalListScreen';
 import GoalEditScreen from './screens/GoalEditScreen';
@@ -23,6 +25,8 @@ export default function App() {
   const { loadQuizzes } = useQuizStore();
   const { loadAppState } = useAppStore();
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   const reloadAllStores = () => {
     loadGoals();
@@ -45,6 +49,8 @@ export default function App() {
 
     // 초기 세션 확인
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthChecked(true);
       if (!session?.user) return;
       const userId = session.user.id;
       await migrateLocalToCloud(userId);
@@ -55,6 +61,7 @@ export default function App() {
     // 로그인/로그아웃 이벤트 구독
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        setUser(session?.user ?? null);
         if (event === 'SIGNED_IN' && session?.user) {
           const userId = session.user.id;
           await migrateLocalToCloud(userId);
@@ -78,6 +85,14 @@ export default function App() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (!authChecked) {
+    return <div className="min-h-screen bg-gray-50" />;
+  }
+
+  if (!user) {
+    return <LoginScreen />;
+  }
 
   return (
     <BrowserRouter>

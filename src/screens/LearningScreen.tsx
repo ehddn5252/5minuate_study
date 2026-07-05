@@ -29,7 +29,8 @@ export default function LearningScreen() {
     if (!goal) return;
 
     let session = getTodaySession(goal.id);
-    if (!session) {
+    // 오늘 세션이 없거나 이미 완료된 경우(다음 학습으로 계속 진행) → 새 세션 시작
+    if (!session || session.status === 'completed') {
       session = {
         id: generateId(),
         goalId: goal.id,

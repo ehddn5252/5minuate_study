@@ -256,14 +256,23 @@ export default function TestScreen() {
       }
 
       // Update streak: +1 if there was a completed session yesterday, else reset to 1
+      // 같은 날 여러 번 학습을 이어가도(다음 학습 계속하기) 스트릭은 하루에 한 번만 증가
+      const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
       const allSessions = getSessions();
+      const alreadyCompletedToday = allSessions.some(
+        (s) => s.goalId === goal.id && s.date === today && s.status === 'completed' && s.id !== sessionId
+      );
       const hadYesterdaySession = allSessions.some(
         (s) => s.goalId === goal.id && s.date === yesterdayStr && s.status === 'completed'
       );
-      const newStreak = hadYesterdaySession ? goal.streak + 1 : 1;
+      const newStreak = alreadyCompletedToday
+        ? goal.streak
+        : hadYesterdaySession
+          ? goal.streak + 1
+          : 1;
       const newCompletedSessions = goal.completedSessions + 1;
       const isGoalComplete = goal.totalSessions > 0 && newCompletedSessions >= goal.totalSessions;
       const updatedGoal = {

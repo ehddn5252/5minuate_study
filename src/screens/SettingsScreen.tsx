@@ -9,8 +9,6 @@ import BottomNav from '../components/BottomNav';
 export default function SettingsScreen() {
   const navigate = useNavigate();
   const { appState, updateAppState } = useAppStore();
-  const [apiKey, setApiKey] = useState(appState.geminiApiKey);
-  const [saved, setSaved] = useState(false);
   const [notifTime, setNotifTime] = useState(appState.notificationTime || '20:00');
   const [notifGranted, setNotifGranted] = useState(appState.notificationGranted);
   const [user, setUser] = useState<User | null>(null);
@@ -38,12 +36,6 @@ export default function SettingsScreen() {
       setSyncing(false);
       setTimeout(() => setSyncMsg(''), 2500);
     }
-  };
-
-  const handleSave = () => {
-    updateAppState({ geminiApiKey: apiKey.trim() });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
   };
 
   const handleNotifToggle = async () => {
@@ -83,40 +75,6 @@ export default function SettingsScreen() {
             </svg>
           </button>
           <h1 className="text-xl font-bold text-gray-900">설정</h1>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="font-semibold text-gray-900">Gemini API 키</h2>
-            <span className="text-xs bg-green-100 text-green-600 font-medium px-2 py-0.5 rounded-full">선택 사항</span>
-          </div>
-          <p className="text-gray-500 text-sm mb-4">
-            입력하지 않아도 하루 20회 무료로 사용할 수 있어요.
-            더 많이 사용하려면 개인 키를 입력하세요.
-            <br />
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-indigo-600 underline"
-            >
-              무료 API 키 발급하기 →
-            </a>
-          </p>
-          <input
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="입력 시 개인 키 사용 (무제한)"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base mb-3"
-          />
-          <button
-            onClick={handleSave}
-            disabled={apiKey === appState.geminiApiKey}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px] disabled:opacity-40"
-          >
-            {saved ? '저장됨!' : apiKey.trim() ? '저장' : '저장 (키 없음으로 초기화)'}
-          </button>
         </div>
 
         {/* 계정 섹션 */}
@@ -227,12 +185,6 @@ export default function SettingsScreen() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-        </div>
-
-        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
-          <p className="text-amber-700 text-sm">
-            API 키는 이 기기의 localStorage에만 저장되며 서버로 전송되지 않습니다.
-          </p>
         </div>
       </div>
       <BottomNav />
