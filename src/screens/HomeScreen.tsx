@@ -4,8 +4,15 @@ import { useGoalStore, useSessionStore } from '../store';
 import { TEMPLATES as TEMPLATES_PREVIEW } from '../data/templates';
 import { getTodaySession, saveSession, getSessions } from '../utils/storage';
 import { generateId } from '../utils/id';
-import type { Goal } from '../types';
+import type { Goal, MateTone } from '../types';
 import BottomNav from '../components/BottomNav';
+
+// F-30: 긴급 독려 배너도 mateTone(F-27)에 맞춰 압박형 대신 동행형 문구로 분기
+const URGENT_MESSAGES: Record<MateTone, (topic: string) => string> = {
+  plain: (topic) => `📢 ${topic}을 잊지 않았죠? 오늘 딱 5분만요!`,
+  friendly: (topic) => `📢 ${topic}, 요즘 뜸했죠? 오늘 5분만 같이 해볼까요?`,
+  hype: (topic) => `📢 ${topic} 도전 중단?! 지금 5분이면 부활 가능 🔥`,
+};
 
 function DaysLeft({ deadline }: { deadline: string }) {
   const today = new Date().toISOString().split('T')[0];
@@ -200,7 +207,7 @@ function UrgentBanner({ goals, onStart }: { goals: Goal[]; onStart: (goalId: str
     >
       <div className="flex-1">
         <p className="text-white font-semibold text-sm">
-          📢 {urgentGoal.topic}을 잊지 않았죠? 오늘 딱 5분만요!
+          {(URGENT_MESSAGES[urgentGoal.mateTone ?? 'plain'] ?? URGENT_MESSAGES.plain)(urgentGoal.topic)}
         </p>
       </div>
       <button

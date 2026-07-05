@@ -6,6 +6,7 @@ import { checkAndAwardBadges } from '../utils/badges';
 import { generateId } from '../utils/id';
 import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, isPaused } from '../utils/speech';
 import { sanitizeQuiz } from '../utils/quizValidation';
+import { getGrowthFeedback } from '../utils/growthFeedback';
 import type { Quiz } from '../types';
 
 const SPEECH_RATES = [1, 1.25, 1.5];
@@ -424,13 +425,16 @@ export default function TestScreen() {
 
       const newBadges = checkAndAwardBadges(goal.id, newStreak);
 
+      // F-31: "지난 나" 대비 성장 피드백 — 같은 목표의 자기 이력만 비교(타인/랭킹 비교 아님)
+      const growthFeedback = getGrowthFeedback(goal.id, score, total, sessionId);
+
       if (isGoalComplete) {
         navigate(`/goal-complete/${goal.id}`, {
-          state: { score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges, topic: goal.topic },
+          state: { score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges, topic: goal.topic, growthFeedback },
         });
       } else {
         navigate(`/complete/${sessionId}`, {
-          state: { score, total, streak: newStreak, newBadges, topic: goal.topic, usedFreeze },
+          state: { score, total, streak: newStreak, newBadges, topic: goal.topic, usedFreeze, growthFeedback },
         });
       }
     } else {

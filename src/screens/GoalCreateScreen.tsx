@@ -33,7 +33,7 @@ export default function GoalCreateScreen() {
   const [deadline, setDeadline] = useState(() => {
     const tplId = searchParams.get('templateId');
     const tpl = TEMPLATES.find((t) => t.id === tplId);
-    if (!tpl) return '';
+    if (!tpl || tpl.examScoped) return '';
     const d = new Date();
     d.setDate(d.getDate() + tpl.recommendedDays);
     return d.toISOString().split('T')[0];
@@ -50,6 +50,11 @@ export default function GoalCreateScreen() {
     return TEMPLATES.find((t) => t.id === tplId)?.curriculumId;
   });
   const [pickedTemplateId, setPickedTemplateId] = useState<string | undefined>(() => searchParams.get('templateId') ?? undefined);
+  // F-29: 내신·수능처럼 학교가 정하는 시험일을 앱이 임의로 추천하지 않는 템플릿인지 여부
+  const [examScoped, setExamScoped] = useState<boolean>(() => {
+    const tplId = searchParams.get('templateId');
+    return TEMPLATES.find((t) => t.id === tplId)?.examScoped ?? false;
+  });
 
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
@@ -62,9 +67,15 @@ export default function GoalCreateScreen() {
     setTopic(tpl.topic);
     setSelectedCurriculumId(tpl.curriculumId);
     setPickedTemplateId(tpl.id);
-    const d = new Date();
-    d.setDate(d.getDate() + tpl.recommendedDays);
-    setDeadline(d.toISOString().split('T')[0]);
+    setExamScoped(!!tpl.examScoped);
+    if (tpl.examScoped) {
+      // F-29: 시험일은 학교가 정하므로 추천 기한을 자동으로 채우지 않고 직접 입력하게 함
+      setDeadline('');
+    } else {
+      const d = new Date();
+      d.setDate(d.getDate() + tpl.recommendedDays);
+      setDeadline(d.toISOString().split('T')[0]);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,6 +125,7 @@ export default function GoalCreateScreen() {
         streakFreezeRemaining: 2,
         practicalMode,
         mateTone,
+        examScoped,
       };
 
       addGoal(goal);
@@ -145,39 +157,50 @@ export default function GoalCreateScreen() {
 
         {/* Template picker */}
         <div className="mb-6">
-          <p className="text-sm font-semibold text-gray-700 mb-3">🚀 빠른 시작 — 자격증 템플릿</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">🚀 빠른 시작 — 자격증·내신/수능 템플릿</p>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none">
             {TEMPLATES.map((tpl) => (
               <div key={tpl.id} className="flex-shrink-0 flex flex-col gap-1">
                 <button
                   onClick={() => handleSelectTemplate(tpl.id)}
                   disabled={loading}
-                  className={`flex flex-col items-center gap-1.5 w-20 py-3 px-2 rounded-2xl border-2 transition-all ${
+                  className={`relative flex flex-col items-center gap-1.5 w-20 py-3 px-2 rounded-2xl border-2 transition-all ${
                     selectedTemplateId === tpl.id
                       ? 'border-indigo-500 bg-indigo-50'
                       : 'border-gray-200 bg-white hover:border-indigo-200'
                   }`}
                 >
-                  <span className="text-2xl">{tpl.icon}</span>
+                  {tpl.examScoped && (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[10px] font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                      내신·수능
+                    </span>
+                  )}
+                  <span className="text-2xl mt-1">{tpl.icon}</span>
                   <span className={`text-xs font-medium text-center leading-tight ${
                     selectedTemplateId === tpl.id ? 'text-indigo-700' : 'text-gray-600'
                   }`}>
                     {tpl.name}
                   </span>
-                  <span className="text-xs text-gray-400">{tpl.recommendedDays}일</span>
+                  <span className="text-xs text-gray-400">
+                    {tpl.examScoped ? '시험일 직접 입력' : `${tpl.recommendedDays}일`}
+                  </span>
                 </button>
-                <button
-                  onClick={() => navigate(`/shorts/${tpl.id}`)}
-                  className="text-xs text-indigo-500 text-center py-0.5 hover:text-indigo-700"
-                >
-                  ⚡ 쇼츠
-                </button>
+                {!tpl.examScoped && (
+                  <button
+                    onClick={() => navigate(`/shorts/${tpl.id}`)}
+                    className="text-xs text-indigo-500 text-center py-0.5 hover:text-indigo-700"
+                  >
+                    ⚡ 쇼츠
+                  </button>
+                )}
               </div>
             ))}
           </div>
           {selectedTemplateId && (
             <p className="text-xs text-indigo-500 mt-2 px-1">
-              ✓ 템플릿 적용됨 — 주제와 기한이 자동 입력됐어요. 수정 가능합니다.
+              {examScoped
+                ? '✓ 템플릿 적용됨 — 시험 날짜와 범위를 직접 입력해주세요.'
+                : '✓ 템플릿 적용됨 — 주제와 기한이 자동 입력됐어요. 수정 가능합니다.'}
             </p>
           )}
         </div>
@@ -196,7 +219,7 @@ export default function GoalCreateScreen() {
             <input
               type="text"
               value={topic}
-              onChange={(e) => { setTopic(e.target.value); setSelectedTemplateId(null); setSelectedCurriculumId(undefined); setPickedTemplateId(undefined); }}
+              onChange={(e) => { setTopic(e.target.value); setSelectedTemplateId(null); setSelectedCurriculumId(undefined); setPickedTemplateId(undefined); setExamScoped(false); }}
               placeholder="예: 리액트 훅의 개념과 활용"
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
               required
@@ -206,17 +229,21 @@ export default function GoalCreateScreen() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              목표 달성 기한 <span className="text-red-400">*</span>
+              {examScoped ? '시험 날짜' : '목표 달성 기한'} <span className="text-red-400">*</span>
             </label>
             <input
               type="date"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
               min={minDateStr}
+              placeholder={examScoped ? '예: 2026-09-15 (중간고사일)' : undefined}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
               required
               disabled={loading}
             />
+            {examScoped && (
+              <p className="text-xs text-gray-400 mt-1">실제 시험 날짜를 입력하세요. 자동으로 채워지지 않아요.</p>
+            )}
           </div>
 
           <div>
@@ -289,16 +316,23 @@ export default function GoalCreateScreen() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              참고 자료 <span className="text-gray-400 font-normal">(선택)</span>
+              {examScoped ? '시험 범위' : '참고 자료'} <span className="text-gray-400 font-normal">(선택)</span>
             </label>
             <textarea
               value={rawContent}
               onChange={(e) => setRawContent(e.target.value)}
-              placeholder="학습에 참고할 내용을 붙여넣거나 입력하세요..."
+              placeholder={
+                examScoped
+                  ? '이번 시험 범위를 붙여넣어주세요 (예: 1~3단원, 교과서 20~45쪽, 프린트물 내용)'
+                  : '학습에 참고할 내용을 붙여넣거나 입력하세요...'
+              }
               rows={5}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base resize-none"
               disabled={loading}
             />
+            {examScoped && (
+              <p className="text-xs text-gray-400 mt-1">시험 범위를 입력하면 더 정확한 콘텐츠가 만들어져요.</p>
+            )}
           </div>
 
           {error && (
@@ -311,6 +345,9 @@ export default function GoalCreateScreen() {
             <p className="text-indigo-700 text-sm">
               AI가 학습 요약과 퀴즈 15개를 자동으로 생성합니다.
               약 10~20초 소요됩니다.
+            </p>
+            <p className="text-indigo-500 text-xs mt-1.5">
+              💚 5분 학습은 지금도, 앞으로도 완전 무료예요.
             </p>
           </div>
 

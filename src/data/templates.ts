@@ -6,6 +6,9 @@ export interface Template {
   recommendedDays: number;
   category: string;
   curriculumId?: string;
+  // F-29/F-33: 학교 시험 범위처럼 학년·학교별 진도 편차가 커서, 기한을 자동으로 추천하지 않고
+  // 사용자가 직접 시험일을 입력하도록 유도하는 템플릿인지 여부
+  examScoped?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
@@ -97,5 +100,70 @@ export const TEMPLATES: Template[] = [
     recommendedDays: 30,
     category: '어학',
     curriculumId: 'english_grammar',
+  },
+  // F-33: 내신·수능 카테고리 — 학교·학년마다 시험 범위가 달라 고정 커리큘럼 대신
+  // topic만 프리필하고 참고자료(rawContent)에 시험 범위를 직접 입력받는 방식
+  {
+    id: 'middle1_exam',
+    icon: '📘',
+    name: '중1 내신 대비',
+    topic: '중학교 1학년 내신 시험 대비',
+    recommendedDays: 14,
+    category: '내신·수능',
+    examScoped: true,
+  },
+  {
+    id: 'middle2_exam',
+    icon: '📗',
+    name: '중2 내신 대비',
+    topic: '중학교 2학년 내신 시험 대비',
+    recommendedDays: 14,
+    category: '내신·수능',
+    examScoped: true,
+  },
+  {
+    id: 'middle3_exam',
+    icon: '📙',
+    name: '중3 내신 대비',
+    topic: '중학교 3학년 내신 시험 대비',
+    recommendedDays: 14,
+    category: '내신·수능',
+    examScoped: true,
+  },
+  {
+    id: 'high1_exam',
+    icon: '📕',
+    name: '고1 내신 대비',
+    topic: '고등학교 1학년 내신 시험 대비',
+    recommendedDays: 14,
+    category: '내신·수능',
+    examScoped: true,
+  },
+  {
+    id: 'high2_exam',
+    icon: '📔',
+    name: '고2 내신 대비',
+    topic: '고등학교 2학년 내신 시험 대비',
+    recommendedDays: 14,
+    category: '내신·수능',
+    examScoped: true,
+  },
+  {
+    id: 'high3_exam',
+    icon: '📒',
+    name: '고3 내신 대비',
+    topic: '고등학교 3학년 내신 시험 대비',
+    recommendedDays: 14,
+    category: '내신·수능',
+    examScoped: true,
+  },
+  {
+    id: 'suneung_exam',
+    icon: '🎯',
+    name: '수능 대비',
+    topic: '대학수학능력시험 대비',
+    recommendedDays: 30,
+    category: '내신·수능',
+    examScoped: true,
   },
 ];

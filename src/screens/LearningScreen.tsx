@@ -126,8 +126,9 @@ export default function LearningScreen() {
       effectiveRawContent = curricDay.content;
     }
 
-    // 실무 연계 모드(F-21)나 기본이 아닌 AI 말투(F-27)는 개인화 콘텐츠라 풀/뱅크를 쓰지 않음
-    const isPersonalized = !!goal.practicalMode || (!!goal.mateTone && goal.mateTone !== 'plain');
+    // 실무 연계 모드(F-21), 기본이 아닌 AI 말투(F-27), 내신·수능처럼 학교마다 범위가 다른
+    // 시험범위 목표(F-33)는 개인화 콘텐츠라 풀/뱅크를 쓰지 않음
+    const isPersonalized = !!goal.practicalMode || (!!goal.mateTone && goal.mateTone !== 'plain') || !!goal.examScoped;
 
     // 템플릿 목표면 공유 풀 먼저 확인
     const cacheKey = goal.templateId && !isPersonalized ? buildCacheKey(goal.templateId, dayNum) : null;
@@ -272,15 +273,9 @@ export default function LearningScreen() {
         <p className="text-gray-700 text-center font-medium">
           {isRateLimit ? '오늘 무료 생성 한도를 채웠어요' : '콘텐츠 생성 실패'}
         </p>
-        <p className="text-gray-500 text-sm text-center">{error}</p>
-        {isRateLimit && (
-          <button
-            onClick={() => navigate('/settings')}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold"
-          >
-            개인 API 키 설정하기
-          </button>
-        )}
+        <p className="text-gray-500 text-sm text-center">
+          {isRateLimit ? '무료로 제공되는 하루 생성 횟수 제한이에요. 내일 다시 이용할 수 있어요.' : error}
+        </p>
         <button onClick={() => navigate('/')} className="text-gray-400 text-sm">
           홈으로
         </button>

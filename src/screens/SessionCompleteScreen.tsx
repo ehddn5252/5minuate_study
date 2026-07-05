@@ -5,6 +5,7 @@ import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
 import { getIdentityStatement } from '../utils/identity';
 import type { BadgeId } from '../types';
+import type { GrowthFeedback } from '../utils/growthFeedback';
 
 interface LocationState {
   score: number;
@@ -13,6 +14,7 @@ interface LocationState {
   newBadges?: BadgeId[];
   topic?: string;
   usedFreeze?: boolean;
+  growthFeedback?: GrowthFeedback;
 }
 
 export default function SessionCompleteScreen() {
@@ -26,6 +28,7 @@ export default function SessionCompleteScreen() {
   const newBadges = state?.newBadges ?? [];
   const topic = state?.topic ?? '학습';
   const usedFreeze = state?.usedFreeze ?? false;
+  const growthFeedback = state?.growthFeedback;
   // F-22: 정체성 서사는 매일 노출하지 않고 7일/30일 스트릭 마일스톤에서만 노출(피로도 방지)
   const isStreakMilestone = newBadges.includes('flame_7') || newBadges.includes('persistence_30');
   const percent = Math.round((score / total) * 100);
@@ -76,6 +79,11 @@ export default function SessionCompleteScreen() {
               <p className="text-gray-500 text-sm mt-1">정답률</p>
             </div>
           </div>
+          {growthFeedback && (
+            <p className="text-center text-xs text-indigo-500 font-medium mt-4 pt-3 border-t border-gray-100">
+              📈 {growthFeedback.message}
+            </p>
+          )}
         </div>
 
         {usedFreeze && (
@@ -113,20 +121,36 @@ export default function SessionCompleteScreen() {
 
         <p className="text-gray-400 text-sm mb-4">4초 후 홈으로 이동합니다</p>
 
-        <button
-          onClick={async () => {
-            setSharing(true);
-            try {
-              await shareOrDownload({ topic, streak, score, total, isGoalComplete: false });
-            } finally {
-              setSharing(false);
-            }
-          }}
-          disabled={sharing}
-          className="w-full mb-3 py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold min-h-[44px] disabled:opacity-50"
-        >
-          {sharing ? '생성 중...' : '📤 결과 공유하기'}
-        </button>
+        <div className="flex gap-2 mb-3">
+          <button
+            onClick={async () => {
+              setSharing(true);
+              try {
+                await shareOrDownload({ topic, streak, score, total, isGoalComplete: false }, 'parent');
+              } finally {
+                setSharing(false);
+              }
+            }}
+            disabled={sharing}
+            className="flex-1 py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
+          >
+            {sharing ? '생성 중...' : '👨‍👩‍👧 보호자님께'}
+          </button>
+          <button
+            onClick={async () => {
+              setSharing(true);
+              try {
+                await shareOrDownload({ topic, streak, score, total, isGoalComplete: false }, 'general');
+              } finally {
+                setSharing(false);
+              }
+            }}
+            disabled={sharing}
+            className="flex-1 py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
+          >
+            {sharing ? '생성 중...' : '🙋 친구에게'}
+          </button>
+        </div>
         <button
           onClick={() => navigate('/')}
           className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"

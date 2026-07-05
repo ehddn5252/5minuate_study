@@ -28,6 +28,7 @@ export interface Goal {
   streakFreezeRemaining: number;
   practicalMode?: boolean;
   mateTone?: MateTone;
+  examScoped?: boolean;
 }
 
 export interface Session {

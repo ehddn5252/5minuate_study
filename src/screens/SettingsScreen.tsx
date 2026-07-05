@@ -6,6 +6,12 @@ import { supabase, signInWithGoogle, signOut, syncToCloud } from '../services/su
 import type { User } from '@supabase/supabase-js';
 import BottomNav from '../components/BottomNav';
 
+// F-28: 학교·학원 일정처럼 예측 가능한 틈새 시간에 맞춘 알림 프리셋
+const SCHEDULE_PRESETS: { label: string; notifTime: string; quietStart: string; quietEnd: string }[] = [
+  { label: '등하교 시간 기준', notifTime: '17:00', quietStart: '08:00', quietEnd: '16:30' },
+  { label: '학원 다녀온 뒤', notifTime: '22:00', quietStart: '09:00', quietEnd: '21:30' },
+];
+
 export default function SettingsScreen() {
   const navigate = useNavigate();
   const { appState, updateAppState } = useAppStore();
@@ -69,6 +75,12 @@ export default function SettingsScreen() {
     updateAppState({ quietHoursStart: quietStart, quietHoursEnd: quietEnd });
     setQuietSaved(true);
     setTimeout(() => setQuietSaved(false), 2000);
+  };
+
+  const handleApplyPreset = (preset: typeof SCHEDULE_PRESETS[number]) => {
+    setNotifTime(preset.notifTime);
+    setQuietStart(preset.quietStart);
+    setQuietEnd(preset.quietEnd);
   };
 
   return (
@@ -138,10 +150,29 @@ export default function SettingsScreen() {
               </button>
             </div>
           )}
+          <p className="text-xs text-green-600 mt-4 pt-3 border-t border-gray-100">
+            💚 5분 학습은 지금도, 앞으로도 완전 무료예요.
+          </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">학습 알림</h2>
+
+          <div className="mb-4">
+            <p className="text-xs text-gray-400 mb-2">시간표 프리셋으로 한 번에 채우기</p>
+            <div className="flex gap-2">
+              {SCHEDULE_PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  onClick={() => handleApplyPreset(preset)}
+                  className="flex-1 py-2 px-2 rounded-xl border border-gray-200 text-gray-600 text-xs font-medium hover:border-indigo-300 hover:text-indigo-600 transition-colors min-h-[36px]"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-medium text-gray-700">알림 허용</p>

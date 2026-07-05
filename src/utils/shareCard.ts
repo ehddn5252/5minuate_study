@@ -104,14 +104,29 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-export async function shareOrDownload(data: ShareCardData): Promise<void> {
+// F-34: 공유 대상에 따라 텍스트만 다르게 — 이미지(통계 항목)는 대상과 무관하게 항상 동일
+function buildShareText(data: ShareCardData, audience: 'parent' | 'general'): string {
+  if (audience === 'parent') {
+    return data.isGoalComplete
+      ? `${data.topic} — 꾸준히 해서 목표를 완주했어요 😊`
+      : `${data.topic} — 오늘도 5분씩 꾸준히 공부하고 있어요 😊`;
+  }
+  return data.isGoalComplete
+    ? `${data.topic} — 목표를 달성했어요! 🏆`
+    : `${data.topic} — 오늘도 5분 학습 완료 🔥`;
+}
+
+export async function shareOrDownload(
+  data: ShareCardData,
+  audience: 'parent' | 'general' = 'general'
+): Promise<void> {
   const blob = await generateShareCard(data);
   const file = new File([blob], '5분학습_달성.png', { type: 'image/png' });
 
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({
       title: '5분 학습 달성!',
-      text: `${data.topic} — 오늘도 5분 학습 완료 🔥`,
+      text: buildShareText(data, audience),
       files: [file],
     });
     return;
