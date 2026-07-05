@@ -7,7 +7,11 @@ import { generateId } from '../utils/id';
 import { getCurriculumDay } from '../data/curriculum';
 import { buildCacheKey, fetchFromPool, saveToPool } from '../services/contentPool';
 import { fetchFromBank } from '../services/questionBank';
+import { getDailyHook } from '../utils/dailyHook';
+import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, isPaused } from '../utils/speech';
 import type { Quiz } from '../types';
+
+const SPEECH_RATES = [1, 1.25, 1.5];
 
 export default function LearningScreen() {
   const { goalId } = useParams<{ goalId: string }>();
@@ -15,7 +19,7 @@ export default function LearningScreen() {
   const { goals } = useGoalStore();
   const { updateSession } = useSessionStore();
   const { addQuizzes } = useQuizStore();
-  const { appState } = useAppStore();
+  const { appState, updateAppState } = useAppStore();
 
   const goal = goals.find((g) => g.id === goalId);
 
@@ -25,6 +29,63 @@ export default function LearningScreen() {
   const [scrolled, setScrolled] = useState(false);
   const [todayTopic, setTodayTopic] = useState('');
   const [poolHit, setPoolHit] = useState<{ useCount: number } | null>(null);
+  const [dailyHook, setDailyHook] = useState<string | null>(null);
+
+  // F-25: 듣는 5분 학습 — 오디오 퍼스트 모드
+  const [audioMode, setAudioMode] = useState(appState.audioModeEnabled);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [rateIdx, setRateIdx] = useState(0);
+
+  useEffect(() => {
+    return () => stopSpeech();
+  }, []);
+
+  const handleToggleAudioMode = () => {
+    const next = !audioMode;
+    setAudioMode(next);
+    updateAppState({ audioModeEnabled: next });
+    if (!next) {
+      stopSpeech();
+      setIsPlaying(false);
+    }
+  };
+
+  const handleTogglePlay = () => {
+    if (isPlaying) {
+      pauseSpeech();
+      setIsPlaying(false);
+      return;
+    }
+    if (isPaused()) {
+      resumeSpeech();
+      setIsPlaying(true);
+      return;
+    }
+    const texts = summary.split('\n').map((l) => l.replace(/^[•·\-*]\s*/, '').trim()).filter(Boolean);
+    speakQueue(texts, SPEECH_RATES[rateIdx], () => setIsPlaying(false));
+    setIsPlaying(true);
+  };
+
+  const handleCycleRate = () => {
+    const nextIdx = (rateIdx + 1) % SPEECH_RATES.length;
+    setRateIdx(nextIdx);
+    if (isPlaying) {
+      const texts = summary.split('\n').map((l) => l.replace(/^[•·\-*]\s*/, '').trim()).filter(Boolean);
+      speakQueue(texts, SPEECH_RATES[nextIdx], () => setIsPlaying(false));
+    }
+  };
+
+  // F-26: 오늘의 학습운 — 하루 최초 진입 시 1회만 노출
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (appState.lastDailyHookDate !== today) {
+      setDailyHook(getDailyHook());
+      updateAppState({ lastDailyHookDate: today });
+      const timer = setTimeout(() => setDailyHook(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!goal) return;
@@ -65,8 +126,11 @@ export default function LearningScreen() {
       effectiveRawContent = curricDay.content;
     }
 
-    // 템플릿 목표면 공유 풀 먼저 확인 (단, 실무 연계 모드는 개인화 콘텐츠라 풀/뱅크를 쓰지 않음)
-    const cacheKey = goal.templateId && !goal.practicalMode ? buildCacheKey(goal.templateId, dayNum) : null;
+    // 실무 연계 모드(F-21)나 기본이 아닌 AI 말투(F-27)는 개인화 콘텐츠라 풀/뱅크를 쓰지 않음
+    const isPersonalized = !!goal.practicalMode || (!!goal.mateTone && goal.mateTone !== 'plain');
+
+    // 템플릿 목표면 공유 풀 먼저 확인
+    const cacheKey = goal.templateId && !isPersonalized ? buildCacheKey(goal.templateId, dayNum) : null;
 
     const applyContent = (s: string, quizzes: Quiz[]) => {
       addQuizzes(quizzes);
@@ -84,8 +148,8 @@ export default function LearningScreen() {
 
     (async () => {
       // 0) 사전 제작 문제 데이터셋 조회 (커리큘럼 + 날짜 + 난이도 일치 시 Gemini 호출 없이 즉시 사용)
-      // 실무 연계 모드는 개인화 콘텐츠이므로 사전 제작 뱅크를 건너뛴다
-      if (goal.curriculumId && curricDay && !goal.practicalMode) {
+      // 개인화 콘텐츠(실무 연계/커스텀 말투)는 사전 제작 뱅크를 건너뛴다
+      if (goal.curriculumId && curricDay && !isPersonalized) {
         const bankData = await fetchFromBank(goal.curriculumId, dayNum, goal.level ?? 'intermediate');
         if (bankData) {
           const quizzes: Quiz[] = bankData.quizzes.map((q) => ({
@@ -129,12 +193,13 @@ export default function LearningScreen() {
           goal.level,
           appState.geminiApiKey,
           effectiveRawContent,
-          goal.practicalMode
+          goal.practicalMode,
+          goal.mateTone
         );
         applyContent(s, quizzes);
 
-        // 3) 생성 성공 시 풀에 저장 (fire & forget) — 실무 연계 모드는 개인화 콘텐츠라 저장하지 않음
-        if (cacheKey && goal.templateId && !goal.practicalMode) {
+        // 3) 생성 성공 시 풀에 저장 (fire & forget) — 개인화 콘텐츠는 저장하지 않음
+        if (cacheKey && goal.templateId && !isPersonalized) {
           saveToPool({
             cacheKey,
             templateId: goal.templateId,
@@ -161,6 +226,7 @@ export default function LearningScreen() {
 
   const handleStartTest = () => {
     if (!goal) return;
+    stopSpeech();
     const session = getTodaySession(goal.id);
     if (session) {
       const updated = { ...session, summaryViewedAt: new Date().toISOString() };
@@ -240,7 +306,47 @@ export default function LearningScreen() {
               {dayNum}일째 / 전체 {goal.totalSessions}일 · 약 5분
             </p>
           </div>
+          {isSpeechSupported() && (
+            <button
+              onClick={handleToggleAudioMode}
+              className={`flex-shrink-0 px-3 py-2 rounded-xl text-sm font-medium min-h-[44px] transition-colors ${
+                audioMode ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'
+              }`}
+            >
+              🔊 듣기
+            </button>
+          )}
         </div>
+
+        {audioMode && (
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={handleTogglePlay}
+              disabled={!summary}
+              className="flex-1 py-2.5 rounded-xl bg-indigo-50 text-indigo-700 font-semibold text-sm min-h-[44px] disabled:opacity-40"
+            >
+              {isPlaying ? '⏸ 일시정지' : '▶ 재생'}
+            </button>
+            <button
+              onClick={handleCycleRate}
+              className="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-600 font-medium text-sm min-h-[44px]"
+            >
+              {SPEECH_RATES[rateIdx]}x
+            </button>
+          </div>
+        )}
+
+        {dailyHook && (
+          <div className="flex items-center justify-between gap-2 bg-violet-50 border border-violet-100 rounded-xl px-4 py-3 mb-4">
+            <p className="text-violet-700 text-sm font-medium">✨ {dailyHook}</p>
+            <button
+              onClick={() => setDailyHook(null)}
+              className="text-violet-400 hover:text-violet-600 flex-shrink-0 p-1 min-h-[32px] min-w-[32px] flex items-center justify-center"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         <div
           className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 overflow-y-auto"

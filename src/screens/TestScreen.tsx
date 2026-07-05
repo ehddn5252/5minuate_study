@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGoalStore, useSessionStore, useQuizStore } from '../store';
+import { useGoalStore, useSessionStore, useQuizStore, useAppStore } from '../store';
 import { getTodaySession, saveSession, addToWrongPool, removeFromWrongPool, getSessions, getActiveWrongPool, getQuizzes } from '../utils/storage';
 import { checkAndAwardBadges } from '../utils/badges';
 import { generateId } from '../utils/id';
+import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, isPaused } from '../utils/speech';
 import type { Quiz } from '../types';
+
+const SPEECH_RATES = [1, 1.25, 1.5];
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -172,6 +175,7 @@ export default function TestScreen() {
   const { goals, updateGoal } = useGoalStore();
   const { updateSession } = useSessionStore();
   const { quizzes, updateQuiz } = useQuizStore();
+  const { appState, updateAppState } = useAppStore();
 
   const goal = goals.find((g) => g.id === goalId);
   const [testQuizzes, setTestQuizzes] = useState<Quiz[]>([]);
@@ -179,6 +183,21 @@ export default function TestScreen() {
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [answered, setAnswered] = useState(false);
   const initialized = useRef(false);
+
+  // F-25: 듣는 5분 학습 — 오디오 퍼스트 모드
+  const [audioMode, setAudioMode] = useState(appState.audioModeEnabled);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [rateIdx, setRateIdx] = useState(0);
+
+  useEffect(() => {
+    return () => stopSpeech();
+  }, []);
+
+  // 문항이 바뀌면 이전 문항 낭독은 멈춘다(자동으로 다음 문항을 읽지는 않음)
+  useEffect(() => {
+    stopSpeech();
+    setIsPlaying(false);
+  }, [currentIndex]);
 
   useEffect(() => {
     if (!goal || initialized.current) return;
@@ -240,6 +259,47 @@ export default function TestScreen() {
 
   const currentQuiz = testQuizzes[currentIndex];
   const isLast = currentIndex === testQuizzes.length - 1;
+
+  const handleToggleAudioMode = () => {
+    const next = !audioMode;
+    setAudioMode(next);
+    updateAppState({ audioModeEnabled: next });
+    if (!next) {
+      stopSpeech();
+      setIsPlaying(false);
+    }
+  };
+
+  const buildSpeechTexts = (): string[] => {
+    const texts = [currentQuiz.question];
+    if (currentQuiz.type === 'multiple_choice' && currentQuiz.options) {
+      texts.push(...currentQuiz.options);
+    }
+    return texts;
+  };
+
+  const handleTogglePlay = () => {
+    if (isPlaying) {
+      pauseSpeech();
+      setIsPlaying(false);
+      return;
+    }
+    if (isPaused()) {
+      resumeSpeech();
+      setIsPlaying(true);
+      return;
+    }
+    speakQueue(buildSpeechTexts(), SPEECH_RATES[rateIdx], () => setIsPlaying(false));
+    setIsPlaying(true);
+  };
+
+  const handleCycleRate = () => {
+    const nextIdx = (rateIdx + 1) % SPEECH_RATES.length;
+    setRateIdx(nextIdx);
+    if (isPlaying) {
+      speakQueue(buildSpeechTexts(), SPEECH_RATES[nextIdx], () => setIsPlaying(false));
+    }
+  };
 
   const handleAnswer = (correct: boolean) => {
     const nextAnswers = [...answers, correct];
@@ -400,7 +460,34 @@ export default function TestScreen() {
               />
             </div>
           </div>
+          {isSpeechSupported() && (
+            <button
+              onClick={handleToggleAudioMode}
+              className={`flex-shrink-0 px-3 py-2 rounded-xl text-sm font-medium min-h-[44px] transition-colors ${
+                audioMode ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'
+              }`}
+            >
+              🔊
+            </button>
+          )}
         </div>
+
+        {audioMode && (
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={handleTogglePlay}
+              className="flex-1 py-2.5 rounded-xl bg-indigo-50 text-indigo-700 font-semibold text-sm min-h-[44px]"
+            >
+              {isPlaying ? '⏸ 일시정지' : '▶ 문제 듣기'}
+            </button>
+            <button
+              onClick={handleCycleRate}
+              className="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-600 font-medium text-sm min-h-[44px]"
+            >
+              {SPEECH_RATES[rateIdx]}x
+            </button>
+          </div>
+        )}
 
         <div className="flex-1">
           <QuizCard

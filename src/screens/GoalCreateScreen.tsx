@@ -4,12 +4,18 @@ import { useGoalStore, useQuizStore, useAppStore } from '../store';
 import { generateGoalContent } from '../services/gemini';
 import { generateId } from '../utils/id';
 import { TEMPLATES } from '../data/templates';
-import type { Goal, QuizLevel } from '../types';
+import type { Goal, QuizLevel, MateTone } from '../types';
 
 const LEVEL_OPTIONS: { id: QuizLevel; label: string }[] = [
   { id: 'beginner', label: '초급' },
   { id: 'intermediate', label: '중급' },
   { id: 'advanced', label: '고급' },
+];
+
+const TONE_OPTIONS: { id: MateTone; label: string; desc: string }[] = [
+  { id: 'plain', label: '담백한 선배', desc: '기본' },
+  { id: 'friendly', label: '다정한 친구', desc: '편안하게' },
+  { id: 'hype', label: '예능 자막체', desc: '텐션 UP' },
 ];
 
 export default function GoalCreateScreen() {
@@ -35,6 +41,7 @@ export default function GoalCreateScreen() {
   const [rawContent, setRawContent] = useState('');
   const [level, setLevel] = useState<QuizLevel>('intermediate');
   const [practicalMode, setPracticalMode] = useState(false);
+  const [mateTone, setMateTone] = useState<MateTone>('plain');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(() => searchParams.get('templateId'));
@@ -75,7 +82,8 @@ export default function GoalCreateScreen() {
         level,
         appState.geminiApiKey,
         rawContent || undefined,
-        practicalMode
+        practicalMode,
+        mateTone
       );
 
       const today = new Date().toISOString().split('T')[0];
@@ -105,6 +113,7 @@ export default function GoalCreateScreen() {
         level,
         streakFreezeRemaining: 2,
         practicalMode,
+        mateTone,
       };
 
       addGoal(goal);
@@ -228,6 +237,30 @@ export default function GoalCreateScreen() {
                   }`}
                 >
                   {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              AI 학습메이트 말투
+            </label>
+            <div className="flex gap-2">
+              {TONE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setMateTone(opt.id)}
+                  disabled={loading}
+                  className={`flex-1 py-3 rounded-xl border-2 text-center min-h-[44px] transition-colors ${
+                    mateTone === opt.id
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-200'
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{opt.label}</span>
+                  <span className="block text-xs text-gray-400 mt-0.5">{opt.desc}</span>
                 </button>
               ))}
             </div>

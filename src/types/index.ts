@@ -2,6 +2,7 @@ export type GoalStatus = 'active' | 'completed' | 'inactive';
 export type SessionStatus = 'pending' | 'in_progress' | 'completed';
 export type QuizType = 'multiple_choice' | 'short_answer';
 export type QuizLevel = 'beginner' | 'intermediate' | 'advanced';
+export type MateTone = 'friendly' | 'hype' | 'plain';
 
 export interface Goal {
   id: string;
@@ -26,6 +27,7 @@ export interface Goal {
   level: QuizLevel;
   streakFreezeRemaining: number;
   practicalMode?: boolean;
+  mateTone?: MateTone;
 }
 
 export interface Session {
@@ -94,4 +96,6 @@ export interface AppState {
   notificationTime: string;
   quietHoursStart: string;
   quietHoursEnd: string;
+  lastDailyHookDate: string;
+  audioModeEnabled: boolean;
 }

@@ -186,6 +186,8 @@ const DEFAULT_APP_STATE: AppState = {
   notificationTime: '20:00',
   quietHoursStart: '21:30',
   quietHoursEnd: '07:00',
+  lastDailyHookDate: '',
+  audioModeEnabled: false,
 };
 
 export function getAppState(): AppState {
