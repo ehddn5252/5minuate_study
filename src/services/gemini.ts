@@ -111,8 +111,9 @@ JSON만 응답하고 다른 텍스트는 포함하지 마세요.
       temperature: 0.7,
       topK: 40,
       topP: 0.95,
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
       responseMimeType: 'application/json',
+      thinkingConfig: { thinkingBudget: 0 },
     },
   }, apiKey);
 
@@ -122,10 +123,12 @@ JSON만 응답하고 다른 텍스트는 포함하지 마세요.
     throw new Error('Gemini 응답에서 JSON을 찾을 수 없습니다.');
   }
 
-  const parsed = JSON.parse(jsonMatch[0]) as {
-    summary: string;
-    quizzes: GeminiQuizRaw[];
-  };
+  let parsed: { summary: string; quizzes: GeminiQuizRaw[] };
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch {
+    throw new Error('AI 응답이 잘려서 처리하지 못했습니다. 다시 시도해주세요.');
+  }
 
   const quizPool: Quiz[] = parsed.quizzes.map((q) => ({
     id: generateId(),
@@ -193,8 +196,9 @@ JSON만 응답하세요.
       temperature: 0.7,
       topK: 40,
       topP: 0.95,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 8192,
       responseMimeType: 'application/json',
+      thinkingConfig: { thinkingBudget: 0 },
     },
   }, apiKey);
 
@@ -202,10 +206,12 @@ JSON만 응답하세요.
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('Gemini 응답에서 JSON을 찾을 수 없습니다.');
 
-  const parsed = JSON.parse(jsonMatch[0]) as {
-    summary: string;
-    quizzes: GeminiQuizRaw[];
-  };
+  let parsed: { summary: string; quizzes: GeminiQuizRaw[] };
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch {
+    throw new Error('AI 응답이 잘려서 처리하지 못했습니다. 다시 시도해주세요.');
+  }
 
   const quizzes: Quiz[] = parsed.quizzes.map((q) => ({
     id: generateId(),
