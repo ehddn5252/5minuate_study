@@ -108,7 +108,7 @@ function NotesTab({
 }) {
   const completedSessions = sessions
     .filter((s) => s.goalId === goalId && s.status === 'completed' && s.summaryContent)
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => (b.completedAt ?? b.date).localeCompare(a.completedAt ?? a.date));
 
   if (completedSessions.length === 0) {
     return (

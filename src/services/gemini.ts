@@ -1,7 +1,13 @@
-import type { Quiz } from '../types';
+import type { Quiz, QuizLevel } from '../types';
 import { generateId } from '../utils/id';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
+
+const LEVEL_DESC: Record<QuizLevel, string> = {
+  beginner: '초급 — 기초 개념 위주로 쉬운 어휘와 단순한 문장 구조로 설명하고 출제하세요.',
+  intermediate: '중급 — 표준적인 난이도로 핵심 개념과 응용을 균형 있게 다루세요.',
+  advanced: '고급 — 심화 개념과 실전 수준의 응용 문제를 포함하고, 헷갈리기 쉬운 선택지를 활용하세요.',
+};
 
 interface GeminiResponse {
   candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
@@ -52,6 +58,7 @@ export async function generateGoalContent(
   goalId: string,
   topic: string,
   deadline: string,
+  level: QuizLevel = 'intermediate',
   apiKey = '',
   rawContent?: string
 ): Promise<GenerateGoalContentResult> {
@@ -65,6 +72,7 @@ export async function generateGoalContent(
 당신은 학습 도우미입니다. 아래 주제에 대한 학습 콘텐츠를 JSON 형식으로 생성해주세요.
 
 주제: ${topic}
+난이도: ${LEVEL_DESC[level]}
 마감일: ${deadline} (오늘로부터 ${daysLeft}일 후)
 ${rawContent ? `참고 자료:\n${rawContent}` : ''}
 
@@ -137,6 +145,7 @@ export async function generateDailyContent(
   topic: string,
   dayNum: number,
   totalDays: number,
+  level: QuizLevel = 'intermediate',
   apiKey = '',
   rawContent?: string
 ): Promise<GenerateDailyContentResult> {
@@ -144,6 +153,7 @@ export async function generateDailyContent(
 당신은 학습 도우미입니다. 아래 주제를 ${totalDays}일에 걸쳐 단계적으로 학습하는 커리큘럼에서 오늘(${dayNum}일째) 배울 내용을 생성해주세요.
 
 주제: ${topic}
+난이도: ${LEVEL_DESC[level]}
 오늘: ${dayNum}일째 / 전체 ${totalDays}일
 ${rawContent ? `참고 자료:\n${rawContent}\n` : ''}
 

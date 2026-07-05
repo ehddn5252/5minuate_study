@@ -22,8 +22,6 @@ export function getBadgeDef(id: BadgeId): BadgeDef {
 
 export function checkAndAwardBadges(
   goalId: string,
-  score: number,
-  total: number,
   newStreak: number
 ): BadgeId[] {
   const newlyUnlocked: BadgeId[] = [];
@@ -42,7 +40,7 @@ export function checkAndAwardBadges(
     { id: 'first_step',     condition: sessions.length >= 1 },
     { id: 'flame_7',        condition: maxStreak >= 7 },
     { id: 'persistence_30', condition: maxStreak >= 30 },
-    { id: 'perfect_5',      condition: score === total && total > 0 ? perfectCount >= 4 : perfectCount >= 5 },
+    { id: 'perfect_5',      condition: perfectCount >= 5 },
     { id: 'zero_wrong',     condition: wrongPool.length === 0 && sessions.some((s) => s.goalId === goalId) },
   ];
 

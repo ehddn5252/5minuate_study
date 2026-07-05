@@ -6,6 +6,7 @@ import { generateDailyContent } from '../services/gemini';
 import { generateId } from '../utils/id';
 import { getCurriculumDay } from '../data/curriculum';
 import { buildCacheKey, fetchFromPool, saveToPool } from '../services/contentPool';
+import { fetchFromBank } from '../services/questionBank';
 import type { Quiz } from '../types';
 
 export default function LearningScreen() {
@@ -58,12 +59,10 @@ export default function LearningScreen() {
 
     // 커리큘럼이 있으면 해당 날짜 내용을 rawContent로 사용
     let effectiveRawContent = goal.rawContent;
-    if (goal.curriculumId) {
-      const curricDay = getCurriculumDay(goal.curriculumId, dayNum);
-      if (curricDay) {
-        setTodayTopic(curricDay.topic);
-        effectiveRawContent = curricDay.content;
-      }
+    const curricDay = goal.curriculumId ? getCurriculumDay(goal.curriculumId, dayNum) : undefined;
+    if (curricDay) {
+      setTodayTopic(curricDay.topic);
+      effectiveRawContent = curricDay.content;
     }
 
     // 템플릿 목표면 공유 풀 먼저 확인
@@ -84,6 +83,23 @@ export default function LearningScreen() {
     setGenerating(true);
 
     (async () => {
+      // 0) 사전 제작 문제 데이터셋 조회 (커리큘럼 + 날짜 + 난이도 일치 시 Gemini 호출 없이 즉시 사용)
+      if (goal.curriculumId && curricDay) {
+        const bankData = await fetchFromBank(goal.curriculumId, dayNum, goal.level ?? 'intermediate');
+        if (bankData) {
+          const quizzes: Quiz[] = bankData.quizzes.map((q) => ({
+            ...q,
+            id: generateId(),
+            goalId: goal.id,
+            isWrong: false,
+            wrongCount: 0,
+          }));
+          applyContent(curricDay.content, quizzes);
+          setGenerating(false);
+          return;
+        }
+      }
+
       // 1) 공유 풀 조회
       if (cacheKey) {
         const poolData = await fetchFromPool(cacheKey);
@@ -109,6 +125,7 @@ export default function LearningScreen() {
           goal.topic,
           dayNum,
           totalDays,
+          goal.level,
           appState.geminiApiKey,
           effectiveRawContent
         );

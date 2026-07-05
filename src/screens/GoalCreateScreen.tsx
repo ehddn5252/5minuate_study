@@ -4,7 +4,13 @@ import { useGoalStore, useQuizStore, useAppStore } from '../store';
 import { generateGoalContent } from '../services/gemini';
 import { generateId } from '../utils/id';
 import { TEMPLATES } from '../data/templates';
-import type { Goal } from '../types';
+import type { Goal, QuizLevel } from '../types';
+
+const LEVEL_OPTIONS: { id: QuizLevel; label: string }[] = [
+  { id: 'beginner', label: '초급' },
+  { id: 'intermediate', label: '중급' },
+  { id: 'advanced', label: '고급' },
+];
 
 export default function GoalCreateScreen() {
   const navigate = useNavigate();
@@ -27,6 +33,7 @@ export default function GoalCreateScreen() {
     return d.toISOString().split('T')[0];
   });
   const [rawContent, setRawContent] = useState('');
+  const [level, setLevel] = useState<QuizLevel>('intermediate');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(() => searchParams.get('templateId'));
@@ -64,6 +71,7 @@ export default function GoalCreateScreen() {
         goalId,
         topic,
         deadline,
+        level,
         appState.geminiApiKey,
         rawContent || undefined
       );
@@ -92,6 +100,7 @@ export default function GoalCreateScreen() {
         dailyPlan: '',
         summaryContent: summary,
         quizPoolIds: quizPool.map((q) => q.id),
+        level,
       };
 
       addGoal(goal);
@@ -195,6 +204,29 @@ export default function GoalCreateScreen() {
               required
               disabled={loading}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              난이도
+            </label>
+            <div className="flex gap-2">
+              {LEVEL_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setLevel(opt.id)}
+                  disabled={loading}
+                  className={`flex-1 py-3 rounded-xl border-2 text-sm font-semibold min-h-[44px] transition-colors ${
+                    level === opt.id
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-200'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>

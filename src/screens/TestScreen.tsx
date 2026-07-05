@@ -26,6 +26,7 @@ function QuizCard({ quiz, index, total, onAnswer }: QuizCardProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [shortInput, setShortInput] = useState('');
   const [revealed, setRevealed] = useState(false);
+  const [selfJudge, setSelfJudge] = useState<boolean | null>(null);
 
   const handleMultipleChoice = (option: string) => {
     if (revealed) return;
@@ -37,16 +38,20 @@ function QuizCard({ quiz, index, total, onAnswer }: QuizCardProps) {
   const handleShortAnswer = () => {
     if (revealed) return;
     setRevealed(true);
-    const correct =
-      shortInput.trim().toLowerCase() === quiz.answer.trim().toLowerCase();
+  };
+
+  const handleSelfJudge = (correct: boolean) => {
+    if (selfJudge !== null) return;
+    setSelfJudge(correct);
     onAnswer(correct);
   };
 
   const isCorrect =
-    revealed &&
-    (quiz.type === 'multiple_choice'
-      ? selected === quiz.answer
-      : shortInput.trim().toLowerCase() === quiz.answer.trim().toLowerCase());
+    quiz.type === 'multiple_choice' ? revealed && selected === quiz.answer : selfJudge === true;
+
+  // 단답형은 채점 기준이 애매할 수 있어 자동 비교 대신 사용자가 직접 정답/오답을 판단
+  const awaitingSelfJudge = quiz.type === 'short_answer' && revealed && selfJudge === null;
+  const showFeedback = quiz.type === 'multiple_choice' ? revealed : selfJudge !== null;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -112,7 +117,31 @@ function QuizCard({ quiz, index, total, onAnswer }: QuizCardProps) {
         </div>
       )}
 
-      {revealed && (
+      {awaitingSelfJudge && (
+        <div className="mt-4 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
+          <p className="text-sm text-gray-600 mb-1">
+            정답: <strong>{quiz.answer}</strong>
+          </p>
+          <p className="text-gray-600 text-sm mb-3">{quiz.explanation}</p>
+          <p className="text-sm font-semibold text-gray-700 mb-2">내 답이 맞았나요?</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleSelfJudge(true)}
+              className="flex-1 py-2.5 rounded-xl bg-green-500 text-white font-medium text-sm min-h-[44px] active:opacity-80 transition-opacity"
+            >
+              ⭕ 맞았어요
+            </button>
+            <button
+              onClick={() => handleSelfJudge(false)}
+              className="flex-1 py-2.5 rounded-xl bg-red-400 text-white font-medium text-sm min-h-[44px] active:opacity-80 transition-opacity"
+            >
+              ❌ 틀렸어요
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showFeedback && (
         <div
           className={`mt-4 p-4 rounded-xl ${
             isCorrect ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'
@@ -284,7 +313,7 @@ export default function TestScreen() {
       };
       updateGoal(updatedGoal);
 
-      const newBadges = checkAndAwardBadges(goal.id, score, total, newStreak);
+      const newBadges = checkAndAwardBadges(goal.id, newStreak);
 
       if (isGoalComplete) {
         navigate(`/goal-complete/${goal.id}`, {

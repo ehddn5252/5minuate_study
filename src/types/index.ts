@@ -1,6 +1,7 @@
 export type GoalStatus = 'active' | 'completed' | 'inactive';
 export type SessionStatus = 'pending' | 'in_progress' | 'completed';
 export type QuizType = 'multiple_choice' | 'short_answer';
+export type QuizLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export interface Goal {
   id: string;
@@ -22,6 +23,7 @@ export interface Goal {
   dailyPlan: string;
   summaryContent: string;
   quizPoolIds: string[];
+  level: QuizLevel;
 }
 
 export interface Session {
