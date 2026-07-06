@@ -58,6 +58,7 @@ export interface Quiz {
   isWrong: boolean;
   wrongCount: number;
   lastAttemptedAt?: string;
+  bookmarked?: boolean;
 }
 
 export interface WrongPool {

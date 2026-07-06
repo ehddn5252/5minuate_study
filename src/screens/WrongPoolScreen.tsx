@@ -46,9 +46,17 @@ export default function WrongPoolScreen() {
         ) : (
           sections.map(({ goal, wrongQuizzes }) => (
             <div key={goal.id} className="mb-6">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 px-1">
-                {goal.topic}
-              </h2>
+              <div className="flex items-center justify-between mb-3 px-1">
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  {goal.topic}
+                </h2>
+                <button
+                  onClick={() => navigate(`/retry/${goal.id}`)}
+                  className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full min-h-[28px]"
+                >
+                  🔁 다시 풀기
+                </button>
+              </div>
               {wrongQuizzes.map((quiz) => (
                 <div key={quiz.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
                   <div className="flex items-start gap-2 mb-2">
