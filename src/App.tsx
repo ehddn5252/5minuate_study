@@ -13,6 +13,7 @@ import GoalCompleteScreen from './screens/GoalCompleteScreen';
 import WrongPoolScreen from './screens/WrongPoolScreen';
 import RetryWrongScreen from './screens/RetryWrongScreen';
 import MyQuestionBookScreen from './screens/MyQuestionBookScreen';
+import CalendarScreen from './screens/CalendarScreen';
 import AchievementsScreen from './screens/AchievementsScreen';
 import StudyMaterialsScreen from './screens/StudyMaterialsScreen';
 import ShortsScreen from './screens/ShortsScreen';
@@ -110,6 +111,7 @@ export default function App() {
         <Route path="/wrong-pool" element={<WrongPoolScreen />} />
         <Route path="/retry/:goalId" element={<RetryWrongScreen />} />
         <Route path="/my-questions" element={<MyQuestionBookScreen />} />
+        <Route path="/calendar" element={<CalendarScreen />} />
         <Route path="/achievements" element={<AchievementsScreen />} />
         <Route path="/materials/:goalId" element={<StudyMaterialsScreen />} />
         <Route path="/shorts/:templateId" element={<ShortsScreen />} />
