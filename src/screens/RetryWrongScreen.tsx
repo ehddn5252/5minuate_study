@@ -137,6 +137,7 @@ export default function RetryWrongScreen() {
             index={currentIndex}
             total={quizList.length}
             onAnswer={handleAnswer}
+            mateTone={goal.mateTone}
           />
         </div>
 

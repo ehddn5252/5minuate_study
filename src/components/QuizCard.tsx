@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useQuizStore } from '../store';
-import type { Quiz } from '../types';
+import { getMascotFace } from '../utils/mascot';
+import type { MateTone, Quiz } from '../types';
 
 interface QuizCardProps {
   quiz: Quiz;
   index: number;
   total: number;
   onAnswer: (correct: boolean) => void;
+  mateTone?: MateTone;
 }
 
-export default function QuizCard({ quiz, index, total, onAnswer }: QuizCardProps) {
+export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: QuizCardProps) {
   const { updateQuiz } = useQuizStore();
   const [selected, setSelected] = useState<string | null>(null);
   const [shortInput, setShortInput] = useState('');
@@ -146,15 +148,19 @@ export default function QuizCard({ quiz, index, total, onAnswer }: QuizCardProps
 
       {showFeedback && (
         <div
+          key={isCorrect ? 'correct' : 'wrong'}
           className={`mt-4 p-4 rounded-xl ${
-            isCorrect ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'
+            isCorrect
+              ? 'bg-green-50 border border-green-200 animate-feedback-pop'
+              : 'bg-amber-50 border border-amber-200 animate-feedback-shake'
           }`}
         >
           <p
-            className={`font-semibold text-sm mb-1 ${
+            className={`font-semibold text-sm mb-1 flex items-center gap-1.5 ${
               isCorrect ? 'text-green-700' : 'text-amber-700'
             }`}
           >
+            <span className="text-lg">{getMascotFace(isCorrect ? 'correct' : 'wrong', mateTone)}</span>
             {isCorrect ? '정답입니다!' : '다음에 다시 나와요'}
           </p>
           {!isCorrect && (

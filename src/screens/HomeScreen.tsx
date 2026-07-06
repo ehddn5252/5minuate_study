@@ -82,13 +82,23 @@ function GoalCard({ goal }: { goal: Goal }) {
             <DelayLabel goal={goal} />
           </div>
         </div>
-        {goal.streak > 0 && (
-          <div className="flex items-center gap-1 bg-orange-50 rounded-full px-3 py-1">
-            <span className="text-orange-500 text-sm font-semibold">
-              🔥 {goal.streak}일
-            </span>
-          </div>
-        )}
+        <div className="flex flex-col items-end gap-1">
+          {goal.streak > 0 && (
+            <div className="flex items-center gap-1 bg-orange-50 rounded-full px-3 py-1">
+              <span className="text-orange-500 text-sm font-semibold">
+                🔥 {goal.streak}일
+              </span>
+            </div>
+          )}
+          {/* F-37: XP/레벨업 — 완료 화면에서 한 번 반짝이고 사라지지 않도록 상시 배지로도 노출 */}
+          {(goal.xp ?? 0) > 0 && (
+            <div className="flex items-center gap-1 bg-indigo-50 rounded-full px-3 py-1">
+              <span className="text-indigo-500 text-xs font-semibold">
+                ✨ Lv.{goal.xpLevel ?? 1}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mb-4">

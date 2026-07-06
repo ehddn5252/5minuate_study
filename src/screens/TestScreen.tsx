@@ -7,6 +7,8 @@ import { generateId } from '../utils/id';
 import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, isPaused } from '../utils/speech';
 import { sanitizeQuiz } from '../utils/quizValidation';
 import { getGrowthFeedback } from '../utils/growthFeedback';
+import { computeXpGain, levelForXp } from '../utils/xp';
+import { getSurpriseReward } from '../utils/surpriseReward';
 import QuizCard from '../components/QuizCard';
 import type { Quiz } from '../types';
 
@@ -41,8 +43,15 @@ export default function TestScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [rateIdx, setRateIdx] = useState(0);
 
+  // F-36: 콤보(연속 정답) 배너 — 1.2초 후 자동 소멸
+  const [comboBanner, setComboBanner] = useState<number | null>(null);
+  const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    return () => stopSpeech();
+    return () => {
+      stopSpeech();
+      if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
+    };
   }, []);
 
   // 문항이 바뀌면 이전 문항 낭독은 멈춘다(자동으로 다음 문항을 읽지는 않음)
@@ -160,6 +169,17 @@ export default function TestScreen() {
     setAnswers(nextAnswers);
     setAnswered(true);
 
+    // F-36: 배열 끝에서부터 연속 정답 개수를 세어 3연속 이상일 때만 배너 노출
+    let combo = 0;
+    for (let i = nextAnswers.length - 1; i >= 0 && nextAnswers[i]; i--) combo++;
+    if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
+    if (combo >= 3) {
+      setComboBanner(combo);
+      comboTimerRef.current = setTimeout(() => setComboBanner(null), 1200);
+    } else {
+      setComboBanner(null);
+    }
+
     // F-19: 진행 상황을 즉시 저장해 중단 후에도 이어서 진행할 수 있게 함
     const todaySession = getTodaySession(goal.id);
     if (todaySession) {
@@ -263,28 +283,49 @@ export default function TestScreen() {
         ? Math.min(FREEZE_CAP, freezeAfterUse + 1)
         : freezeAfterUse;
 
+      // F-37: XP/레벨업 — 개인 누적치만 저장(비교 UI 없음, 소셜 랭킹 비목표와 무관)
+      const xpGained = computeXpGain(score, total);
+      const newXp = (goal.xp ?? 0) + xpGained;
+      const newLevel = levelForXp(newXp);
+      const didLevelUp = newLevel > levelForXp(goal.xp ?? 0);
+
       const updatedGoal = {
         ...goal,
         completedSessions: newCompletedSessions,
         streak: newStreak,
         bestStreak: Math.max(goal.bestStreak, newStreak),
         streakFreezeRemaining: newFreezeRemaining,
+        xp: newXp,
+        xpLevel: newLevel,
         ...(isGoalComplete ? { status: 'completed' as const, completedAt: new Date().toISOString() } : {}),
       };
       updateGoal(updatedGoal);
 
       const newBadges = checkAndAwardBadges(goal.id, newStreak);
 
-      // F-31: "지난 나" 대비 성장 피드백 — 같은 목표의 자기 이력만 비교(타인/랭킹 비교 아님)
-      const growthFeedback = getGrowthFeedback(goal.id, score, total, sessionId);
+      // F-31/F-41: "지난 나" 대비 성장 피드백 + 정답률·스트릭 역대 기록 경신 여부
+      const isNewBestStreak = newStreak > goal.bestStreak;
+      const growthFeedback = getGrowthFeedback(goal.id, score, total, sessionId, isNewBestStreak);
+
+      // F-39: 확률적 깜짝 보상 — 실제 뱃지 획득·레벨업과 같은 세션에는 노출하지 않아(상호배타) 혼동을 막음
+      const surpriseReward =
+        newBadges.length === 0 && !didLevelUp && Math.random() < 0.2
+          ? getSurpriseReward(goal.mateTone ?? 'plain')
+          : undefined;
 
       if (isGoalComplete) {
         navigate(`/goal-complete/${goal.id}`, {
-          state: { score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges, topic: goal.topic, growthFeedback },
+          state: {
+            score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges,
+            topic: goal.topic, growthFeedback, mateTone: goal.mateTone, xpGained, newXp, newLevel, didLevelUp,
+          },
         });
       } else {
         navigate(`/complete/${sessionId}`, {
-          state: { score, total, streak: newStreak, newBadges, topic: goal.topic, usedFreeze, growthFeedback },
+          state: {
+            score, total, streak: newStreak, newBadges, topic: goal.topic, usedFreeze, growthFeedback,
+            mateTone: goal.mateTone, freezeRemaining: newFreezeRemaining, xpGained, newXp, newLevel, didLevelUp, surpriseReward,
+          },
         });
       }
     } else {
@@ -346,6 +387,14 @@ export default function TestScreen() {
           </div>
         )}
 
+        {comboBanner !== null && (
+          <div className="mb-3 text-center">
+            <span className="inline-block px-4 py-1.5 bg-orange-100 text-orange-600 rounded-full text-sm font-bold animate-count-up-pop">
+              🔥 {comboBanner}연속 정답!
+            </span>
+          </div>
+        )}
+
         <div className="flex-1">
           <QuizCard
             key={currentQuiz.id}
@@ -353,6 +402,7 @@ export default function TestScreen() {
             index={currentIndex}
             total={testQuizzes.length}
             onAnswer={handleAnswer}
+            mateTone={goal.mateTone}
           />
         </div>
 

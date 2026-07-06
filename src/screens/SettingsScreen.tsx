@@ -242,6 +242,27 @@ export default function SettingsScreen() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-700">축하 효과</p>
+              <p className="text-xs text-gray-400 mt-0.5">완료 화면의 컨페티·효과음·진동</p>
+            </div>
+            <button
+              onClick={() => updateAppState({ celebrationEffectsEnabled: !appState.celebrationEffectsEnabled })}
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                appState.celebrationEffectsEnabled ? 'bg-indigo-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  appState.celebrationEffectsEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">학습 데이터</h2>
           <button
             onClick={() => navigate('/wrong-pool')}

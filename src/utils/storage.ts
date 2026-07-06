@@ -188,6 +188,7 @@ const DEFAULT_APP_STATE: AppState = {
   quietHoursEnd: '07:00',
   lastDailyHookDate: '',
   audioModeEnabled: false,
+  celebrationEffectsEnabled: true,
 };
 
 export function getAppState(): AppState {

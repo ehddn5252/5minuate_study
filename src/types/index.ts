@@ -29,6 +29,8 @@ export interface Goal {
   practicalMode?: boolean;
   mateTone?: MateTone;
   examScoped?: boolean;
+  xp?: number;
+  xpLevel?: number;
 }
 
 export interface Session {
@@ -100,4 +102,5 @@ export interface AppState {
   quietHoursEnd: string;
   lastDailyHookDate: string;
   audioModeEnabled: boolean;
+  celebrationEffectsEnabled: boolean;
 }

@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useGoalStore } from '../store';
+import { useGoalStore, useAppStore } from '../store';
 import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
 import { getIdentityStatement } from '../utils/identity';
-import type { BadgeId } from '../types';
+import { getMascotFace } from '../utils/mascot';
+import { useCountUp } from '../utils/useCountUp';
+import { celebrate } from '../utils/celebration';
+import type { BadgeId, MateTone } from '../types';
 import type { GrowthFeedback } from '../utils/growthFeedback';
 
 interface LocationState {
@@ -14,6 +17,10 @@ interface LocationState {
   completedSessions: number;
   newBadges?: BadgeId[];
   growthFeedback?: GrowthFeedback;
+  mateTone?: MateTone;
+  xpGained?: number;
+  newLevel?: number;
+  didLevelUp?: boolean;
 }
 
 export default function GoalCompleteScreen() {
@@ -22,6 +29,8 @@ export default function GoalCompleteScreen() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const { goals } = useGoalStore();
+  const { appState } = useAppStore();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const goal = goals.find((g) => g.id === goalId);
   const score = state?.score ?? 0;
@@ -30,16 +39,31 @@ export default function GoalCompleteScreen() {
   const completedSessions = state?.completedSessions ?? goal?.completedSessions ?? 0;
   const newBadges = state?.newBadges ?? [];
   const growthFeedback = state?.growthFeedback;
+  const mateTone = state?.mateTone ?? goal?.mateTone ?? 'plain';
+  const xpGained = state?.xpGained ?? 0;
+  const newLevel = state?.newLevel ?? 1;
+  const didLevelUp = state?.didLevelUp ?? false;
   const percent = Math.round((score / total) * 100);
   const [sharing, setSharing] = useState(false);
+  const xpDisplay = useCountUp(xpGained, 600);
 
+  // F-37: 레벨업처럼 드문 순간에만 자동 이동 타이머를 짧게 연장(캡 +2초)
   useEffect(() => {
-    const timer = setTimeout(() => navigate('/'), 6000);
+    const delay = didLevelUp ? 8000 : 6000;
+    const timer = setTimeout(() => navigate('/'), delay);
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, didLevelUp]);
+
+  // F-40: 목표 완주는 이미 특별한 순간이므로 항상 축하 연출(opt-out 가능)
+  useEffect(() => {
+    if (!appState.celebrationEffectsEnabled) return;
+    celebrate(canvasRef.current, { particleCount: 120 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 via-indigo-50 to-white flex items-center justify-center p-4">
+      <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-50" />
       <div className="max-w-md w-full text-center">
         <div className="text-7xl mb-4 animate-bounce">🏆</div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">목표 달성!</h1>
@@ -47,6 +71,13 @@ export default function GoalCompleteScreen() {
           <p className="text-indigo-600 font-semibold text-lg mb-1">{goal.topic}</p>
         )}
         <p className="text-gray-500 mb-8">처음부터 끝까지 완주했어요. 정말 대단합니다!</p>
+
+        {didLevelUp && (
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 mb-4 text-center animate-count-up-pop">
+            <p className="text-3xl mb-1">🎉</p>
+            <p className="text-white font-bold text-lg">레벨 {newLevel} 달성!</p>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex justify-around">
@@ -65,9 +96,20 @@ export default function GoalCompleteScreen() {
               <p className="text-gray-500 text-sm mt-1">마지막 점수</p>
             </div>
           </div>
+          {xpGained > 0 && (
+            <p className="text-center text-xs text-purple-500 font-semibold mt-4 pt-3 border-t border-gray-100">
+              ✨ XP +{xpDisplay}
+            </p>
+          )}
           {growthFeedback && (
-            <p className="text-center text-xs text-indigo-500 font-medium mt-4 pt-3 border-t border-gray-100">
-              📈 {growthFeedback.message}
+            <p
+              className={`text-center text-xs mt-2 ${
+                growthFeedback.isPersonalBest ? 'text-amber-600 font-bold' : 'text-indigo-500 font-medium'
+              }`}
+            >
+              {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone)} ` : '📈 '}
+              {growthFeedback.message}
+              {growthFeedback.isPersonalBest && ' — 자기 최고 기록!'}
             </p>
           )}
         </div>
@@ -97,7 +139,7 @@ export default function GoalCompleteScreen() {
           </div>
         )}
 
-        <p className="text-gray-400 text-sm mb-4">6초 후 홈으로 이동합니다</p>
+        <p className="text-gray-400 text-sm mb-4">{didLevelUp ? '8초' : '6초'} 후 홈으로 이동합니다</p>
 
         <div className="flex gap-2 mb-3">
           <button
