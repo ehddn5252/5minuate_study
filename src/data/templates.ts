@@ -6,8 +6,9 @@ export interface Template {
   recommendedDays: number;
   category: string;
   curriculumId?: string;
-  // F-29/F-33: 학교 시험 범위처럼 학년·학교별 진도 편차가 커서, 기한을 자동으로 추천하지 않고
-  // 사용자가 직접 시험일을 입력하도록 유도하는 템플릿인지 여부
+  // F-29/F-33/F-43: 내신·수능처럼 학교가 정하는 시험일뿐 아니라, 자격증·어학 시험처럼
+  // 사용자가 실제로 접수한 "특정 시험일"이 있는 템플릿인지 여부. 이런 템플릿은 임의의
+  // 추천 기한을 자동으로 채우지 않고 사용자가 실제 시험 날짜를 직접 입력하도록 유도한다.
   examScoped?: boolean;
 }
 
@@ -19,6 +20,7 @@ export const TEMPLATES: Template[] = [
     topic: '정보처리기사 실기 핵심 개념',
     recommendedDays: 60,
     category: 'IT 자격증',
+    examScoped: true,
   },
   {
     id: 'toeic_900',
@@ -27,6 +29,7 @@ export const TEMPLATES: Template[] = [
     topic: 'TOEIC 900점 대비 어휘 및 문법',
     recommendedDays: 90,
     category: '어학',
+    examScoped: true,
   },
   {
     id: 'driving_written',
@@ -35,6 +38,7 @@ export const TEMPLATES: Template[] = [
     topic: '운전면허 1종 보통 필기시험 핵심 요약',
     recommendedDays: 14,
     category: '자격증',
+    examScoped: true,
   },
   {
     id: 'korean_history',
@@ -43,6 +47,7 @@ export const TEMPLATES: Template[] = [
     topic: '한국사능력검정시험 심화 1급 시대별 핵심',
     recommendedDays: 45,
     category: '역사',
+    examScoped: true,
   },
   {
     id: 'realtor',
@@ -51,6 +56,7 @@ export const TEMPLATES: Template[] = [
     topic: '공인중개사 1차 민법 및 민사특별법 핵심',
     recommendedDays: 90,
     category: '자격증',
+    examScoped: true,
   },
   {
     id: 'electrical',
@@ -59,6 +65,7 @@ export const TEMPLATES: Template[] = [
     topic: '전기기사 필기 전기자기학 핵심 공식',
     recommendedDays: 60,
     category: 'IT 자격증',
+    examScoped: true,
   },
   {
     id: 'computer_app',
@@ -67,6 +74,7 @@ export const TEMPLATES: Template[] = [
     topic: '컴퓨터활용능력 1급 스프레드시트 함수 정리',
     recommendedDays: 30,
     category: 'IT 자격증',
+    examScoped: true,
   },
   {
     id: 'english_vocab',

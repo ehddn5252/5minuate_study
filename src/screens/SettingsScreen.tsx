@@ -6,10 +6,13 @@ import { supabase, signInWithGoogle, signOut, syncToCloud } from '../services/su
 import type { User } from '@supabase/supabase-js';
 import BottomNav from '../components/BottomNav';
 
-// F-28: 학교·학원 일정처럼 예측 가능한 틈새 시간에 맞춘 알림 프리셋
+// F-28/F-43: 등하교·학원뿐 아니라 출퇴근처럼, 10~30대 각자의 하루 리듬에서 예측 가능한
+// 틈새 시간에 맞춘 알림 프리셋. 학생·직장인 어느 쪽이든 자신에게 맞는 항목을 고르면 된다.
 const SCHEDULE_PRESETS: { label: string; notifTime: string; quietStart: string; quietEnd: string }[] = [
-  { label: '등하교 시간 기준', notifTime: '17:00', quietStart: '08:00', quietEnd: '16:30' },
-  { label: '학원 다녀온 뒤', notifTime: '22:00', quietStart: '09:00', quietEnd: '21:30' },
+  { label: '등교·출근 전', notifTime: '07:30', quietStart: '21:30', quietEnd: '07:00' },
+  { label: '점심시간', notifTime: '12:30', quietStart: '20:00', quietEnd: '08:00' },
+  { label: '하교·퇴근 후', notifTime: '18:30', quietStart: '08:00', quietEnd: '18:00' },
+  { label: '자기 전', notifTime: '22:00', quietStart: '06:30', quietEnd: '21:30' },
 ];
 
 export default function SettingsScreen() {
@@ -160,12 +163,12 @@ export default function SettingsScreen() {
 
           <div className="mb-4">
             <p className="text-xs text-gray-400 mb-2">시간표 프리셋으로 한 번에 채우기</p>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {SCHEDULE_PRESETS.map((preset) => (
                 <button
                   key={preset.label}
                   onClick={() => handleApplyPreset(preset)}
-                  className="flex-1 py-2 px-2 rounded-xl border border-gray-200 text-gray-600 text-xs font-medium hover:border-indigo-300 hover:text-indigo-600 transition-colors min-h-[36px]"
+                  className="py-2 px-2 rounded-xl border border-gray-200 text-gray-600 text-xs font-medium hover:border-indigo-300 hover:text-indigo-600 transition-colors min-h-[36px]"
                 >
                   {preset.label}
                 </button>

@@ -172,7 +172,7 @@ export default function GoalCreateScreen() {
                 >
                   {tpl.examScoped && (
                     <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[10px] font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                      내신·수능
+                      {tpl.category}
                     </span>
                   )}
                   <span className="text-2xl mt-1">{tpl.icon}</span>
@@ -236,7 +236,7 @@ export default function GoalCreateScreen() {
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
               min={minDateStr}
-              placeholder={examScoped ? '예: 2026-09-15 (중간고사일)' : undefined}
+              placeholder={examScoped ? '예: 2026-09-15' : undefined}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
               required
               disabled={loading}
@@ -323,7 +323,7 @@ export default function GoalCreateScreen() {
               onChange={(e) => setRawContent(e.target.value)}
               placeholder={
                 examScoped
-                  ? '이번 시험 범위를 붙여넣어주세요 (예: 1~3단원, 교과서 20~45쪽, 프린트물 내용)'
+                  ? '이번 시험 범위나 출제 기준을 붙여넣어주세요 (예: 1~3단원 교과서 범위, 자격증 출제기준, 시험 공지 내용 등)'
                   : '학습에 참고할 내용을 붙여넣거나 입력하세요...'
               }
               rows={5}
