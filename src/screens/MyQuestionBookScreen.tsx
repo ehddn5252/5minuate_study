@@ -8,12 +8,20 @@ export default function MyQuestionBookScreen() {
   const { goals } = useGoalStore();
   const { quizzes, updateQuiz } = useQuizStore();
 
-  const sections = goals
-    .map((goal) => {
-      const bookmarked = quizzes.filter((q) => q.goalId === goal.id && q.bookmarked);
-      return { goal, bookmarked };
-    })
-    .filter((s) => s.bookmarked.length > 0);
+  // 목표가 삭제돼도 북마크한 문제는 남아있으므로, goals가 아니라 북마크된 퀴즈를 기준으로
+  // 묶는다. 목표를 찾을 수 없으면(삭제됨) 스냅샷으로 남긴 orphanedGoalTopic을 대신 쓴다.
+  const sections = Array.from(
+    quizzes
+      .filter((q) => q.bookmarked)
+      .reduce((map, quiz) => {
+        const goal = goals.find((g) => g.id === quiz.goalId);
+        const label = goal?.topic ?? quiz.orphanedGoalTopic ?? '삭제된 목표';
+        const list = map.get(label) ?? [];
+        list.push(quiz);
+        map.set(label, list);
+        return map;
+      }, new Map<string, Quiz[]>())
+  ).map(([topic, bookmarked]) => ({ topic, bookmarked }));
 
   const handleRemove = (quiz: Quiz) => {
     updateQuiz({ ...quiz, bookmarked: false });
@@ -43,10 +51,10 @@ export default function MyQuestionBookScreen() {
             </p>
           </div>
         ) : (
-          sections.map(({ goal, bookmarked }) => (
-            <div key={goal.id} className="mb-6">
+          sections.map(({ topic, bookmarked }) => (
+            <div key={topic} className="mb-6">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 px-1">
-                {goal.topic}
+                {topic}
               </h2>
               {bookmarked.map((quiz) => (
                 <div key={quiz.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">

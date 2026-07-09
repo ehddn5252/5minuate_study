@@ -4,9 +4,18 @@ import { sanitizeQuizzes } from '../utils/quizValidation';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
-// AI가 문제를 충분히·제대로 만들지 못했을 때(형식 오류, 정답-선택지 불일치 등)를 대비한 최소 유효 문항 수
-const MIN_VALID_GOAL_QUIZZES = 5; // 15개 요청
+// AI가 문제를 충분히·제대로 만들지 못했을 때(형식 오류, 정답-선택지 불일치 등)를 대비한 최소 유효 문항 수.
+// 요청한 개수(quizCount)의 최소 1/3은 유효해야 하며, 최소 3개는 확보되어야 한다.
+function minValidGoalQuizzes(quizCount: number): number {
+  return Math.max(3, Math.ceil(quizCount / 3));
+}
 const MIN_VALID_DAILY_QUIZZES = 3; // 8개 요청
+
+// F-44: 목표 생성 시 만들 문제 수를 사용자가 고를 수 있게 하되, 객관식:단답형 = 2:1 비율은 유지
+function splitQuizCount(quizCount: number): { mc: number; sa: number } {
+  const mc = Math.round(quizCount * (2 / 3));
+  return { mc, sa: quizCount - mc };
+}
 
 const LEVEL_DESC: Record<QuizLevel, string> = {
   beginner: '초급 — 기초 개념 위주로 쉬운 어휘와 단순한 문장 구조로 설명하고 출제하세요.',
@@ -69,13 +78,15 @@ export async function generateGoalContent(
   apiKey = '',
   rawContent?: string,
   practicalMode = false,
-  mateTone: MateTone = 'plain'
+  mateTone: MateTone = 'plain',
+  quizCount = 5
 ): Promise<GenerateGoalContentResult> {
   const today = new Date().toISOString().split('T')[0];
   const daysLeft = Math.ceil(
     (new Date(deadline).getTime() - new Date(today).getTime()) /
       (1000 * 60 * 60 * 24)
   );
+  const { mc: mcCount, sa: saCount } = splitQuizCount(quizCount);
 
   const prompt = `
 당신은 학습 도우미입니다. 아래 주제에 대한 학습 콘텐츠를 JSON 형식으로 생성해주세요.
@@ -107,7 +118,7 @@ ${TONE_INSTRUCTION[mateTone]}
   ]
 }
 
-퀴즈는 정확히 15개를 생성하세요. multiple_choice는 10개, short_answer는 5개.
+퀴즈는 정확히 ${quizCount}개를 생성하세요. multiple_choice는 ${mcCount}개, short_answer는 ${saCount}개.
 JSON만 응답하고 다른 텍스트는 포함하지 마세요.
 `.trim();
 
@@ -117,7 +128,8 @@ JSON만 응답하고 다른 텍스트는 포함하지 마세요.
       temperature: 0.7,
       topK: 40,
       topP: 0.95,
-      maxOutputTokens: 16384,
+      // 문제 15개 기준 16384 토큰이 안전한 것으로 검증됐던 값(문항당 약 1100 토큰)을 그대로 비례 적용
+      maxOutputTokens: Math.min(32768, Math.max(8192, quizCount * 1100 + 2000)),
       responseMimeType: 'application/json',
       thinkingConfig: { thinkingBudget: 0 },
     },
@@ -142,7 +154,7 @@ JSON만 응답하고 다른 텍스트는 포함하지 마세요.
 
   // 정답이 선택지와 안 맞는 등 채점 불가능한 문제는 걸러내고, 남은 문제가 너무 적으면 실패로 처리한다.
   const validQuizzes = sanitizeQuizzes(parsed.quizzes);
-  if (validQuizzes.length < MIN_VALID_GOAL_QUIZZES) {
+  if (validQuizzes.length < minValidGoalQuizzes(quizCount)) {
     throw new Error('AI가 문제를 제대로 만들지 못했습니다. 다시 시도해주세요.');
   }
 

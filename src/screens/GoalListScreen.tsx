@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGoalStore } from '../store';
+import { useGoalStore, useQuizStore, useSessionStore } from '../store';
+import { deleteGoalCascade } from '../utils/storage';
 import type { Goal } from '../types';
 import BottomNav from '../components/BottomNav';
 
@@ -39,9 +40,18 @@ function DelayLabel({ goal }: { goal: Goal }) {
   }
 }
 
-function GoalItem({ goal, onDeactivate }: { goal: Goal; onDeactivate: (id: string) => void }) {
+function GoalItem({
+  goal,
+  onDeactivate,
+  onDelete,
+}: {
+  goal: Goal;
+  onDeactivate: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
   const navigate = useNavigate();
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const progress =
     goal.totalSessions > 0
@@ -140,6 +150,40 @@ function GoalItem({ goal, onDeactivate }: { goal: Goal; onDeactivate: (id: strin
             </button>
           </div>
         )}
+
+        {/* 완료/중단된 목표만 삭제 가능 — 진행 중인 목표는 "중단"으로 먼저 멈추게 유도 */}
+        {goal.status !== 'active' && !confirmDelete && (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="flex-1 py-2 border border-gray-200 text-gray-500 rounded-xl text-sm min-h-[44px]"
+          >
+            삭제
+          </button>
+        )}
+        {confirmDelete && (
+          <div className="flex-1 flex flex-col gap-2">
+            <p className="text-xs text-gray-400 px-1">
+              🔖 내 문제집에 담은 문제는 남고, 나머지 학습 기록은 삭제돼요.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm min-h-[44px]"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  onDelete(goal.id);
+                  setConfirmDelete(false);
+                }}
+                className="flex-1 py-2 bg-red-500 text-white rounded-xl text-sm font-medium min-h-[44px]"
+              >
+                삭제 확인
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -147,7 +191,9 @@ function GoalItem({ goal, onDeactivate }: { goal: Goal; onDeactivate: (id: strin
 
 export default function GoalListScreen() {
   const navigate = useNavigate();
-  const { goals, updateGoal } = useGoalStore();
+  const { goals, updateGoal, loadGoals } = useGoalStore();
+  const { loadQuizzes } = useQuizStore();
+  const { loadSessions } = useSessionStore();
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'inactive'>('active');
 
   const handleDeactivate = (id: string) => {
@@ -155,6 +201,13 @@ export default function GoalListScreen() {
     if (goal) {
       updateGoal({ ...goal, status: 'inactive' });
     }
+  };
+
+  const handleDelete = (id: string) => {
+    deleteGoalCascade(id);
+    loadGoals();
+    loadQuizzes();
+    loadSessions();
   };
 
   const filtered = filter === 'all' ? goals : goals.filter((g) => g.status === filter);
@@ -210,7 +263,7 @@ export default function GoalListScreen() {
           </div>
         ) : (
           filtered.map((goal) => (
-            <GoalItem key={goal.id} goal={goal} onDeactivate={handleDeactivate} />
+            <GoalItem key={goal.id} goal={goal} onDeactivate={handleDeactivate} onDelete={handleDelete} />
           ))
         )}
       </div>

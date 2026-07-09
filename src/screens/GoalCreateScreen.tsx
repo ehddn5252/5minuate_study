@@ -18,6 +18,10 @@ const TONE_OPTIONS: { id: MateTone; label: string; desc: string }[] = [
   { id: 'hype', label: '예능 자막체', desc: '텐션 UP' },
 ];
 
+// F-44: 목표 생성 시 만들 문제 수 — 매일 테스트는 5문항씩만 보여주므로(5분 완결 원칙)
+// 기본값은 5로 두고, 더 큰 문제 풀을 원하는 사용자를 위해 선택지를 넓힌다.
+const QUIZ_COUNT_OPTIONS = [5, 10, 15, 20] as const;
+
 export default function GoalCreateScreen() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -40,6 +44,7 @@ export default function GoalCreateScreen() {
   });
   const [rawContent, setRawContent] = useState('');
   const [level, setLevel] = useState<QuizLevel>('intermediate');
+  const [quizCount, setQuizCount] = useState<number>(5);
   const [practicalMode, setPracticalMode] = useState(false);
   const [mateTone, setMateTone] = useState<MateTone>('plain');
   const [loading, setLoading] = useState(false);
@@ -94,7 +99,8 @@ export default function GoalCreateScreen() {
         appState.geminiApiKey,
         rawContent || undefined,
         practicalMode,
-        mateTone
+        mateTone,
+        quizCount
       );
 
       const today = new Date().toISOString().split('T')[0];
@@ -271,6 +277,32 @@ export default function GoalCreateScreen() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              생성할 문제 수
+            </label>
+            <div className="flex gap-2">
+              {QUIZ_COUNT_OPTIONS.map((count) => (
+                <button
+                  key={count}
+                  type="button"
+                  onClick={() => setQuizCount(count)}
+                  disabled={loading}
+                  className={`flex-1 py-3 rounded-xl border-2 text-sm font-semibold min-h-[44px] transition-colors ${
+                    quizCount === count
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-200'
+                  }`}
+                >
+                  {count}개
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-1.5">
+              매일 테스트는 이 중 5문항씩 출제돼요. 문제 수를 늘리면 반복 없이 더 오래 새 문제를 풀 수 있어요.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               AI 학습메이트 말투
             </label>
             <div className="flex gap-2">
@@ -343,7 +375,7 @@ export default function GoalCreateScreen() {
 
           <div className="bg-indigo-50 rounded-xl p-4">
             <p className="text-indigo-700 text-sm">
-              AI가 학습 요약과 퀴즈 15개를 자동으로 생성합니다.
+              AI가 학습 요약과 퀴즈 {quizCount}개를 자동으로 생성합니다.
               약 10~20초 소요됩니다.
             </p>
             <p className="text-indigo-500 text-xs mt-1.5">

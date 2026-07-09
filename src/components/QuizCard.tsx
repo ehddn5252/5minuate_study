@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuizStore } from '../store';
 import { getMascotFace } from '../utils/mascot';
+import VoiceRecorder from './VoiceRecorder';
 import type { MateTone, Quiz } from '../types';
 
 interface QuizCardProps {
@@ -69,9 +70,14 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
         </div>
       </div>
 
-      <p className="text-gray-900 text-base font-medium leading-relaxed mb-5">
+      <p className="text-gray-900 text-base font-medium leading-relaxed mb-4">
         {quiz.question}
       </p>
+
+      {/* F-45: 정답을 확인하기 전에 먼저 소리 내어 답해보고 녹음할 수 있게 함 */}
+      <div className="mb-5">
+        <VoiceRecorder quizId={quiz.id} />
+      </div>
 
       {quiz.type === 'multiple_choice' && quiz.options ? (
         <div className="space-y-3">

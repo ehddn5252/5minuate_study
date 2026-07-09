@@ -61,6 +61,9 @@ export interface Quiz {
   wrongCount: number;
   lastAttemptedAt?: string;
   bookmarked?: boolean;
+  // 목표가 삭제될 때 이 문제가 북마크된 상태였다면, 목표를 찾을 수 없어도
+  // "내 문제집"에서 계속 표시할 수 있도록 목표 주제를 스냅샷으로 남긴다.
+  orphanedGoalTopic?: string;
 }
 
 export interface WrongPool {

@@ -46,6 +46,26 @@ export function deleteGoal(id: string): void {
   setItem(KEYS.GOALS, getGoals().filter((g) => g.id !== id));
 }
 
+// 목표를 삭제하면서 딸린 세션·오답풀도 함께 정리한다. 단, 북마크("내 문제집")된 문제는
+// 목표 주제를 스냅샷으로 남기고 보존한다 — 지워지는 건 목표와 나머지 일반 문제들뿐이다.
+export function deleteGoalCascade(goalId: string): void {
+  const goal = getGoal(goalId);
+
+  const keptQuizzes = getQuizzes()
+    .map((q) => {
+      if (q.goalId !== goalId) return q;
+      if (q.bookmarked) return { ...q, orphanedGoalTopic: goal?.topic ?? q.orphanedGoalTopic };
+      return null;
+    })
+    .filter((q): q is Quiz => q !== null);
+  setItem(KEYS.QUIZZES, keptQuizzes);
+
+  setItem(KEYS.SESSIONS, getSessions().filter((s) => s.goalId !== goalId));
+  setItem(KEYS.WRONG_POOL, getWrongPool().filter((w) => w.goalId !== goalId));
+
+  deleteGoal(goalId);
+}
+
 // Sessions
 export function getSessions(): Session[] {
   return getItem<Session>(KEYS.SESSIONS);
