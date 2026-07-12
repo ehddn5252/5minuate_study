@@ -8,11 +8,13 @@ import BottomNav from '../components/BottomNav';
 
 // F-28/F-43: 등하교·학원뿐 아니라 출퇴근처럼, 10~30대 각자의 하루 리듬에서 예측 가능한
 // 틈새 시간에 맞춘 알림 프리셋. 학생·직장인 어느 쪽이든 자신에게 맞는 항목을 고르면 된다.
-const SCHEDULE_PRESETS: { label: string; notifTime: string; quietStart: string; quietEnd: string }[] = [
-  { label: '등교·출근 전', notifTime: '07:30', quietStart: '21:30', quietEnd: '07:00' },
-  { label: '점심시간', notifTime: '12:30', quietStart: '20:00', quietEnd: '08:00' },
-  { label: '하교·퇴근 후', notifTime: '18:30', quietStart: '08:00', quietEnd: '18:00' },
-  { label: '자기 전', notifTime: '22:00', quietStart: '06:30', quietEnd: '21:30' },
+// D-3: trigger는 알림 문구에 그대로 들어가는 실행의도 문구("[상황], 5분만...") — 자유 입력이
+// 아니라 프리셋으로만 고르게 해 선택 마찰을 없앤다.
+const SCHEDULE_PRESETS: { label: string; notifTime: string; quietStart: string; quietEnd: string; trigger: string }[] = [
+  { label: '등교·출근 전', notifTime: '07:30', quietStart: '21:30', quietEnd: '07:00', trigger: '등교·출근 준비 마치고' },
+  { label: '점심시간', notifTime: '12:30', quietStart: '20:00', quietEnd: '08:00', trigger: '점심 먹고 나서' },
+  { label: '하교·퇴근 후', notifTime: '18:30', quietStart: '08:00', quietEnd: '18:00', trigger: '집에 돌아와서' },
+  { label: '자기 전', notifTime: '22:00', quietStart: '06:30', quietEnd: '21:30', trigger: '자기 전 침대에서' },
 ];
 
 const SUPPORT_EMAIL = 'ehddn5252@gmail.com';
@@ -25,6 +27,7 @@ export default function SettingsScreen() {
   const [quietStart, setQuietStart] = useState(appState.quietHoursStart || '21:30');
   const [quietEnd, setQuietEnd] = useState(appState.quietHoursEnd || '07:00');
   const [quietSaved, setQuietSaved] = useState(false);
+  const [notifTrigger, setNotifTrigger] = useState(appState.notificationTrigger || '');
   const [user, setUser] = useState<User | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
@@ -86,6 +89,13 @@ export default function SettingsScreen() {
     setNotifTime(preset.notifTime);
     setQuietStart(preset.quietStart);
     setQuietEnd(preset.quietEnd);
+    setNotifTrigger(preset.trigger);
+    updateAppState({ notificationTrigger: preset.trigger });
+  };
+
+  const handleClearTrigger = () => {
+    setNotifTrigger('');
+    updateAppState({ notificationTrigger: '' });
   };
 
   return (
@@ -215,6 +225,14 @@ export default function SettingsScreen() {
                   적용
                 </button>
               </div>
+              {notifTrigger && (
+                <p className="text-xs text-indigo-500 mt-1.5">
+                  ✓ "{notifTrigger}, 5분만..." 형태로 알림이 와요.{' '}
+                  <button type="button" onClick={handleClearTrigger} className="underline text-gray-400">
+                    해제
+                  </button>
+                </p>
+              )}
             </div>
           )}
 

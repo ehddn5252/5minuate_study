@@ -175,6 +175,13 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
             </p>
           )}
           <p className="text-gray-600 text-sm">{quiz.explanation}</p>
+          {/* D-5: 자기설명 효과 — 해설을 눈으로 읽기만 하는 것보다, 왜 틀렸는지 스스로
+              말로 설명해보는 쪽이 개념 정정과 장기 기억에 더 효과적이라는 연구를 반영 */}
+          {!isCorrect && (
+            <div className="mt-3 pt-3 border-t border-amber-100">
+              <VoiceRecorder quizId={quiz.id} kind="explanation" label="왜 틀렸는지 설명하기" />
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -6,12 +6,17 @@
 // 그대로는 "같은 문제"를 가리키는 공유 키가 될 수 없다 — templateId+dayNum+문항 순서처럼
 // 사용자 간에 안정적인 키로 다시 매핑하는 작업이 필요하다.
 
+export type RecordingKind = 'answer' | 'explanation';
+
 export interface VoiceRecording {
   id: string;
   quizId: string;
   mimeType: string;
   createdAt: string;
   blob: Blob;
+  // D-5: 자기설명 효과 — 정답 전 답변 녹음(F-45, 'answer')과 오답 후 설명 녹음('explanation')을
+  // 구분한다. 없으면 기존 데이터 호환을 위해 'answer'로 취급한다.
+  kind?: RecordingKind;
 }
 
 const DB_NAME = 'fiveMinStudyVoice';
@@ -55,15 +60,22 @@ export function pickRecordingMimeType(): string {
   return '';
 }
 
-// 문제당 녹음은 하나만 유지한다(재녹음 시 덮어쓰기) — 여러 개를 남기고 싶어지면 나중에 확장
-export async function saveRecording(quizId: string, blob: Blob, mimeType: string): Promise<VoiceRecording> {
-  const existing = await getRecordingByQuiz(quizId);
+// 문제당·종류(kind)당 녹음은 하나만 유지한다(재녹음 시 덮어쓰기) — 답변 녹음과 설명 녹음은
+// kind로 구분되므로 서로 덮어쓰지 않는다.
+export async function saveRecording(
+  quizId: string,
+  blob: Blob,
+  mimeType: string,
+  kind: RecordingKind = 'answer'
+): Promise<VoiceRecording> {
+  const existing = await getRecordingByQuiz(quizId, kind);
   const record: VoiceRecording = {
-    id: existing?.id ?? `${quizId}-${Date.now()}`,
+    id: existing?.id ?? `${quizId}-${kind}-${Date.now()}`,
     quizId,
     mimeType,
     createdAt: new Date().toISOString(),
     blob,
+    kind,
   };
   const db = await openDb();
   return new Promise((resolve, reject) => {
@@ -74,13 +86,19 @@ export async function saveRecording(quizId: string, blob: Blob, mimeType: string
   });
 }
 
-export async function getRecordingByQuiz(quizId: string): Promise<VoiceRecording | undefined> {
+export async function getRecordingByQuiz(
+  quizId: string,
+  kind: RecordingKind = 'answer'
+): Promise<VoiceRecording | undefined> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readonly');
     const index = tx.objectStore(STORE_NAME).index('quizId');
     const req = index.getAll(quizId);
-    req.onsuccess = () => resolve((req.result as VoiceRecording[])[0]);
+    req.onsuccess = () => {
+      const all = req.result as VoiceRecording[];
+      resolve(all.find((r) => (r.kind ?? 'answer') === kind));
+    };
     req.onerror = () => reject(req.error);
   });
 }

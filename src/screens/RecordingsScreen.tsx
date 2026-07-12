@@ -97,7 +97,18 @@ export default function RecordingsScreen() {
               {rows.map(({ recording, question }) => (
                 <div key={recording.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <p className="text-gray-900 text-sm font-medium leading-snug flex-1">{question}</p>
+                    <div className="flex-1 min-w-0">
+                      <span
+                        className={`inline-block text-[10px] font-medium px-1.5 py-0.5 rounded-full mb-1 ${
+                          recording.kind === 'explanation'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-indigo-100 text-indigo-600'
+                        }`}
+                      >
+                        {recording.kind === 'explanation' ? '오답 설명' : '내 답변'}
+                      </span>
+                      <p className="text-gray-900 text-sm font-medium leading-snug">{question}</p>
+                    </div>
                     <button
                       onClick={() => handleDelete(recording.id)}
                       className="flex-shrink-0 text-gray-300 hover:text-red-400 text-lg leading-none min-h-[28px] min-w-[28px] flex items-center justify-center"

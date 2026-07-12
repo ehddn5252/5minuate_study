@@ -31,7 +31,20 @@ const MESSAGE_BANK: Record<MateTone, string[]> = {
   ],
 };
 
-function pickMessage(tone: MateTone): string {
+// D-3: 실행의도(implementation intention) — "언제"뿐 아니라 "어떤 상황에"까지 알림 문구에
+// 담으면 막연한 의도보다 실제 행동 개시율이 높아진다는 습관형성 연구를 반영. 트리거가 설정돼
+// 있으면 감성 문구 대신 이 템플릿을 쓰고, 없으면(자유롭게 시간만 설정한 사용자) 기존 문구 그대로.
+const TRIGGER_TEMPLATES: Record<MateTone, (trigger: string) => string> = {
+  plain: (trigger) => `${trigger}, 5분만 투자해볼까요? 📚`,
+  friendly: (trigger) => `${trigger}, 저랑 5분만 같이 해볼까요? 📚`,
+  hype: (trigger) => `${trigger}! 지금이 딱 5분 타이밍이에요 🔥`,
+};
+
+function pickMessage(tone: MateTone, trigger?: string): string {
+  if (trigger) {
+    const template = TRIGGER_TEMPLATES[tone] ?? TRIGGER_TEMPLATES.plain;
+    return template(trigger);
+  }
   const bank = MESSAGE_BANK[tone] ?? MESSAGE_BANK.plain;
   return bank[Math.floor(Math.random() * bank.length)];
 }
@@ -97,7 +110,7 @@ async function showReminder(): Promise<void> {
   }
 
   const opts: NotificationOptions = {
-    body: pickMessage(incompleteGoal.mateTone ?? 'plain'),
+    body: pickMessage(incompleteGoal.mateTone ?? 'plain', appState.notificationTrigger || undefined),
     icon: '/icon-192.png',
     badge: '/icon-192.png',
   };

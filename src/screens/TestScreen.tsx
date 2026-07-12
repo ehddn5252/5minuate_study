@@ -11,6 +11,7 @@ import { useElapsedSeconds, formatElapsed } from '../utils/useElapsedTime';
 import { computeXpGain, levelForXp } from '../utils/xp';
 import { getSurpriseReward } from '../utils/surpriseReward';
 import { nextReviewSchedule, categorizeForReview } from '../utils/spacedRepetition';
+import { suggestLevelChange, LEVEL_SUGGESTION_WINDOW } from '../utils/difficultyAdaptation';
 import QuizCard from '../components/QuizCard';
 import type { Quiz } from '../types';
 
@@ -333,6 +334,22 @@ export default function TestScreen() {
           ? getSurpriseReward(goal.mateTone ?? 'plain')
           : undefined;
 
+      // D-8: 적응형 난이도 — 최근 정답률이 극단적일 때만 완료 화면에서 조용히 제안(강제 변경 아님)
+      const priorPercents = getSessions()
+        .filter(
+          (s) =>
+            s.goalId === goal.id &&
+            s.status === 'completed' &&
+            s.id !== sessionId &&
+            s.quizScore !== undefined &&
+            s.quizTotal !== undefined &&
+            s.quizTotal > 0
+        )
+        .slice(-(LEVEL_SUGGESTION_WINDOW - 1))
+        .map((s) => s.quizScore! / s.quizTotal!);
+      const recentPercents = [...priorPercents, total > 0 ? score / total : 0];
+      const levelSuggestion = suggestLevelChange(recentPercents, goal.level);
+
       if (isGoalComplete) {
         navigate(`/goal-complete/${goal.id}`, {
           state: {
@@ -345,6 +362,7 @@ export default function TestScreen() {
           state: {
             score, total, streak: newStreak, newBadges, topic: goal.topic, usedFreeze, growthFeedback,
             mateTone: goal.mateTone, freezeRemaining: newFreezeRemaining, xpGained, newXp, newLevel, didLevelUp, surpriseReward,
+            goalId: goal.id, levelSuggestion,
           },
         });
       }

@@ -72,6 +72,14 @@ function GoalCard({ goal }: { goal: Goal }) {
     goal.totalSessions > 0
       ? Math.round((goal.completedSessions / goal.totalSessions) * 100)
       : 0;
+  // D-6: 목표 그라디언트 효과 — 완주가 가까워질수록(남은 세션 적을수록) %보다 절대 개수가
+  // 더 강하게 행동을 유도한다는 소비자행동 연구를 반영. 손실회피(지연 경고) 위주였던 기존
+  // 문구 포트폴리오에 접근 동기(거의 다 왔다) 축을 보탠다.
+  const remainingSessions = goal.totalSessions - goal.completedSessions;
+  const isNearFinish =
+    goal.totalSessions > 0 &&
+    remainingSessions > 0 &&
+    (remainingSessions <= 3 || remainingSessions / goal.totalSessions <= 0.2);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
@@ -103,13 +111,19 @@ function GoalCard({ goal }: { goal: Goal }) {
       </div>
 
       <div className="mb-4">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
-          <span>진행률</span>
-          <span>{progress}%</span>
-        </div>
+        {isNearFinish ? (
+          <p className="text-xs font-semibold text-amber-600 mb-1">
+            🏁 이제 {remainingSessions}번만 더 하면 끝나요!
+          </p>
+        ) : (
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <span>진행률</span>
+            <span>{progress}%</span>
+          </div>
+        )}
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-indigo-500 rounded-full transition-all"
+            className={`h-full rounded-full transition-all ${isNearFinish ? 'bg-amber-500' : 'bg-indigo-500'}`}
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -331,6 +345,19 @@ export default function HomeScreen() {
           </div>
         ) : (
           <>
+            {/* D-4: 인터리빙 복습믹스 — 목표가 여러 개일 때만, 개별 목표 진행률과 무관한 별도 트랙 */}
+            {activeGoals.length >= 2 && (
+              <button
+                onClick={() => navigate('/mix-review')}
+                className="w-full flex items-center gap-3 p-4 mb-4 bg-purple-50 border border-purple-100 rounded-2xl text-left hover:border-purple-200 transition-colors"
+              >
+                <span className="text-2xl flex-shrink-0">🔀</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-purple-700">오늘의 복습 믹스</p>
+                  <p className="text-xs text-purple-400 mt-0.5">여러 목표를 섞어서 5분에 훑어보기</p>
+                </div>
+              </button>
+            )}
             {activeGoals.map((goal) => (
               <GoalCard key={goal.id} goal={goal} />
             ))}

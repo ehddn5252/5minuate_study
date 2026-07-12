@@ -8,7 +8,9 @@ import { getCompletionFace, getMascotFace } from '../utils/mascot';
 import { getStreakCrisisMessage, getStreakCrisisMood } from '../utils/streakCrisisMessage';
 import { useCountUp } from '../utils/useCountUp';
 import { celebrate } from '../utils/celebration';
-import { useAppStore } from '../store';
+import { nextLevel, LEVEL_LABEL } from '../utils/difficultyAdaptation';
+import type { LevelSuggestion } from '../utils/difficultyAdaptation';
+import { useAppStore, useGoalStore } from '../store';
 import type { BadgeId, MateTone } from '../types';
 import type { GrowthFeedback } from '../utils/growthFeedback';
 
@@ -27,6 +29,8 @@ interface LocationState {
   newLevel?: number;
   didLevelUp?: boolean;
   surpriseReward?: string;
+  goalId?: string;
+  levelSuggestion?: LevelSuggestion | null;
 }
 
 export default function SessionCompleteScreen() {
@@ -34,6 +38,7 @@ export default function SessionCompleteScreen() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const { appState } = useAppStore();
+  const { goals, updateGoal } = useGoalStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const score = state?.score ?? 0;
@@ -49,6 +54,9 @@ export default function SessionCompleteScreen() {
   const newLevel = state?.newLevel ?? 1;
   const didLevelUp = state?.didLevelUp ?? false;
   const surpriseReward = state?.surpriseReward;
+  const levelSuggestion = state?.levelSuggestion;
+  const suggestionGoal = goals.find((g) => g.id === state?.goalId);
+  const [suggestionHandled, setSuggestionHandled] = useState(false);
   // F-22: 정체성 서사는 매일 노출하지 않고 7일/30일 스트릭 마일스톤에서만 노출(피로도 방지)
   const isStreakMilestone = newBadges.includes('flame_7') || newBadges.includes('persistence_30');
   // 감사(audit) P-2: 마일스톤 정체성 서사 카드가 이미 그 뱃지를 강조해서 보여주므로,
@@ -61,13 +69,26 @@ export default function SessionCompleteScreen() {
   const xpDisplay = useCountUp(xpGained, 600);
 
   // F-37: 레벨업처럼 드문 순간에만 자동 이동 타이머를 짧게 연장(캡 +2초), 평소 세션은 회귀 없음
+  // D-8: 난이도 제안에 응답하기 전까지는 자동 이동을 보류한다(답하지도 못하고 넘어가면 안 되므로)
   useEffect(() => {
+    if (levelSuggestion && !suggestionHandled) return;
     const delay = didLevelUp ? 6000 : 4000;
     const timer = setTimeout(() => {
       navigate('/');
     }, delay);
     return () => clearTimeout(timer);
-  }, [navigate, didLevelUp]);
+  }, [navigate, didLevelUp, levelSuggestion, suggestionHandled]);
+
+  const handleAcceptLevelSuggestion = () => {
+    if (suggestionGoal && levelSuggestion) {
+      updateGoal({ ...suggestionGoal, level: nextLevel(suggestionGoal.level, levelSuggestion) });
+    }
+    setSuggestionHandled(true);
+  };
+
+  const handleDismissLevelSuggestion = () => {
+    setSuggestionHandled(true);
+  };
 
   // F-40: 눈에 띄는 순간(만점·뱃지·레벨업)에만 컨페티·사운드·진동 — opt-out 가능
   useEffect(() => {
@@ -225,9 +246,35 @@ export default function SessionCompleteScreen() {
           </div>
         )}
 
-        <p className="text-gray-400 text-sm mb-4">
-          {didLevelUp ? '6초' : '4초'} 후 홈으로 이동합니다
-        </p>
+        {levelSuggestion && !suggestionHandled && suggestionGoal && (
+          <div className="bg-violet-50 rounded-2xl p-4 mb-4 border border-violet-100 text-left">
+            <p className="text-violet-700 text-sm font-medium mb-3">
+              {levelSuggestion === 'up'
+                ? `최근 정답률이 아주 높아요! 다음부터 ${LEVEL_LABEL[nextLevel(suggestionGoal.level, 'up')]}로 올려볼까요?`
+                : `요즘 조금 힘드셨나봐요. 다음부터 ${LEVEL_LABEL[nextLevel(suggestionGoal.level, 'down')]}로 낮춰볼까요?`}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDismissLevelSuggestion}
+                className="flex-1 py-2 border border-violet-200 text-violet-600 rounded-xl text-sm font-medium min-h-[40px]"
+              >
+                괜찮아요
+              </button>
+              <button
+                onClick={handleAcceptLevelSuggestion}
+                className="flex-1 py-2 bg-violet-600 text-white rounded-xl text-sm font-medium min-h-[40px]"
+              >
+                좋아요!
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!(levelSuggestion && !suggestionHandled) && (
+          <p className="text-gray-400 text-sm mb-4">
+            {didLevelUp ? '6초' : '4초'} 후 홈으로 이동합니다
+          </p>
+        )}
 
         <div className="flex gap-2 mb-3">
           <button

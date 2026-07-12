@@ -6,12 +6,15 @@ import {
   getRecordingByQuiz,
   deleteRecording,
 } from '../utils/voiceRecording';
+import type { RecordingKind } from '../utils/voiceRecording';
 
 interface VoiceRecorderProps {
   quizId: string;
+  kind?: RecordingKind;
+  label?: string;
 }
 
-export default function VoiceRecorder({ quizId }: VoiceRecorderProps) {
+export default function VoiceRecorder({ quizId, kind = 'answer', label }: VoiceRecorderProps) {
   const [supported] = useState(isVoiceRecordingSupported);
   const [recordingId, setRecordingId] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -24,7 +27,7 @@ export default function VoiceRecorder({ quizId }: VoiceRecorderProps) {
   useEffect(() => {
     if (!supported) return;
     let cancelled = false;
-    getRecordingByQuiz(quizId).then((rec) => {
+    getRecordingByQuiz(quizId, kind).then((rec) => {
       if (cancelled) return;
       setRecordingId(rec?.id ?? null);
       setAudioUrl(rec ? URL.createObjectURL(rec.blob) : null);
@@ -33,7 +36,7 @@ export default function VoiceRecorder({ quizId }: VoiceRecorderProps) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quizId]);
+  }, [quizId, kind]);
 
   useEffect(() => {
     return () => {
@@ -57,7 +60,7 @@ export default function VoiceRecorder({ quizId }: VoiceRecorderProps) {
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         const blob = new Blob(chunksRef.current, { type: mimeType || 'audio/webm' });
-        const saved = await saveRecording(quizId, blob, mimeType || 'audio/webm');
+        const saved = await saveRecording(quizId, blob, mimeType || 'audio/webm', kind);
         setRecordingId(saved.id);
         setAudioUrl(URL.createObjectURL(blob));
       };
@@ -97,7 +100,7 @@ export default function VoiceRecorder({ quizId }: VoiceRecorderProps) {
           onClick={handleStartRecording}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-colors"
         >
-          🎤 {audioUrl ? '다시 녹음' : '내 답변 녹음'}
+          🎤 {audioUrl ? '다시 녹음' : (label ?? '내 답변 녹음')}
         </button>
       )}
       {audioUrl && !isRecording && (

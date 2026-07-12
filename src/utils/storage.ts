@@ -208,6 +208,7 @@ const DEFAULT_APP_STATE: AppState = {
   lastDailyHookDate: '',
   audioModeEnabled: false,
   celebrationEffectsEnabled: true,
+  notificationTrigger: '',
 };
 
 export function getAppState(): AppState {

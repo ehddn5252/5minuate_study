@@ -109,4 +109,7 @@ export interface AppState {
   lastDailyHookDate: string;
   audioModeEnabled: boolean;
   celebrationEffectsEnabled: boolean;
+  // D-3: 실행의도(if-then 계획) — "점심 먹고 나서"처럼 알림에 담을 상황 트리거 문구.
+  // 프리셋으로만 설정되며(자유 입력 아님), 비어있으면 기존 감성 문구만 사용한다.
+  notificationTrigger: string;
 }
