@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGoalStore, useQuizStore } from '../store';
 import { getActiveWrongPool, addToWrongPool, removeFromWrongPool, getQuizzes } from '../utils/storage';
+import { nextReviewSchedule } from '../utils/spacedRepetition';
 import QuizCard from '../components/QuizCard';
 import type { Quiz } from '../types';
 
@@ -55,8 +56,17 @@ export default function RetryWrongScreen() {
     setAnswers((prev) => [...prev, correct]);
     setAnswered(true);
 
+    // D-1: 여기서 정답 처리를 놓치면 오답풀 "졸업" 문제가 간격 반복 스케줄에 반영되지 않는다
+    const { intervalIndex, nextReviewAt } = nextReviewSchedule(currentQuiz.intervalIndex, correct);
+
     if (correct) {
-      updateQuiz({ ...currentQuiz, isWrong: false, lastAttemptedAt: new Date().toISOString() });
+      updateQuiz({
+        ...currentQuiz,
+        isWrong: false,
+        lastAttemptedAt: new Date().toISOString(),
+        intervalIndex,
+        nextReviewAt,
+      });
       removeFromWrongPool(goal.id, currentQuiz.id);
     } else {
       const existing = getActiveWrongPool(goal.id).find((w) => w.quizId === currentQuiz.id);
@@ -64,6 +74,8 @@ export default function RetryWrongScreen() {
         ...currentQuiz,
         wrongCount: currentQuiz.wrongCount + 1,
         lastAttemptedAt: new Date().toISOString(),
+        intervalIndex,
+        nextReviewAt,
       });
       addToWrongPool({
         goalId: goal.id,

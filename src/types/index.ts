@@ -60,6 +60,10 @@ export interface Quiz {
   isWrong: boolean;
   wrongCount: number;
   lastAttemptedAt?: string;
+  // D-1: 라이트너 상자(간격 반복) 상태 — intervalIndex는 몇 번째 간격 단계인지(0~4),
+  // nextReviewAt은 다음 복습 예정일('YYYY-MM-DD', 날짜 단위). 둘 다 없으면 신규 미출제로 취급.
+  intervalIndex?: number;
+  nextReviewAt?: string;
   bookmarked?: boolean;
   // 목표가 삭제될 때 이 문제가 북마크된 상태였다면, 목표를 찾을 수 없어도
   // "내 문제집"에서 계속 표시할 수 있도록 목표 주제를 스냅샷으로 남긴다.

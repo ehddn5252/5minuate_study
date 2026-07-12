@@ -10,6 +10,7 @@ import { getGrowthFeedback } from '../utils/growthFeedback';
 import { useElapsedSeconds, formatElapsed } from '../utils/useElapsedTime';
 import { computeXpGain, levelForXp } from '../utils/xp';
 import { getSurpriseReward } from '../utils/surpriseReward';
+import { nextReviewSchedule, categorizeForReview } from '../utils/spacedRepetition';
 import QuizCard from '../components/QuizCard';
 import type { Quiz } from '../types';
 
@@ -94,18 +95,27 @@ export default function TestScreen() {
 
     const TARGET = Math.min(5, pool.length);
 
-    // F-09: prioritise wrong answers (up to 50% of TARGET)
+    // F-09 + D-1: 우선순위 = 오답 풀(최대 50%) > 오늘 복습 예정(레거시 포함) > 신규 미출제 > 나머지
     const wrongPoolEntries = getActiveWrongPool(goal.id);
     const wrongQuizIds = new Set(wrongPoolEntries.map((w) => w.quizId));
     const wrongQuizzes = shuffleArray(pool.filter((q) => wrongQuizIds.has(q.id)));
-    const correctQuizzes = shuffleArray(pool.filter((q) => !wrongQuizIds.has(q.id)));
+    const nonWrongPool = pool.filter((q) => !wrongQuizIds.has(q.id));
+
+    const today = new Date().toISOString().split('T')[0];
+    const dueQuizzes = shuffleArray(nonWrongPool.filter((q) => categorizeForReview(q, today) === 'due'));
+    const newQuizzes = shuffleArray(nonWrongPool.filter((q) => categorizeForReview(q, today) === 'new'));
+    const restQuizzes = shuffleArray(nonWrongPool.filter((q) => categorizeForReview(q, today) === 'scheduled'));
 
     const maxWrong = Math.floor(TARGET * 0.5);
     const fromWrong = wrongQuizzes.slice(0, maxWrong);
-    const remaining = TARGET - fromWrong.length;
-    const fromCorrect = correctQuizzes.slice(0, remaining);
+    let remaining = TARGET - fromWrong.length;
+    const fromDue = dueQuizzes.slice(0, remaining);
+    remaining -= fromDue.length;
+    const fromNew = newQuizzes.slice(0, remaining);
+    remaining -= fromNew.length;
+    const fromRest = restQuizzes.slice(0, remaining);
 
-    const selected = [...fromWrong, ...fromCorrect].slice(0, TARGET);
+    const selected = [...fromWrong, ...fromDue, ...fromNew, ...fromRest].slice(0, TARGET);
     setTestQuizzes(selected);
 
     // F-19: 문항 순서를 세션에 고정 저장해 중단 후에도 같은 문항으로 재개되게 함
@@ -193,12 +203,16 @@ export default function TestScreen() {
     }
 
     const quiz = testQuizzes[currentIndex];
+    // D-1: 정답이면 복습 간격을 늘리고, 오답이면 처음 단계로 리셋
+    const { intervalIndex, nextReviewAt } = nextReviewSchedule(quiz.intervalIndex, correct);
     if (!correct) {
       const updated = {
         ...quiz,
         isWrong: true,
         wrongCount: quiz.wrongCount + 1,
         lastAttemptedAt: new Date().toISOString(),
+        intervalIndex,
+        nextReviewAt,
       };
       updateQuiz(updated);
       addToWrongPool({
@@ -212,6 +226,8 @@ export default function TestScreen() {
         ...quiz,
         isWrong: false,
         lastAttemptedAt: new Date().toISOString(),
+        intervalIndex,
+        nextReviewAt,
       });
       removeFromWrongPool(goal.id, quiz.id);
     }
