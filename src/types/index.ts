@@ -98,7 +98,6 @@ export interface AppState {
   activeGoalIds: string[];
   lastOpenedDate: string;
   urgentGoalIds: string[];
-  geminiApiKey: string;
   notificationGranted: boolean;
   notificationTime: string;
   quietHoursStart: string;

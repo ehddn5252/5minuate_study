@@ -9,8 +9,11 @@ export default function WrongPoolScreen() {
   const { goals } = useGoalStore();
   const { quizzes } = useQuizStore();
 
+  // 감사(audit) A-5: 목표를 완료해도 F-13 취지(오답을 부드럽게 다시 보여준다)에 맞춰 계속 복습
+  // 가능해야 하지만, 중단(inactive)한 목표까지 노출하면 그만둔 목표를 자꾸 상기시켜 이탈 요인이
+  // 될 수 있어 제외한다.
   const sections = goals
-    .filter((g) => g.status === 'active')
+    .filter((g) => g.status === 'active' || g.status === 'completed')
     .map((goal) => {
       const pool = getActiveWrongPool(goal.id);
       const wrongQuizzes = pool

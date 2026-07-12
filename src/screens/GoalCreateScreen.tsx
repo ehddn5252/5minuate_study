@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useGoalStore, useQuizStore, useAppStore } from '../store';
+import { useGoalStore, useQuizStore } from '../store';
 import { generateGoalContent } from '../services/gemini';
 import { generateId } from '../utils/id';
 import { TEMPLATES } from '../data/templates';
+import { computeAutoQuizCount } from '../utils/quizCount';
 import type { Goal, QuizLevel, MateTone } from '../types';
 
 const LEVEL_OPTIONS: { id: QuizLevel; label: string }[] = [
@@ -18,16 +19,16 @@ const TONE_OPTIONS: { id: MateTone; label: string; desc: string }[] = [
   { id: 'hype', label: '예능 자막체', desc: '텐션 UP' },
 ];
 
-// F-44: 목표 생성 시 만들 문제 수 — 매일 테스트는 5문항씩만 보여주므로(5분 완결 원칙)
-// 기본값은 5로 두고, 더 큰 문제 풀을 원하는 사용자를 위해 선택지를 넓힌다.
-const QUIZ_COUNT_OPTIONS = [5, 10, 15, 20] as const;
+// F-01: 진행 중 목표는 동시에 최대 5개까지만 허용한다(감사 P-2 후속 — 기획엔 있었지만
+// 코드로 구현된 적 없던 규칙을 반영, 원래 문서의 3개 대신 5개로 상향).
+const MAX_ACTIVE_GOALS = 5;
 
 export default function GoalCreateScreen() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { addGoal } = useGoalStore();
+  const { goals, addGoal } = useGoalStore();
   const { addQuizzes } = useQuizStore();
-  const { appState } = useAppStore();
+  const activeGoalCount = goals.filter((g) => g.status === 'active').length;
 
   const [topic, setTopic] = useState(() => {
     const tplId = searchParams.get('templateId');
@@ -44,7 +45,6 @@ export default function GoalCreateScreen() {
   });
   const [rawContent, setRawContent] = useState('');
   const [level, setLevel] = useState<QuizLevel>('intermediate');
-  const [quizCount, setQuizCount] = useState<number>(5);
   const [practicalMode, setPracticalMode] = useState(false);
   const [mateTone, setMateTone] = useState<MateTone>('plain');
   const [loading, setLoading] = useState(false);
@@ -86,27 +86,29 @@ export default function GoalCreateScreen() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim() || !deadline) return;
+    if (activeGoalCount >= MAX_ACTIVE_GOALS) return;
     setLoading(true);
     setError('');
 
     try {
       const goalId = generateId();
+      const today = new Date().toISOString().split('T')[0];
+      const daysLeft = Math.ceil(
+        (new Date(deadline).getTime() - new Date(today).getTime()) /
+          (1000 * 60 * 60 * 24)
+      );
+      // F-02/F-44 감사 반영: 사용자가 문제 수를 직접 고르지 않고, 참고 자료 분량과
+      // 기한에 맞춰 자동으로 정한다.
+      const quizCount = computeAutoQuizCount(rawContent, daysLeft);
       const { summary, quizPool } = await generateGoalContent(
         goalId,
         topic,
         deadline,
         level,
-        appState.geminiApiKey,
         rawContent || undefined,
         practicalMode,
         mateTone,
         quizCount
-      );
-
-      const today = new Date().toISOString().split('T')[0];
-      const daysLeft = Math.ceil(
-        (new Date(deadline).getTime() - new Date(today).getTime()) /
-          (1000 * 60 * 60 * 24)
       );
 
       const goal: Goal = {
@@ -145,6 +147,28 @@ export default function GoalCreateScreen() {
       setLoading(false);
     }
   };
+
+  if (activeGoalCount >= MAX_ACTIVE_GOALS) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="text-5xl mb-4">🗂️</div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">진행 중인 목표가 가득 찼어요</h1>
+          <p className="text-gray-500 text-sm mb-6">
+            동시에 진행할 수 있는 목표는 최대 {MAX_ACTIVE_GOALS}개예요.
+            <br />
+            기존 목표를 완료하거나 중단한 뒤 새 목표를 추가해주세요.
+          </p>
+          <button
+            onClick={() => navigate('/goals')}
+            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"
+          >
+            목표 목록으로
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -277,32 +301,6 @@ export default function GoalCreateScreen() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              생성할 문제 수
-            </label>
-            <div className="flex gap-2">
-              {QUIZ_COUNT_OPTIONS.map((count) => (
-                <button
-                  key={count}
-                  type="button"
-                  onClick={() => setQuizCount(count)}
-                  disabled={loading}
-                  className={`flex-1 py-3 rounded-xl border-2 text-sm font-semibold min-h-[44px] transition-colors ${
-                    quizCount === count
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-200'
-                  }`}
-                >
-                  {count}개
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-gray-400 mt-1.5">
-              매일 테스트는 이 중 5문항씩 출제돼요. 문제 수를 늘리면 반복 없이 더 오래 새 문제를 풀 수 있어요.
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
               AI 학습메이트 말투
             </label>
             <div className="flex gap-2">
@@ -375,7 +373,7 @@ export default function GoalCreateScreen() {
 
           <div className="bg-indigo-50 rounded-xl p-4">
             <p className="text-indigo-700 text-sm">
-              AI가 학습 요약과 퀴즈 {quizCount}개를 자동으로 생성합니다.
+              AI가 참고 자료 양과 학습 기간에 맞춰 학습 요약과 퀴즈를 자동으로 생성합니다.
               약 10~20초 소요됩니다.
             </p>
             <p className="text-indigo-500 text-xs mt-1.5">

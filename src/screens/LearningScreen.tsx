@@ -9,6 +9,7 @@ import { buildCacheKey, fetchFromPool, saveToPool } from '../services/contentPoo
 import { fetchFromBank } from '../services/questionBank';
 import { getDailyHook } from '../utils/dailyHook';
 import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, isPaused } from '../utils/speech';
+import { useElapsedSeconds, formatElapsed } from '../utils/useElapsedTime';
 import type { Quiz } from '../types';
 
 const SPEECH_RATES = [1, 1.25, 1.5];
@@ -28,6 +29,8 @@ export default function LearningScreen() {
   const [error, setError] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [todayTopic, setTodayTopic] = useState('');
+  // 감사(audit) A-3: "약 5분"이 정적 텍스트뿐이던 것에 실제 경과 시간 타이머를 붙인다.
+  const elapsedSeconds = useElapsedSeconds();
   const [poolHit, setPoolHit] = useState<{ useCount: number } | null>(null);
   const [dailyHook, setDailyHook] = useState<string | null>(null);
 
@@ -192,7 +195,6 @@ export default function LearningScreen() {
           dayNum,
           totalDays,
           goal.level,
-          appState.geminiApiKey,
           effectiveRawContent,
           goal.practicalMode,
           goal.mateTone
@@ -298,7 +300,7 @@ export default function LearningScreen() {
           <div className="flex-1">
             <h1 className="text-lg font-bold text-gray-900 leading-tight">{goal.topic}</h1>
             <p className="text-gray-400 text-xs mt-0.5">
-              {dayNum}일째 / 전체 {goal.totalSessions}일 · 약 5분
+              {dayNum}일째 / 전체 {goal.totalSessions}일 · 약 5분 · ⏱ {formatElapsed(elapsedSeconds)}
             </p>
           </div>
           {isSpeechSupported() && (

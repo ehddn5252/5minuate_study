@@ -7,6 +7,7 @@ import { generateId } from '../utils/id';
 import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, isPaused } from '../utils/speech';
 import { sanitizeQuiz } from '../utils/quizValidation';
 import { getGrowthFeedback } from '../utils/growthFeedback';
+import { useElapsedSeconds, formatElapsed } from '../utils/useElapsedTime';
 import { computeXpGain, levelForXp } from '../utils/xp';
 import { getSurpriseReward } from '../utils/surpriseReward';
 import QuizCard from '../components/QuizCard';
@@ -46,6 +47,9 @@ export default function TestScreen() {
   // F-36: 콤보(연속 정답) 배너 — 1.2초 후 자동 소멸
   const [comboBanner, setComboBanner] = useState<number | null>(null);
   const comboTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 감사(audit) A-3: 테스트 화면엔 "약 5분" 문구조차 없어 체감 장치를 새로 추가
+  const elapsedSeconds = useElapsedSeconds();
 
   useEffect(() => {
     return () => {
@@ -348,7 +352,7 @@ export default function TestScreen() {
           </button>
           <div className="flex-1">
             <div className="flex justify-between text-xs text-gray-500 mb-1">
-              <span>진행</span>
+              <span>진행 · ⏱ {formatElapsed(elapsedSeconds)}</span>
               <span>{currentIndex + 1}/{testQuizzes.length}</span>
             </div>
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">

@@ -24,10 +24,6 @@ export async function getCurrentUser() {
 
 // localStorage 전체를 Supabase에 저장
 export async function syncToCloud(userId: string): Promise<void> {
-  const localAppState = JSON.parse(localStorage.getItem('appState') ?? '{}') as Record<string, unknown>;
-  // API 키는 클라우드에 저장하지 않음
-  const { geminiApiKey: _removed, ...appStateWithoutKey } = localAppState as { geminiApiKey?: string } & Record<string, unknown>;
-
   const payload = {
     user_id: userId,
     goals: JSON.parse(localStorage.getItem('goals') ?? '[]'),
@@ -35,7 +31,7 @@ export async function syncToCloud(userId: string): Promise<void> {
     quizzes: JSON.parse(localStorage.getItem('quizzes') ?? '[]'),
     wrong_pool: JSON.parse(localStorage.getItem('wrongPool') ?? '[]'),
     badges: JSON.parse(localStorage.getItem('badges') ?? '[]'),
-    app_state: appStateWithoutKey,
+    app_state: JSON.parse(localStorage.getItem('appState') ?? '{}'),
     updated_at: new Date().toISOString(),
   };
 
@@ -53,20 +49,12 @@ export async function loadFromCloud(userId: string): Promise<boolean> {
 
   if (error || !data) return false;
 
-  // 로컬 API 키 보존 후 병합
-  const localAppState = JSON.parse(localStorage.getItem('appState') ?? '{}') as Record<string, unknown>;
-  const cloudAppState = (data.app_state ?? {}) as Record<string, unknown>;
-  const mergedAppState = {
-    ...cloudAppState,
-    geminiApiKey: (localAppState.geminiApiKey as string) || (cloudAppState.geminiApiKey as string) || '',
-  };
-
   localStorage.setItem('goals', JSON.stringify(data.goals ?? []));
   localStorage.setItem('sessions', JSON.stringify(data.sessions ?? []));
   localStorage.setItem('quizzes', JSON.stringify(data.quizzes ?? []));
   localStorage.setItem('wrongPool', JSON.stringify(data.wrong_pool ?? []));
   localStorage.setItem('badges', JSON.stringify(data.badges ?? []));
-  localStorage.setItem('appState', JSON.stringify(mergedAppState));
+  localStorage.setItem('appState', JSON.stringify(data.app_state ?? {}));
 
   return true;
 }

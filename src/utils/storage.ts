@@ -201,7 +201,6 @@ const DEFAULT_APP_STATE: AppState = {
   activeGoalIds: [],
   lastOpenedDate: '',
   urgentGoalIds: [],
-  geminiApiKey: '',
   notificationGranted: false,
   notificationTime: '20:00',
   quietHoursStart: '21:30',

@@ -6,6 +6,7 @@ import { getTodaySession, saveSession, getSessions } from '../utils/storage';
 import { generateId } from '../utils/id';
 import type { Goal, MateTone } from '../types';
 import BottomNav from '../components/BottomNav';
+import InstallBanner from '../components/InstallBanner';
 
 // F-30: 긴급 독려 배너도 mateTone(F-27)에 맞춰 압박형 대신 동행형 문구로 분기
 const URGENT_MESSAGES: Record<MateTone, (topic: string) => string> = {
@@ -263,6 +264,7 @@ export default function HomeScreen() {
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       <UrgentBanner goals={activeGoals} onStart={handleBannerStart} />
+      <InstallBanner />
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>

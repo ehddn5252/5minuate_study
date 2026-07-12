@@ -2,8 +2,6 @@ import type { Quiz, QuizLevel, MateTone } from '../types';
 import { generateId } from '../utils/id';
 import { sanitizeQuizzes } from '../utils/quizValidation';
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
-
 // AI가 문제를 충분히·제대로 만들지 못했을 때(형식 오류, 정답-선택지 불일치 등)를 대비한 최소 유효 문항 수.
 // 요청한 개수(quizCount)의 최소 1/3은 유효해야 하며, 최소 3개는 확보되어야 한다.
 function minValidGoalQuizzes(quizCount: number): number {
@@ -11,7 +9,9 @@ function minValidGoalQuizzes(quizCount: number): number {
 }
 const MIN_VALID_DAILY_QUIZZES = 3; // 8개 요청
 
-// F-44: 목표 생성 시 만들 문제 수를 사용자가 고를 수 있게 하되, 객관식:단답형 = 2:1 비율은 유지
+// F-44(감사 후 개정): 문제 수는 사용자가 직접 고르지 않고 utils/quizCount.ts가 참고 자료
+// 분량·기한을 보고 자동으로 정한다(F-02 "분량을 직접 늘리거나 줄이는 설정 제공 안 함" 원칙 유지).
+// 여기서는 정해진 개수를 객관식:단답형 = 2:1 비율로 나누기만 한다.
 function splitQuizCount(quizCount: number): { mc: number; sa: number } {
   const mc = Math.round(quizCount * (2 / 3));
   return { mc, sa: quizCount - mc };
@@ -37,11 +37,9 @@ interface GeminiResponse {
   candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
 }
 
-// API 키가 있으면 직접 호출, 없으면 CF Worker 프록시 사용
-async function callGemini(body: object, apiKey: string): Promise<GeminiResponse> {
-  const url = apiKey
-    ? `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`
-    : '/api/generate';
+// CF Worker가 Gemini API 키를 대신 보관하는 프록시를 통해서만 호출한다(사용자가 직접 키를 넣는 경로는 없음)
+async function callGemini(body: object): Promise<GeminiResponse> {
+  const url = '/api/generate';
 
   const response = await fetch(url, {
     method: 'POST',
@@ -75,7 +73,6 @@ export async function generateGoalContent(
   topic: string,
   deadline: string,
   level: QuizLevel = 'intermediate',
-  apiKey = '',
   rawContent?: string,
   practicalMode = false,
   mateTone: MateTone = 'plain',
@@ -133,7 +130,7 @@ JSON만 응답하고 다른 텍스트는 포함하지 마세요.
       responseMimeType: 'application/json',
       thinkingConfig: { thinkingBudget: 0 },
     },
-  }, apiKey);
+  });
 
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -182,7 +179,6 @@ export async function generateDailyContent(
   dayNum: number,
   totalDays: number,
   level: QuizLevel = 'intermediate',
-  apiKey = '',
   rawContent?: string,
   practicalMode = false,
   mateTone: MateTone = 'plain'
@@ -230,7 +226,7 @@ JSON만 응답하세요.
       responseMimeType: 'application/json',
       thinkingConfig: { thinkingBudget: 0 },
     },
-  }, apiKey);
+  });
 
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   const jsonMatch = text.match(/\{[\s\S]*\}/);
