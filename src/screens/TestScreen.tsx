@@ -216,11 +216,14 @@ export default function TestScreen() {
         nextReviewAt,
       };
       updateQuiz(updated);
+      // 감사(code review) 수정: 오답 다시풀기/복습믹스와 동일하게 기존 오답풀 기록을 보존한다.
+      // 항상 새로 리셋하면 그 화면들이 쌓아온 addedAt/retryCount가 여기서 조용히 사라진다.
+      const existingWrongEntry = getActiveWrongPool(goal.id).find((w) => w.quizId === quiz.id);
       addToWrongPool({
         goalId: goal.id,
         quizId: quiz.id,
-        addedAt: new Date().toISOString(),
-        retryCount: 0,
+        addedAt: existingWrongEntry?.addedAt ?? new Date().toISOString(),
+        retryCount: existingWrongEntry ? existingWrongEntry.retryCount + 1 : 0,
       });
     } else {
       updateQuiz({

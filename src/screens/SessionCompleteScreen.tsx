@@ -57,6 +57,10 @@ export default function SessionCompleteScreen() {
   const levelSuggestion = state?.levelSuggestion;
   const suggestionGoal = goals.find((g) => g.id === state?.goalId);
   const [suggestionHandled, setSuggestionHandled] = useState(false);
+  // 감사(code review) 수정: 카드 렌더 조건과 자동이동 보류 조건이 따로 놀면, suggestionGoal이
+  // 없을 때(예: 다른 탭 로그아웃으로 스토어가 갱신된 경우) 카드는 안 뜨는데 자동이동만 영원히
+  // 막히는 상태가 될 수 있었다 — 하나의 값으로 통일해서 세 군데가 항상 같은 판단을 하게 한다.
+  const isSuggestionPending = Boolean(levelSuggestion) && !suggestionHandled && Boolean(suggestionGoal);
   // F-22: 정체성 서사는 매일 노출하지 않고 7일/30일 스트릭 마일스톤에서만 노출(피로도 방지)
   const isStreakMilestone = newBadges.includes('flame_7') || newBadges.includes('persistence_30');
   // 감사(audit) P-2: 마일스톤 정체성 서사 카드가 이미 그 뱃지를 강조해서 보여주므로,
@@ -71,13 +75,13 @@ export default function SessionCompleteScreen() {
   // F-37: 레벨업처럼 드문 순간에만 자동 이동 타이머를 짧게 연장(캡 +2초), 평소 세션은 회귀 없음
   // D-8: 난이도 제안에 응답하기 전까지는 자동 이동을 보류한다(답하지도 못하고 넘어가면 안 되므로)
   useEffect(() => {
-    if (levelSuggestion && !suggestionHandled) return;
+    if (isSuggestionPending) return;
     const delay = didLevelUp ? 6000 : 4000;
     const timer = setTimeout(() => {
       navigate('/');
     }, delay);
     return () => clearTimeout(timer);
-  }, [navigate, didLevelUp, levelSuggestion, suggestionHandled]);
+  }, [navigate, didLevelUp, isSuggestionPending]);
 
   const handleAcceptLevelSuggestion = () => {
     if (suggestionGoal && levelSuggestion) {
@@ -246,7 +250,7 @@ export default function SessionCompleteScreen() {
           </div>
         )}
 
-        {levelSuggestion && !suggestionHandled && suggestionGoal && (
+        {isSuggestionPending && suggestionGoal && levelSuggestion && (
           <div className="bg-violet-50 rounded-2xl p-4 mb-4 border border-violet-100 text-left">
             <p className="text-violet-700 text-sm font-medium mb-3">
               {levelSuggestion === 'up'
@@ -270,7 +274,7 @@ export default function SessionCompleteScreen() {
           </div>
         )}
 
-        {!(levelSuggestion && !suggestionHandled) && (
+        {!isSuggestionPending && (
           <p className="text-gray-400 text-sm mb-4">
             {didLevelUp ? '6초' : '4초'} 후 홈으로 이동합니다
           </p>

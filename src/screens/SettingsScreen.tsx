@@ -73,7 +73,9 @@ export default function SettingsScreen() {
   };
 
   const handleNotifTimeSave = () => {
-    updateAppState({ notificationTime: notifTime });
+    // 감사(code review) 수정: 프리셋의 상황 트리거(D-3)도 알림 시각과 같은 시점에 저장해야
+    // "문구는 저장됐는데 시각은 안 바뀐" 불일치가 생기지 않는다.
+    updateAppState({ notificationTime: notifTime, notificationTrigger: notifTrigger });
     if (notifGranted) {
       scheduleLocalReminder(notifTime);
     }
@@ -86,11 +88,13 @@ export default function SettingsScreen() {
   };
 
   const handleApplyPreset = (preset: typeof SCHEDULE_PRESETS[number]) => {
+    // 감사(code review) 수정: 트리거만 즉시 저장하지 않는다 — notifTime/quietHours와 마찬가지로
+    // "적용" 버튼을 눌러야 저장되게 해서, 미리보기만 해보고 나가도 상황 문구만 먼저 반영되는
+    // 불일치가 생기지 않게 한다(실제 저장은 handleNotifTimeSave에서 함께 처리).
     setNotifTime(preset.notifTime);
     setQuietStart(preset.quietStart);
     setQuietEnd(preset.quietEnd);
     setNotifTrigger(preset.trigger);
-    updateAppState({ notificationTrigger: preset.trigger });
   };
 
   const handleClearTrigger = () => {

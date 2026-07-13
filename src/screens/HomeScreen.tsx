@@ -76,8 +76,12 @@ function GoalCard({ goal }: { goal: Goal }) {
   // 더 강하게 행동을 유도한다는 소비자행동 연구를 반영. 손실회피(지연 경고) 위주였던 기존
   // 문구 포트폴리오에 접근 동기(거의 다 왔다) 축을 보탠다.
   const remainingSessions = goal.totalSessions - goal.completedSessions;
+  // 감사(code review) 수정: completedSessions > 0을 추가로 요구해, 전체 세션이 3개 이하인
+  // 짧은 목표에서 시작하자마자(0% 진행) "거의 다 왔다" 문구가 뜨는 걸 막는다 — 실제로 어느
+  // 정도 진행한 뒤에만 "완주 직전" 프레이밍이 의미를 갖는다.
   const isNearFinish =
     goal.totalSessions > 0 &&
+    goal.completedSessions > 0 &&
     remainingSessions > 0 &&
     (remainingSessions <= 3 || remainingSessions / goal.totalSessions <= 0.2);
 

@@ -18,9 +18,17 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
+interface GoalQueue {
+  wrong: Quiz[];
+  due: Quiz[];
+  fresh: Quiz[];
+  rest: Quiz[];
+}
+
 // D-4: 목표별 우선순위(오답 → 오늘 복습 예정 → 신규 → 나머지)는 F-09/D-1과 동일하게 유지하되,
-// 여러 목표를 한 세션에 인터리빙하기 위한 목표별 대기열만 만든다.
-function buildGoalQueue(goalId: string, allQuizzes: Quiz[], today: string): Quiz[] {
+// 여러 목표를 한 세션에 인터리빙하기 위해 버킷을 분리해서 반환한다. 오답 버킷을 따로 두는 이유는
+// 호출부에서 F-09와 동일하게 세션 전체 기준 50% 캡을 적용하기 위함(버킷 순서만으론 캡을 못 건다).
+function buildGoalQueue(goalId: string, allQuizzes: Quiz[], today: string): GoalQueue {
   const pool = allQuizzes.filter((q) => q.goalId === goalId && sanitizeQuiz(q) !== null);
   const wrongIds = new Set(getActiveWrongPool(goalId).map((w) => w.quizId));
   const wrong = shuffleArray(pool.filter((q) => wrongIds.has(q.id)));
@@ -28,7 +36,7 @@ function buildGoalQueue(goalId: string, allQuizzes: Quiz[], today: string): Quiz
   const due = shuffleArray(nonWrong.filter((q) => categorizeForReview(q, today) === 'due'));
   const fresh = shuffleArray(nonWrong.filter((q) => categorizeForReview(q, today) === 'new'));
   const rest = shuffleArray(nonWrong.filter((q) => categorizeForReview(q, today) === 'scheduled'));
-  return [...wrong, ...due, ...fresh, ...rest];
+  return { wrong, due, fresh, rest };
 }
 
 export default function MixReviewScreen() {
@@ -52,20 +60,31 @@ export default function MixReviewScreen() {
     const today = new Date().toISOString().split('T')[0];
     const queues = activeGoals.map((g) => buildGoalQueue(g.id, allQuizzes, today));
 
-    // 인터리빙: 목표를 한 바퀴씩 돌며 한 문제씩 뽑아 여러 주제가 섞이게 한다(blocked practice 방지)
+    // 인터리빙: 목표를 한 바퀴씩 돌며 한 문제씩 뽑아 여러 주제가 섞이게 한다(blocked practice 방지).
+    // F-09와 동일하게 오답 문제는 세션 전체의 최대 50%로 캡을 걸어, 오답이 많은 목표 하나가
+    // 믹스 세션을 독점하지 않게 한다.
     const selected: Quiz[] = [];
-    let progressed = true;
-    while (selected.length < TARGET && progressed) {
-      progressed = false;
-      for (const queue of queues) {
-        if (selected.length >= TARGET) break;
-        const next = queue.shift();
-        if (next) {
-          selected.push(next);
-          progressed = true;
+    const roundRobinPull = (pickBucket: (q: GoalQueue) => Quiz[], limit: number) => {
+      let progressed = true;
+      while (selected.length < limit && progressed) {
+        progressed = false;
+        for (const queue of queues) {
+          if (selected.length >= limit) break;
+          const bucket = pickBucket(queue);
+          const next = bucket.shift();
+          if (next) {
+            selected.push(next);
+            progressed = true;
+          }
         }
       }
-    }
+    };
+
+    const maxWrong = Math.floor(TARGET * 0.5);
+    roundRobinPull((q) => q.wrong, Math.min(TARGET, maxWrong));
+    roundRobinPull((q) => q.due, TARGET);
+    roundRobinPull((q) => q.fresh, TARGET);
+    roundRobinPull((q) => q.rest, TARGET);
     setMixList(selected);
   }, [goals]);
 
