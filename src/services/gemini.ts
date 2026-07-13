@@ -40,22 +40,43 @@ interface GeminiResponse {
 // CF Worker가 Gemini API 키를 대신 보관하는 프록시를 통해서만 호출한다(사용자가 직접 키를 넣는 경로는 없음)
 async function callGemini(body: object): Promise<GeminiResponse> {
   const url = '/api/generate';
+  const maxAttempts = 2;
+  let lastError: Error | null = null;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
 
-  if (response.status === 429) {
-    const err = await response.json() as { error: string };
-    throw new Error(err.error ?? '일일 생성 한도를 초과했습니다.');
+    if (response.status === 429) {
+      const err = await response.json() as { error: string };
+      throw new Error(err.error ?? '일일 생성 한도를 초과했습니다.');
+    }
+
+    if (response.ok) {
+      return response.json() as Promise<GeminiResponse>;
+    }
+
+    const errText = await response.text();
+    // Gemini API가 요청을 처리한 Cloudflare 엣지 콜로의 지역을 근거로 거부할 때가 있다
+    // (간헐적 — 콜로마다 다름). 서버(Worker)에서도 재시도하지만, 클라이언트에서 새로
+    // 요청을 보내면 다른 콜로로 라우팅될 가능성이 있어 한 번 더 시도한다.
+    const isLocationRestricted =
+      errText.includes('FAILED_PRECONDITION') || errText.includes('User location is not supported');
+    if (isLocationRestricted) {
+      lastError = new Error('일시적인 서버 지역 문제로 생성에 실패했어요. 잠시 후 다시 시도해주세요.');
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        continue;
+      }
+    } else {
+      throw new Error(`생성 오류: ${response.status} — ${errText.slice(0, 200)}`);
+    }
   }
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`생성 오류: ${response.status} — ${err.slice(0, 200)}`);
-  }
-  return response.json() as Promise<GeminiResponse>;
+
+  throw lastError ?? new Error('생성에 실패했습니다. 다시 시도해주세요.');
 }
 
 interface GenerateGoalContentResult {

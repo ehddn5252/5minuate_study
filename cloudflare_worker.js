@@ -12,6 +12,30 @@
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const DAILY_LIMIT = 20;
+const GEMINI_MAX_ATTEMPTS = 3;
+
+// Gemini API가 이 요청을 처리한 Cloudflare 엣지 콜로의 지역을 근거로 거부할 때가 있다
+// ("User location is not supported for the API use.", FAILED_PRECONDITION). 콜로마다
+// 결과가 달라질 수 있어 짧은 지연을 두고 재시도한다.
+function isLocationRestrictedError(text) {
+  return text.includes('FAILED_PRECONDITION') || text.includes('User location is not supported');
+}
+
+async function fetchGeminiWithRetry(body, apiKey) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+  let lastRes;
+  for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+    if (res.status !== 400) return res;
+    const text = await res.clone().text();
+    if (!isLocationRestrictedError(text)) return res;
+    lastRes = res;
+    if (attempt < GEMINI_MAX_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
+    }
+  }
+  return lastRes;
+}
 
 async function handleGenerate(request, env) {
   // IP 기반 레이트 리밋
@@ -37,10 +61,7 @@ async function handleGenerate(request, env) {
 
   // Gemini로 그대로 전달
   const body = await request.text();
-  const geminiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${env.GEMINI_API_KEY}`,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }
-  );
+  const geminiRes = await fetchGeminiWithRetry(body, env.GEMINI_API_KEY);
 
   const data = await geminiRes.text();
   return new Response(data, {
