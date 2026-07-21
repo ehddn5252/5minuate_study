@@ -1,0 +1,136 @@
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  getClassInfo,
+  listClassAssignments,
+  listAssignmentChecklist,
+  type TeacherClassRow,
+  type AssignmentRow,
+  type ChecklistRow,
+} from '../services/academy';
+
+export default function ClassDetailScreen() {
+  const { classId } = useParams<{ classId: string }>();
+  const navigate = useNavigate();
+  const [classInfo, setClassInfo] = useState<TeacherClassRow | null>(null);
+  const [assignments, setAssignments] = useState<AssignmentRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [checklist, setChecklist] = useState<ChecklistRow[]>([]);
+  const [checklistLoading, setChecklistLoading] = useState(false);
+
+  useEffect(() => {
+    if (!classId) return;
+    (async () => {
+      setLoading(true);
+      const [info, list] = await Promise.all([getClassInfo(classId), listClassAssignments(classId)]);
+      setClassInfo(info);
+      setAssignments(list);
+      setLoading(false);
+    })();
+  }, [classId]);
+
+  const handleToggle = async (assignmentId: string) => {
+    if (!classId) return;
+    if (openId === assignmentId) {
+      setOpenId(null);
+      return;
+    }
+    setOpenId(assignmentId);
+    setChecklistLoading(true);
+    setChecklist(await listAssignmentChecklist(classId, assignmentId));
+    setChecklistLoading(false);
+  };
+
+  if (loading) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-400 text-sm">불러오는 중…</div>;
+  }
+
+  if (!classInfo) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-500 text-sm">
+        반을 찾을 수 없어요.
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-10">
+      <div className="max-w-md mx-auto px-4 py-6">
+        <div className="flex items-center gap-3 mb-2">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 -ml-2 rounded-xl text-gray-500 hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">{classInfo.name}</h1>
+            <p className="text-gray-400 text-xs mt-0.5">학생 참여 코드: {classInfo.inviteCode}</p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => navigate(`/teacher/classes/${classId}/new-assignment`)}
+          className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] my-4"
+        >
+          + 숙제 내기
+        </button>
+
+        {assignments.length === 0 ? (
+          <p className="text-gray-400 text-sm text-center py-8">아직 낸 숙제가 없어요.</p>
+        ) : (
+          <div className="space-y-3">
+            {assignments.map((a) => (
+              <div key={a.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <button onClick={() => handleToggle(a.id)} className="w-full text-left p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900">{a.title}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">마감 {a.dueDate}</p>
+                    </div>
+                    <svg
+                      className={`w-4 h-4 text-gray-400 transition-transform ${openId === a.id ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+
+                {openId === a.id && (
+                  <div className="border-t border-gray-100 px-5 py-4">
+                    {checklistLoading ? (
+                      <p className="text-gray-400 text-sm">불러오는 중…</p>
+                    ) : checklist.length === 0 ? (
+                      <p className="text-gray-400 text-sm">아직 참여한 학생이 없어요.</p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {checklist.map((m) => (
+                          <li key={m.studentId} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-700">{m.studentName}</span>
+                            {m.completed ? (
+                              <span className="text-green-600 font-medium">
+                                ✅ 완료{typeof m.score === 'number' ? ` (${m.score}/${m.total})` : ''}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">❌ 미완료</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

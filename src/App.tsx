@@ -21,8 +21,16 @@ import AchievementsScreen from './screens/AchievementsScreen';
 import StudyMaterialsScreen from './screens/StudyMaterialsScreen';
 import ShortsScreen from './screens/ShortsScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import TeacherOnboardScreen from './screens/TeacherOnboardScreen';
+import TeacherHomeScreen from './screens/TeacherHomeScreen';
+import ClassDetailScreen from './screens/ClassDetailScreen';
+import AssignmentCreateScreen from './screens/AssignmentCreateScreen';
+import JoinClassScreen from './screens/JoinClassScreen';
+import MyAssignmentsScreen from './screens/MyAssignmentsScreen';
+import AssignmentSolveScreen from './screens/AssignmentSolveScreen';
 import { initReminder } from './services/notification';
 import { supabase, loadFromCloud, migrateLocalToCloud, syncToCloud } from './services/supabase';
+import { fetchMyRole, type UserRole } from './services/academy';
 import { useGoalStore, useSessionStore, useQuizStore, useAppStore } from './store';
 
 export default function App() {
@@ -33,6 +41,9 @@ export default function App() {
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  // 학원용 선생/학생 모드 — role이 없으면(신규/개인 사용자) 기존 학생 화면 그대로 노출
+  const [role, setRole] = useState<UserRole>('student');
+  const [roleChecked, setRoleChecked] = useState(false);
 
   const reloadAllStores = () => {
     loadGoals();
@@ -57,11 +68,16 @@ export default function App() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null);
       setAuthChecked(true);
-      if (!session?.user) return;
+      if (!session?.user) {
+        setRoleChecked(true);
+        return;
+      }
       const userId = session.user.id;
       await migrateLocalToCloud(userId);
       const loaded = await loadFromCloud(userId);
       if (loaded) reloadAllStores();
+      setRole(await fetchMyRole());
+      setRoleChecked(true);
     });
 
     // 로그인/로그아웃 이벤트 구독
@@ -73,9 +89,12 @@ export default function App() {
           await migrateLocalToCloud(userId);
           const loaded = await loadFromCloud(userId);
           if (loaded) reloadAllStores();
+          setRole(await fetchMyRole());
+          setRoleChecked(true);
         }
         if (event === 'SIGNED_OUT') {
           reloadAllStores();
+          setRole('student');
         }
       }
     );
@@ -100,10 +119,20 @@ export default function App() {
     return <LoginScreen />;
   }
 
+  if (!roleChecked) {
+    return <div className="min-h-screen bg-gray-50" />;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomeScreen />} />
+        <Route path="/" element={role === 'teacher' ? <TeacherHomeScreen /> : <HomeScreen />} />
+        <Route path="/teacher/onboard" element={<TeacherOnboardScreen />} />
+        <Route path="/teacher/classes/:classId" element={<ClassDetailScreen />} />
+        <Route path="/teacher/classes/:classId/new-assignment" element={<AssignmentCreateScreen />} />
+        <Route path="/join-class" element={<JoinClassScreen />} />
+        <Route path="/assignments" element={<MyAssignmentsScreen />} />
+        <Route path="/assignments/:assignmentId" element={<AssignmentSolveScreen />} />
         <Route path="/goals" element={<GoalListScreen />} />
         <Route path="/goals/create" element={<GoalCreateScreen />} />
         <Route path="/goals/edit/:goalId" element={<GoalEditScreen />} />
