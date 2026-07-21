@@ -33,6 +33,8 @@ export default function LearningScreen() {
   const elapsedSeconds = useElapsedSeconds();
   const [poolHit, setPoolHit] = useState<{ useCount: number } | null>(null);
   const [dailyHook, setDailyHook] = useState<string | null>(null);
+  // 콜로 지역 문제로 생성 실패 시, 홈으로 나갔다 들어오지 않고도 재시도할 수 있게 하는 트리거
+  const [retryTick, setRetryTick] = useState(0);
 
   // F-25: 듣는 5분 학습 — 오디오 퍼스트 모드
   const [audioMode, setAudioMode] = useState(appState.audioModeEnabled);
@@ -218,9 +220,14 @@ export default function LearningScreen() {
         setGenerating(false);
       }
     })();
-  // goal.id만 의존: 목표가 바뀔 때만 재실행
+  // goal.id, retryTick(재시도 버튼)에만 의존
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goal?.id]);
+  }, [goal?.id, retryTick]);
+
+  const handleRetryGenerate = () => {
+    setError('');
+    setRetryTick((t) => t + 1);
+  };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
@@ -278,6 +285,14 @@ export default function LearningScreen() {
         <p className="text-gray-500 text-sm text-center">
           {isRateLimit ? '무료로 제공되는 하루 생성 횟수 제한이에요. 내일 다시 이용할 수 있어요.' : error}
         </p>
+        {!isRateLimit && (
+          <button
+            onClick={handleRetryGenerate}
+            className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px]"
+          >
+            다시 시도
+          </button>
+        )}
         <button onClick={() => navigate('/')} className="text-gray-400 text-sm">
           홈으로
         </button>
