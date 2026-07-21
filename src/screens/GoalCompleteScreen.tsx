@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useGoalStore, useAppStore } from '../store';
+import { useGoalStore } from '../store';
 import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
 import { getIdentityStatement } from '../utils/identity';
 import { getMascotFace } from '../utils/mascot';
 import { useCountUp } from '../utils/useCountUp';
-import { celebrate } from '../utils/celebration';
 import type { BadgeId, MateTone } from '../types';
 import type { GrowthFeedback } from '../utils/growthFeedback';
 
@@ -29,7 +28,6 @@ export default function GoalCompleteScreen() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const { goals } = useGoalStore();
-  const { appState } = useAppStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const goal = goals.find((g) => g.id === goalId);
@@ -54,10 +52,9 @@ export default function GoalCompleteScreen() {
     return () => clearTimeout(timer);
   }, [navigate, didLevelUp]);
 
-  // F-40: 목표 완주는 이미 특별한 순간이므로 항상 축하 연출(opt-out 가능)
+  // F-40: 목표 완주는 이미 특별한 순간이므로 항상 축하 연출(opt-out 가능) — CEO 요청으로 일시 비활성화 (2026-07-22)
   useEffect(() => {
-    if (!appState.celebrationEffectsEnabled) return;
-    celebrate(canvasRef.current, { particleCount: 120 });
+    return;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

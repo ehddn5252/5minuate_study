@@ -7,10 +7,9 @@ import { getIdentityStatement } from '../utils/identity';
 import { getCompletionFace, getMascotFace } from '../utils/mascot';
 import { getStreakCrisisMessage, getStreakCrisisMood } from '../utils/streakCrisisMessage';
 import { useCountUp } from '../utils/useCountUp';
-import { celebrate } from '../utils/celebration';
 import { nextLevel, LEVEL_LABEL } from '../utils/difficultyAdaptation';
 import type { LevelSuggestion } from '../utils/difficultyAdaptation';
-import { useAppStore, useGoalStore } from '../store';
+import { useGoalStore } from '../store';
 import type { BadgeId, MateTone } from '../types';
 import type { GrowthFeedback } from '../utils/growthFeedback';
 
@@ -37,7 +36,6 @@ export default function SessionCompleteScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as LocationState | null;
-  const { appState } = useAppStore();
   const { goals, updateGoal } = useGoalStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -94,12 +92,9 @@ export default function SessionCompleteScreen() {
     setSuggestionHandled(true);
   };
 
-  // F-40: 눈에 띄는 순간(만점·뱃지·레벨업)에만 컨페티·사운드·진동 — opt-out 가능
+  // F-40: 눈에 띄는 순간(만점·뱃지·레벨업)에만 컨페티·사운드·진동 — CEO 요청으로 일시 비활성화 (2026-07-22)
   useEffect(() => {
-    if (!appState.celebrationEffectsEnabled) return;
-    if (percent === 100 || newBadges.length > 0 || didLevelUp) {
-      celebrate(canvasRef.current);
-    }
+    return;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

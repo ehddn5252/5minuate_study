@@ -28,7 +28,6 @@ import AssignmentCreateScreen from './screens/AssignmentCreateScreen';
 import JoinClassScreen from './screens/JoinClassScreen';
 import MyAssignmentsScreen from './screens/MyAssignmentsScreen';
 import AssignmentSolveScreen from './screens/AssignmentSolveScreen';
-import { initReminder } from './services/notification';
 import { supabase, loadFromCloud, migrateLocalToCloud, syncToCloud } from './services/supabase';
 import { fetchMyRole, type UserRole } from './services/academy';
 import { clearAllLocalData } from './utils/storage';
@@ -76,7 +75,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    initReminder();
+    // 학습 알림(리마인더)은 CEO 요청으로 일시 비활성화 (2026-07-22) — services/notification.ts는 그대로 둠
 
     // 초기 세션 확인
     supabase.auth.getSession().then(async ({ data: { session } }) => {

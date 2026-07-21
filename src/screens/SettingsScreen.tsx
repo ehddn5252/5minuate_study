@@ -1,33 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppStore } from '../store';
-import { requestPermission, scheduleLocalReminder, cancelReminder } from '../services/notification';
 import { supabase, signInWithGoogle, signOut, syncToCloud } from '../services/supabase';
 import type { User } from '@supabase/supabase-js';
 import BottomNav from '../components/BottomNav';
-
-// F-28/F-43: 등하교·학원뿐 아니라 출퇴근처럼, 10~30대 각자의 하루 리듬에서 예측 가능한
-// 틈새 시간에 맞춘 알림 프리셋. 학생·직장인 어느 쪽이든 자신에게 맞는 항목을 고르면 된다.
-// D-3: trigger는 알림 문구에 그대로 들어가는 실행의도 문구("[상황], 5분만...") — 자유 입력이
-// 아니라 프리셋으로만 고르게 해 선택 마찰을 없앤다.
-const SCHEDULE_PRESETS: { label: string; notifTime: string; quietStart: string; quietEnd: string; trigger: string }[] = [
-  { label: '등교·출근 전', notifTime: '07:30', quietStart: '21:30', quietEnd: '07:00', trigger: '등교·출근 준비 마치고' },
-  { label: '점심시간', notifTime: '12:30', quietStart: '20:00', quietEnd: '08:00', trigger: '점심 먹고 나서' },
-  { label: '하교·퇴근 후', notifTime: '18:30', quietStart: '08:00', quietEnd: '18:00', trigger: '집에 돌아와서' },
-  { label: '자기 전', notifTime: '22:00', quietStart: '06:30', quietEnd: '21:30', trigger: '자기 전 침대에서' },
-];
 
 const SUPPORT_EMAIL = 'ehddn5252@gmail.com';
 
 export default function SettingsScreen() {
   const navigate = useNavigate();
-  const { appState, updateAppState } = useAppStore();
-  const [notifTime, setNotifTime] = useState(appState.notificationTime || '20:00');
-  const [notifGranted, setNotifGranted] = useState(appState.notificationGranted);
-  const [quietStart, setQuietStart] = useState(appState.quietHoursStart || '21:30');
-  const [quietEnd, setQuietEnd] = useState(appState.quietHoursEnd || '07:00');
-  const [quietSaved, setQuietSaved] = useState(false);
-  const [notifTrigger, setNotifTrigger] = useState(appState.notificationTrigger || '');
   const [user, setUser] = useState<User | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
@@ -53,53 +33,6 @@ export default function SettingsScreen() {
       setSyncing(false);
       setTimeout(() => setSyncMsg(''), 2500);
     }
-  };
-
-  const handleNotifToggle = async () => {
-    if (notifGranted) {
-      cancelReminder();
-      updateAppState({ notificationGranted: false });
-      setNotifGranted(false);
-    } else {
-      const granted = await requestPermission();
-      if (granted) {
-        scheduleLocalReminder(notifTime);
-        updateAppState({ notificationGranted: true, notificationTime: notifTime });
-        setNotifGranted(true);
-      } else {
-        alert('알림 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.');
-      }
-    }
-  };
-
-  const handleNotifTimeSave = () => {
-    // 감사(code review) 수정: 프리셋의 상황 트리거(D-3)도 알림 시각과 같은 시점에 저장해야
-    // "문구는 저장됐는데 시각은 안 바뀐" 불일치가 생기지 않는다.
-    updateAppState({ notificationTime: notifTime, notificationTrigger: notifTrigger });
-    if (notifGranted) {
-      scheduleLocalReminder(notifTime);
-    }
-  };
-
-  const handleQuietHoursSave = () => {
-    updateAppState({ quietHoursStart: quietStart, quietHoursEnd: quietEnd });
-    setQuietSaved(true);
-    setTimeout(() => setQuietSaved(false), 2000);
-  };
-
-  const handleApplyPreset = (preset: typeof SCHEDULE_PRESETS[number]) => {
-    // 감사(code review) 수정: 트리거만 즉시 저장하지 않는다 — notifTime/quietHours와 마찬가지로
-    // "적용" 버튼을 눌러야 저장되게 해서, 미리보기만 해보고 나가도 상황 문구만 먼저 반영되는
-    // 불일치가 생기지 않게 한다(실제 저장은 handleNotifTimeSave에서 함께 처리).
-    setNotifTime(preset.notifTime);
-    setQuietStart(preset.quietStart);
-    setQuietEnd(preset.quietEnd);
-    setNotifTrigger(preset.trigger);
-  };
-
-  const handleClearTrigger = () => {
-    setNotifTrigger('');
-    updateAppState({ notificationTrigger: '' });
   };
 
   return (
@@ -172,121 +105,6 @@ export default function SettingsScreen() {
           <p className="text-xs text-green-600 mt-4 pt-3 border-t border-gray-100">
             💚 5분 학습은 지금도, 앞으로도 완전 무료예요.
           </p>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
-          <h2 className="font-semibold text-gray-900 mb-3">학습 알림</h2>
-
-          <div className="mb-4">
-            <p className="text-xs text-gray-400 mb-2">시간표 프리셋으로 한 번에 채우기</p>
-            <div className="grid grid-cols-2 gap-2">
-              {SCHEDULE_PRESETS.map((preset) => (
-                <button
-                  key={preset.label}
-                  onClick={() => handleApplyPreset(preset)}
-                  className="py-2 px-2 rounded-xl border border-gray-200 text-gray-600 text-xs font-medium hover:border-indigo-300 hover:text-indigo-600 transition-colors min-h-[36px]"
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm font-medium text-gray-700">알림 허용</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {notifGranted ? '알림이 활성화되어 있습니다' : '알림이 비활성화되어 있습니다'}
-              </p>
-            </div>
-            <button
-              onClick={handleNotifToggle}
-              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-                notifGranted ? 'bg-indigo-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                  notifGranted ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-          {notifGranted && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">알림 시각</label>
-              <div className="flex gap-2">
-                <input
-                  type="time"
-                  value={notifTime}
-                  onChange={(e) => setNotifTime(e.target.value)}
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
-                />
-                <button
-                  onClick={handleNotifTimeSave}
-                  className="px-4 py-3 bg-indigo-600 text-white rounded-xl text-sm font-medium min-h-[44px]"
-                >
-                  적용
-                </button>
-              </div>
-              {notifTrigger && (
-                <p className="text-xs text-indigo-500 mt-1.5">
-                  ✓ "{notifTrigger}, 5분만..." 형태로 알림이 와요.{' '}
-                  <button type="button" onClick={handleClearTrigger} className="underline text-gray-400">
-                    해제
-                  </button>
-                </p>
-              )}
-            </div>
-          )}
-
-          <div className={notifGranted ? 'pt-4 border-t border-gray-100' : ''}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">방해 금지 시간대</label>
-            <p className="text-xs text-gray-400 mb-2">이 시간대에는 알림을 보내지 않아요 (예: 가족·취침 시간)</p>
-            <div className="flex items-center gap-2">
-              <input
-                type="time"
-                value={quietStart}
-                onChange={(e) => setQuietStart(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
-              />
-              <span className="text-gray-400 text-sm">~</span>
-              <input
-                type="time"
-                value={quietEnd}
-                onChange={(e) => setQuietEnd(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
-              />
-              <button
-                onClick={handleQuietHoursSave}
-                className="px-4 py-3 bg-indigo-600 text-white rounded-xl text-sm font-medium min-h-[44px] disabled:opacity-40"
-                disabled={quietStart === appState.quietHoursStart && quietEnd === appState.quietHoursEnd}
-              >
-                {quietSaved ? '저장됨!' : '적용'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-700">축하 효과</p>
-              <p className="text-xs text-gray-400 mt-0.5">완료 화면의 컨페티·효과음·진동</p>
-            </div>
-            <button
-              onClick={() => updateAppState({ celebrationEffectsEnabled: !appState.celebrationEffectsEnabled })}
-              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-                appState.celebrationEffectsEnabled ? 'bg-indigo-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                  appState.celebrationEffectsEnabled ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">

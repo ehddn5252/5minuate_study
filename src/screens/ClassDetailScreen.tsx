@@ -4,10 +4,12 @@ import {
   getClassInfo,
   listClassAssignments,
   listAssignmentChecklist,
+  listAssignmentQuestions,
   type TeacherClassRow,
   type AssignmentRow,
   type ChecklistRow,
 } from '../services/academy';
+import type { SharedQuiz } from '../types';
 
 export default function ClassDetailScreen() {
   const { classId } = useParams<{ classId: string }>();
@@ -17,7 +19,9 @@ export default function ClassDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
   const [checklist, setChecklist] = useState<ChecklistRow[]>([]);
+  const [openQuestions, setOpenQuestions] = useState<SharedQuiz[]>([]);
   const [checklistLoading, setChecklistLoading] = useState(false);
+  const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!classId) return;
@@ -34,11 +38,18 @@ export default function ClassDetailScreen() {
     if (!classId) return;
     if (openId === assignmentId) {
       setOpenId(null);
+      setExpandedStudentId(null);
       return;
     }
     setOpenId(assignmentId);
+    setExpandedStudentId(null);
     setChecklistLoading(true);
-    setChecklist(await listAssignmentChecklist(classId, assignmentId));
+    const [list, questions] = await Promise.all([
+      listAssignmentChecklist(classId, assignmentId),
+      listAssignmentQuestions(assignmentId),
+    ]);
+    setChecklist(list);
+    setOpenQuestions(questions);
     setChecklistLoading(false);
   };
 
@@ -111,14 +122,38 @@ export default function ClassDetailScreen() {
                     ) : (
                       <ul className="space-y-2">
                         {checklist.map((m) => (
-                          <li key={m.studentId} className="flex items-center justify-between text-sm">
-                            <span className="text-gray-700">{m.studentName}</span>
-                            {m.completed ? (
-                              <span className="text-green-600 font-medium">
-                                ✅ 완료{typeof m.score === 'number' ? ` (${m.score}/${m.total})` : ''}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">❌ 미완료</span>
+                          <li key={m.studentId}>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-700">{m.studentName}</span>
+                              {m.completed ? (
+                                <span className="text-green-600 font-medium">
+                                  ✅ 완료{typeof m.score === 'number' ? ` (${m.score}/${m.total})` : ''}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">❌ 미완료</span>
+                              )}
+                            </div>
+
+                            {m.completed && m.wrongIndexes.length > 0 && (
+                              <div className="mt-1">
+                                <button
+                                  onClick={() =>
+                                    setExpandedStudentId((prev) => (prev === m.studentId ? null : m.studentId))
+                                  }
+                                  className="text-xs text-amber-600 underline"
+                                >
+                                  틀린 문제 {m.wrongIndexes.length}개 {expandedStudentId === m.studentId ? '접기' : '보기'}
+                                </button>
+                                {expandedStudentId === m.studentId && (
+                                  <ul className="mt-1.5 space-y-1 pl-3 border-l-2 border-amber-100">
+                                    {m.wrongIndexes.map((idx) => (
+                                      <li key={idx} className="text-xs text-gray-500">
+                                        {idx + 1}. {openQuestions[idx]?.question ?? '(문제를 찾을 수 없음)'}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
                             )}
                           </li>
                         ))}

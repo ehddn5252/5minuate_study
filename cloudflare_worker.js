@@ -15,7 +15,7 @@
  */
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
-const DAILY_LIMIT = 20;
+const DAILY_LIMIT = 40;
 const GEMINI_MAX_ATTEMPTS = 3;
 
 // Gemini API가 이 요청을 처리한 Cloudflare 엣지 콜로의 지역을 근거로 거부할 때가 있다
@@ -68,7 +68,7 @@ async function handleGenerate(request, env) {
     const count = val ? parseInt(val, 10) : 0;
     if (count >= DAILY_LIMIT) {
       return Response.json(
-        { error: `하루 무료 생성 한도(${DAILY_LIMIT}회)를 초과했습니다. 설정에서 개인 API 키를 입력하면 무제한으로 사용할 수 있어요.` },
+        { error: `하루 무료 생성 한도(${DAILY_LIMIT}회)를 초과했습니다. 내일 다시 이용할 수 있어요.` },
         { status: 429 }
       );
     }

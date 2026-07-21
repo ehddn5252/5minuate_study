@@ -200,6 +200,8 @@ export interface ChecklistRow {
   completedAt?: string;
   score?: number;
   total?: number;
+  // assignment_questions의 order_index와 대응 — submit_assignment RPC가 채점하면서 함께 기록
+  wrongIndexes: number[];
 }
 
 export async function listAssignmentChecklist(classId: string, assignmentId: string): Promise<ChecklistRow[]> {
@@ -209,7 +211,7 @@ export async function listAssignmentChecklist(classId: string, assignmentId: str
     .eq('class_id', classId);
   const { data: submissions } = await supabase
     .from('assignment_submissions')
-    .select('student_id, completed_at, score, total')
+    .select('student_id, completed_at, score, total, wrong_indexes')
     .eq('assignment_id', assignmentId);
   const subMap = new Map((submissions ?? []).map((s) => [s.student_id, s]));
 
@@ -222,6 +224,7 @@ export async function listAssignmentChecklist(classId: string, assignmentId: str
       completedAt: s?.completed_at ?? undefined,
       score: s?.score ?? undefined,
       total: s?.total ?? undefined,
+      wrongIndexes: s?.wrong_indexes ?? [],
     };
   });
 }
