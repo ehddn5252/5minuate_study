@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, signInWithGoogle, signOut, syncToCloud } from '../services/supabase';
+import { fetchMyRole, getMyAcademyName, listMyJoinedClasses, type UserRole, type JoinedClass } from '../services/academy';
 import type { User } from '@supabase/supabase-js';
 import BottomNav from '../components/BottomNav';
 
@@ -12,12 +13,33 @@ export default function SettingsScreen() {
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
 
+  // 이미 참여한 학원/반이 있으면 코드 입력 화면 대신 참여 현황을 보여준다 —
+  // 한 번 등록하면 다시 코드를 넣을 필요 없이 이 화면에서 바로 확인만 하면 되게 하기 위함
+  const [role, setRole] = useState<UserRole>('student');
+  const [academyName, setAcademyName] = useState<string | null>(null);
+  const [joinedClasses, setJoinedClasses] = useState<JoinedClass[]>([]);
+  const [academyLoading, setAcademyLoading] = useState(true);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user: u } }) => setUser(u));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      setAcademyLoading(true);
+      const r = await fetchMyRole();
+      setRole(r);
+      if (r === 'teacher') {
+        setAcademyName(await getMyAcademyName());
+      } else {
+        setJoinedClasses(await listMyJoinedClasses());
+      }
+      setAcademyLoading(false);
+    })();
   }, []);
 
   const handleSync = async () => {
@@ -140,24 +162,42 @@ export default function SettingsScreen() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">학원</h2>
-          <button
-            onClick={() => navigate('/join-class')}
-            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
-          >
-            <span>반 참여하기</span>
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-          <button
-            onClick={() => navigate('/teacher/onboard')}
-            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
-          >
-            <span>선생님이신가요? 학원 시작하기</span>
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+          {academyLoading ? (
+            <p className="text-xs text-gray-400">확인 중…</p>
+          ) : role === 'teacher' ? (
+            <p className="text-sm text-gray-700">🏫 {academyName ?? '학원'} 소속 선생님으로 활동 중이에요</p>
+          ) : (
+            <>
+              {joinedClasses.length > 0 && (
+                <div className="mb-3">
+                  <p className="text-xs text-gray-400 mb-1.5">참여 중인 반</p>
+                  <ul className="space-y-1">
+                    {joinedClasses.map((c) => (
+                      <li key={c.id} className="text-sm text-gray-700">🙋 {c.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <button
+                onClick={() => navigate('/join-class')}
+                className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
+              >
+                <span>{joinedClasses.length > 0 ? '+ 다른 반 참여하기' : '반 참여하기'}</span>
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => navigate('/teacher/onboard')}
+                className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
+              >
+                <span>선생님이신가요? 학원 시작하기</span>
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">

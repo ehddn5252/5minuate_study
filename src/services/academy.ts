@@ -23,6 +23,22 @@ export async function fetchMyRole(): Promise<UserRole> {
   return (data?.role as UserRole) ?? 'student';
 }
 
+// 이미 학원에 참여한 선생님인지(설정 화면에서 "선생님 시작하기"를 또 보여줄지 판단용)
+export async function getMyAcademyName(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from('academy_members')
+    .select('academies(name)')
+    .eq('teacher_id', user.id)
+    .maybeSingle();
+  // supabase-js는 타입 생성 없이는 임베드 관계를 항상 배열로 추론하지만, 실제로는
+  // academy_members→academies가 다대일이라 런타임엔 단일 객체로 오기도 한다 — 둘 다 대응.
+  const raw = data?.academies as { name: string } | { name: string }[] | null | undefined;
+  const academy = Array.isArray(raw) ? raw[0] : raw;
+  return academy?.name ?? null;
+}
+
 // 학원 초대 코드로 선생 역할이 됨 — academies 테이블은 멤버만 읽을 수 있어(RLS) 참여 전엔
 // 조회가 안 되므로, id만 좁게 돌려주는 RPC(resolve_academy_invite)로 코드를 확인한다.
 export async function becomeTeacher(inviteCode: string): Promise<{ error?: string }> {
