@@ -21,6 +21,7 @@ create index if not exists idx_question_bank_lookup
 alter table question_bank enable row level security;
 
 -- 읽기는 누구나 가능 (앱이 anon key로 조회)
+drop policy if exists "question_bank_public_read" on question_bank;
 create policy "question_bank_public_read"
   on question_bank for select
   using (true);
