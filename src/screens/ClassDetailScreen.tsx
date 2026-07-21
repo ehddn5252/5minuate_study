@@ -5,6 +5,7 @@ import {
   listClassAssignments,
   listAssignmentChecklist,
   listAssignmentQuestions,
+  deleteAssignment,
   type TeacherClassRow,
   type AssignmentRow,
   type ChecklistRow,
@@ -22,6 +23,9 @@ export default function ClassDetailScreen() {
   const [openQuestions, setOpenQuestions] = useState<SharedQuiz[]>([]);
   const [checklistLoading, setChecklistLoading] = useState(false);
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!classId) return;
@@ -39,10 +43,12 @@ export default function ClassDetailScreen() {
     if (openId === assignmentId) {
       setOpenId(null);
       setExpandedStudentId(null);
+      setShowQuestions(false);
       return;
     }
     setOpenId(assignmentId);
     setExpandedStudentId(null);
+    setShowQuestions(false);
     setChecklistLoading(true);
     const [list, questions] = await Promise.all([
       listAssignmentChecklist(classId, assignmentId),
@@ -51,6 +57,16 @@ export default function ClassDetailScreen() {
     setChecklist(list);
     setOpenQuestions(questions);
     setChecklistLoading(false);
+  };
+
+  const handleDelete = async (assignmentId: string) => {
+    setDeleting(true);
+    const result = await deleteAssignment(assignmentId);
+    setDeleting(false);
+    if (result.error) return;
+    setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+    setOpenId(null);
+    setConfirmDeleteId(null);
   };
 
   if (loading) {
@@ -117,47 +133,104 @@ export default function ClassDetailScreen() {
                   <div className="border-t border-gray-100 px-5 py-4">
                     {checklistLoading ? (
                       <p className="text-gray-400 text-sm">불러오는 중…</p>
-                    ) : checklist.length === 0 ? (
-                      <p className="text-gray-400 text-sm">아직 참여한 학생이 없어요.</p>
                     ) : (
-                      <ul className="space-y-2">
-                        {checklist.map((m) => (
-                          <li key={m.studentId}>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-700">{m.studentName}</span>
-                              {m.completed ? (
-                                <span className="text-green-600 font-medium">
-                                  ✅ 완료{typeof m.score === 'number' ? ` (${m.score}/${m.total})` : ''}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400">❌ 미완료</span>
-                              )}
-                            </div>
+                      <>
+                        <button
+                          onClick={() => setShowQuestions((prev) => !prev)}
+                          className="text-xs text-indigo-600 underline mb-3"
+                        >
+                          이 숙제의 문제 {openQuestions.length}개 {showQuestions ? '접기' : '보기'}
+                        </button>
+                        {showQuestions && (
+                          <ul className="space-y-2 mb-4 pb-4 border-b border-gray-100">
+                            {openQuestions.map((q, i) => (
+                              <li key={i} className="text-xs text-gray-600">
+                                <p className="text-gray-800">
+                                  {i + 1}. [{q.type === 'multiple_choice' ? '객관식' : '단답형'}] {q.question}
+                                </p>
+                                {q.options && <p className="text-gray-400 mt-0.5">보기: {q.options.join(' / ')}</p>}
+                                <p className="text-gray-500 mt-0.5">정답: {q.answer}</p>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
 
-                            {m.completed && m.wrongIndexes.length > 0 && (
-                              <div className="mt-1">
-                                <button
-                                  onClick={() =>
-                                    setExpandedStudentId((prev) => (prev === m.studentId ? null : m.studentId))
-                                  }
-                                  className="text-xs text-amber-600 underline"
-                                >
-                                  틀린 문제 {m.wrongIndexes.length}개 {expandedStudentId === m.studentId ? '접기' : '보기'}
-                                </button>
-                                {expandedStudentId === m.studentId && (
-                                  <ul className="mt-1.5 space-y-1 pl-3 border-l-2 border-amber-100">
-                                    {m.wrongIndexes.map((idx) => (
-                                      <li key={idx} className="text-xs text-gray-500">
-                                        {idx + 1}. {openQuestions[idx]?.question ?? '(문제를 찾을 수 없음)'}
-                                      </li>
-                                    ))}
-                                  </ul>
+                        {checklist.length === 0 ? (
+                          <p className="text-gray-400 text-sm">아직 참여한 학생이 없어요.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {checklist.map((m) => (
+                              <li key={m.studentId}>
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-gray-700">{m.studentName}</span>
+                                  {m.completed ? (
+                                    <span className="text-green-600 font-medium">
+                                      ✅ 완료{typeof m.score === 'number' ? ` (${m.score}/${m.total})` : ''}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400">❌ 미완료</span>
+                                  )}
+                                </div>
+
+                                {m.completed && m.wrongIndexes.length > 0 && (
+                                  <div className="mt-1">
+                                    <button
+                                      onClick={() =>
+                                        setExpandedStudentId((prev) => (prev === m.studentId ? null : m.studentId))
+                                      }
+                                      className="text-xs text-amber-600 underline"
+                                    >
+                                      틀린 문제 {m.wrongIndexes.length}개 {expandedStudentId === m.studentId ? '접기' : '보기'}
+                                    </button>
+                                    {expandedStudentId === m.studentId && (
+                                      <ul className="mt-1.5 space-y-1.5 pl-3 border-l-2 border-amber-100">
+                                        {m.wrongIndexes.map((idx) => (
+                                          <li key={idx} className="text-xs text-gray-500">
+                                            <p className="text-gray-700">
+                                              {idx + 1}. {openQuestions[idx]?.question ?? '(문제를 찾을 수 없음)'}
+                                            </p>
+                                            <p className="text-red-500">
+                                              학생 답: {m.answers[idx]?.trim() ? m.answers[idx] : '(답 없음)'}
+                                            </p>
+                                            <p className="text-green-600">정답: {openQuestions[idx]?.answer ?? '?'}</p>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </div>
                                 )}
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+
+                        <div className="mt-4 pt-3 border-t border-gray-100">
+                          {confirmDeleteId === a.id ? (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm min-h-[40px]"
+                              >
+                                취소
+                              </button>
+                              <button
+                                onClick={() => handleDelete(a.id)}
+                                disabled={deleting}
+                                className="flex-1 py-2 bg-red-500 text-white rounded-xl text-sm font-medium min-h-[40px] disabled:opacity-50"
+                              >
+                                {deleting ? '삭제 중…' : '삭제 확인'}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmDeleteId(a.id)}
+                              className="text-xs text-gray-400 hover:text-red-500"
+                            >
+                              이 숙제 삭제하기
+                            </button>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 )}

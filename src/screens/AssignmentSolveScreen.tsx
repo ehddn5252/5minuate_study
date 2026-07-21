@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { listAssignmentQuestions, submitAssignment } from '../services/academy';
+import { listAssignmentQuestions, submitAssignment, getMySubmission, type MySubmission } from '../services/academy';
 import type { SharedQuiz } from '../types';
 
 export default function AssignmentSolveScreen() {
@@ -13,6 +13,8 @@ export default function AssignmentSolveScreen() {
   const [answers, setAnswers] = useState<string[]>([]);
   const [result, setResult] = useState<{ score: number; total: number } | null>(null);
   const [finished, setFinished] = useState(false);
+  // 이미 제출한 숙제를 다시 열면 재풀이 대신 복습(읽기 전용) 화면을 보여준다
+  const [existingSubmission, setExistingSubmission] = useState<MySubmission | null>(null);
 
   const [selected, setSelected] = useState<string | null>(null);
   const [shortInput, setShortInput] = useState('');
@@ -21,8 +23,9 @@ export default function AssignmentSolveScreen() {
 
   useEffect(() => {
     if (!assignmentId) return;
-    listAssignmentQuestions(assignmentId).then((qs) => {
+    Promise.all([listAssignmentQuestions(assignmentId), getMySubmission(assignmentId)]).then(([qs, submission]) => {
       setQuestions(qs);
+      setExistingSubmission(submission);
       setLoading(false);
     });
   }, [assignmentId]);
@@ -39,9 +42,11 @@ export default function AssignmentSolveScreen() {
   // 채점은 서버(submit_assignment RPC)가 실제 정답과 대조해서 하므로, 여기서는 문제별로
   // "제출한 답"만 모아둔다. 객관식은 고른 보기 그대로, 단답형은 자기채점 결과(QuizCard와 동일한
   // 패턴)를 정답 문자열로 변환해서 보낸다 — 클라이언트가 계산한 점수를 그대로 믿지 않는다.
+  // 단답형을 틀렸다고 자기채점한 경우엔 빈 문자열 대신 실제로 입력한 답을 그대로 보내서,
+  // 교사가 나중에 체크리스트에서 학생이 뭐라고 답했는지 볼 수 있게 한다(채점 결과엔 영향 없음).
   const goNext = async () => {
     const answerText =
-      quiz.type === 'multiple_choice' ? (selected ?? '') : selfJudge ? quiz.answer : '';
+      quiz.type === 'multiple_choice' ? (selected ?? '') : selfJudge ? quiz.answer : shortInput;
     const nextAnswers = [...answers, answerText];
     setAnswers(nextAnswers);
 
@@ -73,6 +78,53 @@ export default function AssignmentSolveScreen() {
 
   if (loading) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-400 text-sm">불러오는 중…</div>;
+  }
+
+  if (existingSubmission && !finished) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-10">
+        <div className="max-w-md mx-auto px-4 py-6">
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => navigate('/assignments')}
+              className="p-2 -ml-2 rounded-xl text-gray-500 hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">이미 제출한 숙제예요</h1>
+              <p className="text-gray-400 text-xs mt-0.5">
+                {existingSubmission.score} / {existingSubmission.total}점
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {questions.map((q, i) => {
+              const myAnswer = existingSubmission.answers[i] ?? '';
+              const isCorrect = myAnswer.trim() === q.answer.trim();
+              return (
+                <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+                    {q.type === 'multiple_choice' ? '객관식' : '단답형'}
+                  </span>
+                  <p className="text-gray-900 text-sm font-medium leading-relaxed mt-2 mb-3">
+                    {i + 1}. {q.question}
+                  </p>
+                  <p className={`text-sm ${isCorrect ? 'text-green-600' : 'text-red-500'}`}>
+                    내 답: {myAnswer.trim() ? myAnswer : '(답 없음)'} {isCorrect ? '✅' : '❌'}
+                  </p>
+                  {!isCorrect && <p className="text-sm text-green-600 mt-1">정답: {q.answer}</p>}
+                  <p className="text-xs text-gray-400 mt-2">{q.explanation}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (finished) {

@@ -209,6 +209,13 @@ export async function listClassAssignments(classId: string): Promise<AssignmentR
   return (data ?? []).map((a) => ({ id: a.id, title: a.title, dueDate: a.due_date, createdAt: a.created_at }));
 }
 
+// assignment_questions/assignment_submissions는 assignments 삭제 시 on delete cascade로 함께 지워진다
+export async function deleteAssignment(assignmentId: string): Promise<{ error?: string }> {
+  const { error } = await supabase.from('assignments').delete().eq('id', assignmentId);
+  if (error) return { error: '숙제 삭제에 실패했어요.' };
+  return {};
+}
+
 export interface ChecklistRow {
   studentId: string;
   studentName: string;
@@ -218,6 +225,8 @@ export interface ChecklistRow {
   total?: number;
   // assignment_questions의 order_index와 대응 — submit_assignment RPC가 채점하면서 함께 기록
   wrongIndexes: number[];
+  // 문항 순서대로 제출한 답 전체 — wrongIndexes와 조합해 "학생 답: OOO"를 보여줄 때 씀
+  answers: string[];
 }
 
 export async function listAssignmentChecklist(classId: string, assignmentId: string): Promise<ChecklistRow[]> {
@@ -227,7 +236,7 @@ export async function listAssignmentChecklist(classId: string, assignmentId: str
     .eq('class_id', classId);
   const { data: submissions } = await supabase
     .from('assignment_submissions')
-    .select('student_id, completed_at, score, total, wrong_indexes')
+    .select('student_id, completed_at, score, total, wrong_indexes, answers')
     .eq('assignment_id', assignmentId);
   const subMap = new Map((submissions ?? []).map((s) => [s.student_id, s]));
 
@@ -240,6 +249,7 @@ export async function listAssignmentChecklist(classId: string, assignmentId: str
       completedAt: s?.completed_at ?? undefined,
       score: s?.score ?? undefined,
       total: s?.total ?? undefined,
+      answers: s?.answers ?? [],
       wrongIndexes: s?.wrong_indexes ?? [],
     };
   });
@@ -252,6 +262,26 @@ export async function listAssignmentQuestions(assignmentId: string): Promise<Sha
     .eq('assignment_id', assignmentId)
     .order('order_index', { ascending: true });
   return (data ?? []) as SharedQuiz[];
+}
+
+export interface MySubmission {
+  score: number;
+  total: number;
+  answers: string[];
+}
+
+// 이미 제출한 숙제를 다시 열었을 때 재풀이(재채점) 대신 복습(읽기 전용) 화면을 보여주기 위해 조회
+export async function getMySubmission(assignmentId: string): Promise<MySubmission | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from('assignment_submissions')
+    .select('score, total, answers, completed_at')
+    .eq('assignment_id', assignmentId)
+    .eq('student_id', user.id)
+    .maybeSingle();
+  if (!data?.completed_at) return null;
+  return { score: data.score ?? 0, total: data.total ?? 0, answers: data.answers ?? [] };
 }
 
 export interface StudentAssignmentRow {

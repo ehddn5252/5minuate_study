@@ -144,6 +144,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={role === 'teacher' ? <TeacherHomeScreen /> : <HomeScreen />} />
+        {/* 선생님 계정도 개인 학습 화면을 볼 수 있는 통로 — role은 그대로 두고 화면만 잠깐 전환 */}
+        <Route path="/my-study" element={<HomeScreen />} />
         <Route path="/teacher/onboard" element={<TeacherOnboardScreen />} />
         <Route path="/teacher/classes/:classId" element={<ClassDetailScreen />} />
         <Route path="/teacher/classes/:classId/new-assignment" element={<AssignmentCreateScreen />} />

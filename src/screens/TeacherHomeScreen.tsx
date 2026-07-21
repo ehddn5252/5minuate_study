@@ -48,9 +48,14 @@ export default function TeacherHomeScreen() {
             <h1 className="text-xl font-bold text-gray-900">🏫 선생님 홈</h1>
             <p className="text-gray-400 text-xs mt-0.5">반을 만들고 학생 숙제를 확인해요</p>
           </div>
-          <button onClick={handleSignOut} className="text-gray-400 text-sm hover:text-gray-600">
-            로그아웃
-          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/my-study')} className="text-indigo-500 text-sm hover:text-indigo-600">
+              개인 학습 보기
+            </button>
+            <button onClick={handleSignOut} className="text-gray-400 text-sm hover:text-gray-600">
+              로그아웃
+            </button>
+          </div>
         </div>
 
         {loading ? (
