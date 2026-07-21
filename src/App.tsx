@@ -14,6 +14,7 @@ import WrongPoolScreen from './screens/WrongPoolScreen';
 import RetryWrongScreen from './screens/RetryWrongScreen';
 import MyQuestionBookScreen from './screens/MyQuestionBookScreen';
 import CalendarScreen from './screens/CalendarScreen';
+import LanguageHubScreen from './screens/LanguageHubScreen';
 import MixReviewScreen from './screens/MixReviewScreen';
 import RecordingsScreen from './screens/RecordingsScreen';
 import AchievementsScreen from './screens/AchievementsScreen';
@@ -114,6 +115,7 @@ export default function App() {
         <Route path="/retry/:goalId" element={<RetryWrongScreen />} />
         <Route path="/my-questions" element={<MyQuestionBookScreen />} />
         <Route path="/calendar" element={<CalendarScreen />} />
+        <Route path="/language" element={<LanguageHubScreen />} />
         <Route path="/mix-review" element={<MixReviewScreen />} />
         <Route path="/recordings" element={<RecordingsScreen />} />
         <Route path="/achievements" element={<AchievementsScreen />} />

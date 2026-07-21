@@ -33,7 +33,9 @@ export default function GoalCreateScreen() {
   const [topic, setTopic] = useState(() => {
     const tplId = searchParams.get('templateId');
     const tpl = TEMPLATES.find((t) => t.id === tplId);
-    return tpl ? tpl.topic : '';
+    if (tpl) return tpl.topic;
+    // 언어 학습 허브의 "AI로 직접 만들기" 예시 칩에서 주제만 프리필하고 싶을 때 사용
+    return searchParams.get('topic') ?? '';
   });
   const [deadline, setDeadline] = useState(() => {
     const tplId = searchParams.get('templateId');

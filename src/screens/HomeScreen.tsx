@@ -297,6 +297,15 @@ export default function HomeScreen() {
           </div>
           <div className="flex items-center gap-1">
             <button
+              onClick={() => navigate('/language')}
+              className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M12 3c2.5 2.7 4 6.2 4 9s-1.5 6.3-4 9c-2.5-2.7-4-6.2-4-9s1.5-6.3 4-9z" />
+                <circle cx="12" cy="12" r="9" strokeWidth={2} />
+              </svg>
+            </button>
+            <button
               onClick={() => navigate('/calendar')}
               className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
