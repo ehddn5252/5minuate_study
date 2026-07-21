@@ -179,6 +179,17 @@ export function removeFromWrongPool(goalId: string, quizId: string): void {
   );
 }
 
+// 계정 전환(같은 브라우저에서 다른 Google 계정으로 로그인) 시 이전 계정의 로컬 데이터가
+// 새 계정 것으로 오인되어 클라우드에 업로드되는 걸 막기 위해, 로그인 전환 시점에 호출한다.
+export function clearAllLocalData(): void {
+  localStorage.removeItem(KEYS.GOALS);
+  localStorage.removeItem(KEYS.SESSIONS);
+  localStorage.removeItem(KEYS.QUIZZES);
+  localStorage.removeItem(KEYS.WRONG_POOL);
+  localStorage.removeItem('badges');
+  localStorage.removeItem(KEYS.APP_STATE);
+}
+
 // Badges
 export function getBadges(): Badge[] {
   return getItem<Badge>('badges');

@@ -4,10 +4,14 @@
  * 역할 1: Gemini API 프록시 (POST /api/generate)
  *   - GEMINI_API_KEY 시크릿으로 서버 측 Gemini 호출
  *   - RATE_LIMIT KV로 IP당 하루 20회 제한
+ *   - RELAY_URL/RELAY_SECRET이 설정되어 있으면, Cloudflare 엣지가 아니라 지역이 고정된
+ *     중계 서버(cloud-run-gemini-relay/)를 우선 거쳐 "User location is not supported" 지역
+ *     차단을 원천적으로 피한다. 중계 서버 연결 자체가 실패할 때만 기존 직접 호출로 폴백한다.
  *
  * 역할 2: Telegram → GitHub Actions 브릿지 (그 외 POST)
  *   Worker 환경 변수:
- *   TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID / GITHUB_TOKEN / GITHUB_REPO / GEMINI_API_KEY
+ *   TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID / GITHUB_TOKEN / GITHUB_REPO / GEMINI_API_KEY /
+ *   RELAY_URL(선택) / RELAY_SECRET(선택)
  */
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
@@ -37,6 +41,22 @@ async function fetchGeminiWithRetry(body, apiKey) {
   return lastRes;
 }
 
+// 지역 고정 중계 서버를 통해 호출한다. 중계 서버 자체(네트워크 연결)가 실패한 경우에만
+// null을 돌려줘 호출부가 기존 직접 호출로 폴백하게 한다 — Gemini가 준 응답(설령 오류여도)은
+// 그대로 신뢰한다(중계 서버는 지역이 고정돼 있어 지역 차단 자체가 애초에 거의 발생하지 않는다).
+async function fetchGeminiViaRelay(body, env) {
+  if (!env.RELAY_URL || !env.RELAY_SECRET) return null;
+  try {
+    return await fetch(env.RELAY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Relay-Secret': env.RELAY_SECRET },
+      body,
+    });
+  } catch {
+    return null;
+  }
+}
+
 async function handleGenerate(request, env) {
   // IP 기반 레이트 리밋
   const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
@@ -59,9 +79,9 @@ async function handleGenerate(request, env) {
     return Response.json({ error: '서버 API 키가 설정되지 않았습니다.' }, { status: 500 });
   }
 
-  // Gemini로 그대로 전달
+  // Gemini로 그대로 전달 — 지역 고정 중계 서버가 설정돼 있으면 우선 사용
   const body = await request.text();
-  const geminiRes = await fetchGeminiWithRetry(body, env.GEMINI_API_KEY);
+  const geminiRes = (await fetchGeminiViaRelay(body, env)) ?? (await fetchGeminiWithRetry(body, env.GEMINI_API_KEY));
 
   const data = await geminiRes.text();
   return new Response(data, {

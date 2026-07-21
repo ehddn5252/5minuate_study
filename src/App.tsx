@@ -31,7 +31,21 @@ import AssignmentSolveScreen from './screens/AssignmentSolveScreen';
 import { initReminder } from './services/notification';
 import { supabase, loadFromCloud, migrateLocalToCloud, syncToCloud } from './services/supabase';
 import { fetchMyRole, type UserRole } from './services/academy';
+import { clearAllLocalData } from './utils/storage';
 import { useGoalStore, useSessionStore, useQuizStore, useAppStore } from './store';
+
+const LAST_USER_KEY = 'lastAuthUserId';
+
+// 같은 브라우저에서 다른 Google 계정으로 로그인하면, migrateLocalToCloud가 "클라우드에 데이터가
+// 없으면 신규 계정"이라고 판단해 이전 계정이 남긴 로컬 데이터를 새 계정 것으로 착각해 업로드해버린다.
+// 로그인한 계정이 마지막으로 기억한 계정과 다르면 먼저 로컬 데이터를 비워 이 오염을 막는다.
+function ensureLocalDataOwnership(userId: string) {
+  const lastUserId = localStorage.getItem(LAST_USER_KEY);
+  if (lastUserId && lastUserId !== userId) {
+    clearAllLocalData();
+  }
+  localStorage.setItem(LAST_USER_KEY, userId);
+}
 
 export default function App() {
   const { loadGoals } = useGoalStore();
@@ -73,6 +87,7 @@ export default function App() {
         return;
       }
       const userId = session.user.id;
+      ensureLocalDataOwnership(userId);
       await migrateLocalToCloud(userId);
       const loaded = await loadFromCloud(userId);
       if (loaded) reloadAllStores();
@@ -86,6 +101,7 @@ export default function App() {
         setUser(session?.user ?? null);
         if (event === 'SIGNED_IN' && session?.user) {
           const userId = session.user.id;
+          ensureLocalDataOwnership(userId);
           await migrateLocalToCloud(userId);
           const loaded = await loadFromCloud(userId);
           if (loaded) reloadAllStores();
@@ -93,6 +109,8 @@ export default function App() {
           setRoleChecked(true);
         }
         if (event === 'SIGNED_OUT') {
+          clearAllLocalData();
+          localStorage.removeItem(LAST_USER_KEY);
           reloadAllStores();
           setRole('student');
         }

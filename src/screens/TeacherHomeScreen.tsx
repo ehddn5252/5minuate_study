@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listMyClasses, createClass, type TeacherClassRow } from '../services/academy';
 import { signOut } from '../services/supabase';
+import BottomNav from '../components/BottomNav';
 
 export default function TeacherHomeScreen() {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ export default function TeacherHomeScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -109,6 +110,7 @@ export default function TeacherHomeScreen() {
           </button>
         )}
       </div>
+      <BottomNav variant="teacher" />
     </div>
   );
 }
