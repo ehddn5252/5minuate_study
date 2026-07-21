@@ -165,23 +165,23 @@ export default function AssignmentCreateScreen() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 space-y-3">
-          <h2 className="font-semibold text-gray-900">✨ AI로 문제 후보 만들기</h2>
-          <p className="text-xs text-gray-400">주제를 입력하면 AI가 문제 후보를 만들어요. 마음에 드는 것만 골라 담으세요.</p>
+        <div className="bg-indigo-50 rounded-2xl border border-indigo-100 p-5 mb-4 space-y-3">
+          <h2 className="font-semibold text-indigo-900">✨ AI로 문제 후보 만들기</h2>
+          <p className="text-xs text-indigo-400">주제를 입력하면 AI가 문제 후보를 만들어요. 마음에 드는 것만 골라 담으세요.</p>
 
           <input
             type="text"
             value={aiTopic}
             onChange={(e) => setAiTopic(e.target.value)}
             placeholder="주제 (예: 3과 부정사)"
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+            className="w-full px-4 py-3 rounded-xl border-2 border-indigo-100 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
           />
           <textarea
             value={aiRawContent}
             onChange={(e) => setAiRawContent(e.target.value)}
             placeholder="참고 자료(선택) — 필기나 교재 내용을 붙여넣으면 더 정확해져요"
             rows={2}
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none"
+            className="w-full px-4 py-2.5 rounded-xl border-2 border-indigo-100 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none"
           />
 
           <div className="flex gap-2">
@@ -220,17 +220,17 @@ export default function AssignmentCreateScreen() {
           <button
             onClick={handleGenerateCandidates}
             disabled={!aiTopic.trim() || aiGenerating}
-            className="w-full py-3 bg-indigo-50 text-indigo-600 rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
+            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
           >
             {aiGenerating ? '문제 만드는 중…' : '문제 후보 만들기'}
           </button>
 
           {aiCandidates.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-gray-100">
+            <div className="space-y-2 pt-2 border-t border-indigo-100">
               {aiCandidates.map((c, i) => (
                 <label
                   key={i}
-                  className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors ${aiSelected[i] ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200'}`}
+                  className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors bg-white ${aiSelected[i] ? 'border-indigo-300' : 'border-gray-200'}`}
                 >
                   <input
                     type="checkbox"
@@ -257,23 +257,32 @@ export default function AssignmentCreateScreen() {
         </div>
 
         {questions.length > 0 && (
-          <div className="space-y-2 mb-4">
-            {questions.map((q, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400">{i + 1}. {q.type === 'multiple_choice' ? '객관식' : '단답형'}</p>
-                  <p className="text-sm text-gray-800 truncate">{q.question}</p>
+          <div className="mb-4">
+            <p className="text-xs font-medium text-gray-500 mb-2">📋 담긴 문제 ({questions.length}개)</p>
+            <div className="space-y-2">
+              {questions.map((q, i) => (
+                <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-400">{i + 1}. {q.type === 'multiple_choice' ? '객관식' : '단답형'}</p>
+                    <p className="text-sm text-gray-800 truncate">{q.question}</p>
+                  </div>
+                  <button onClick={() => handleRemoveQuestion(i)} className="text-gray-300 hover:text-red-400 flex-shrink-0 text-sm">
+                    삭제
+                  </button>
                 </div>
-                <button onClick={() => handleRemoveQuestion(i)} className="text-gray-300 hover:text-red-400 flex-shrink-0 text-sm">
-                  삭제
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400">또는 직접 추가</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 space-y-3">
-          <h2 className="font-semibold text-gray-900">문제 추가</h2>
+          <h2 className="font-semibold text-gray-900">문제 직접 추가</h2>
 
           <div className="flex gap-2">
             <button
