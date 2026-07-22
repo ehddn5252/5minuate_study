@@ -275,32 +275,18 @@ export default function SessionCompleteScreen() {
           </p>
         )}
 
-        <div className="flex gap-2 mb-3">
+        <div className="mb-3">
           <button
             onClick={async () => {
               setSharing(true);
               try {
-                await shareOrDownload({ topic, streak, score, total, isGoalComplete: false }, 'parent');
+                await shareOrDownload({ topic, streak, score, total, isGoalComplete: false });
               } finally {
                 setSharing(false);
               }
             }}
             disabled={sharing}
-            className="flex-1 py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
-          >
-            {sharing ? '생성 중...' : '👨‍👩‍👧 보호자님께'}
-          </button>
-          <button
-            onClick={async () => {
-              setSharing(true);
-              try {
-                await shareOrDownload({ topic, streak, score, total, isGoalComplete: false }, 'general');
-              } finally {
-                setSharing(false);
-              }
-            }}
-            disabled={sharing}
-            className="flex-1 py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
+            className="w-full py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
           >
             {sharing ? '생성 중...' : '🙋 친구에게'}
           </button>

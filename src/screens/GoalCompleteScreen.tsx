@@ -138,32 +138,18 @@ export default function GoalCompleteScreen() {
 
         <p className="text-gray-400 text-sm mb-4">{didLevelUp ? '8초' : '6초'} 후 홈으로 이동합니다</p>
 
-        <div className="flex gap-2 mb-3">
+        <div className="mb-3">
           <button
             onClick={async () => {
               setSharing(true);
               try {
-                await shareOrDownload({ topic: goal?.topic ?? '학습 목표', streak, score, total, isGoalComplete: true }, 'parent');
+                await shareOrDownload({ topic: goal?.topic ?? '학습 목표', streak, score, total, isGoalComplete: true });
               } finally {
                 setSharing(false);
               }
             }}
             disabled={sharing}
-            className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
-          >
-            {sharing ? '생성 중...' : '👨‍👩‍👧 보호자님께'}
-          </button>
-          <button
-            onClick={async () => {
-              setSharing(true);
-              try {
-                await shareOrDownload({ topic: goal?.topic ?? '학습 목표', streak, score, total, isGoalComplete: true }, 'general');
-              } finally {
-                setSharing(false);
-              }
-            }}
-            disabled={sharing}
-            className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
+            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
           >
             {sharing ? '생성 중...' : '🙋 친구에게'}
           </button>

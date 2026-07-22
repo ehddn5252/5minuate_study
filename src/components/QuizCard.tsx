@@ -60,12 +60,13 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
           </span>
           <button
             onClick={handleToggleBookmark}
-            className={`text-lg leading-none min-h-[28px] min-w-[28px] flex items-center justify-center transition-colors ${
-              quiz.bookmarked ? 'text-amber-500' : 'text-gray-300 hover:text-amber-400'
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium min-h-[28px] transition-colors ${
+              quiz.bookmarked ? 'bg-amber-50 text-amber-600' : 'bg-gray-50 text-gray-400 hover:text-amber-500'
             }`}
             aria-label="내 문제집에 담기"
           >
-            {quiz.bookmarked ? '🔖' : '📑'}
+            <span aria-hidden="true">{quiz.bookmarked ? '🔖' : '📑'}</span>
+            {quiz.bookmarked ? '담음' : '내 문제집에 담기'}
           </button>
         </div>
       </div>

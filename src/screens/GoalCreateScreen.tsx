@@ -13,12 +13,6 @@ const LEVEL_OPTIONS: { id: QuizLevel; label: string }[] = [
   { id: 'advanced', label: '고급' },
 ];
 
-const TONE_OPTIONS: { id: MateTone; label: string; desc: string }[] = [
-  { id: 'plain', label: '담백한 선배', desc: '기본' },
-  { id: 'friendly', label: '다정한 친구', desc: '편안하게' },
-  { id: 'hype', label: '예능 자막체', desc: '텐션 UP' },
-];
-
 // F-01: 진행 중 목표는 동시에 최대 5개까지만 허용한다(감사 P-2 후속 — 기획엔 있었지만
 // 코드로 구현된 적 없던 규칙을 반영, 원래 문서의 3개 대신 5개로 상향).
 const MAX_ACTIVE_GOALS = 5;
@@ -48,7 +42,8 @@ export default function GoalCreateScreen() {
   const [rawContent, setRawContent] = useState('');
   const [level, setLevel] = useState<QuizLevel>('intermediate');
   const [practicalMode, setPracticalMode] = useState(false);
-  const [mateTone, setMateTone] = useState<MateTone>('plain');
+  // 말투 선택 UI는 제거됨 — 항상 기본 톤으로 생성(피드백 반영, 2026-07-22)
+  const mateTone: MateTone = 'plain';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(() => searchParams.get('templateId'));
@@ -301,30 +296,6 @@ export default function GoalCreateScreen() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              AI 학습메이트 말투
-            </label>
-            <div className="flex gap-2">
-              {TONE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setMateTone(opt.id)}
-                  disabled={loading}
-                  className={`flex-1 py-3 rounded-xl border-2 text-center min-h-[44px] transition-colors ${
-                    mateTone === opt.id
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-200'
-                  }`}
-                >
-                  <span className="block text-sm font-semibold">{opt.label}</span>
-                  <span className="block text-xs text-gray-400 mt-0.5">{opt.desc}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200">
             <div className="pr-3">
               <p className="text-sm font-medium text-gray-700">실무 연계 강조</p>
@@ -379,7 +350,7 @@ export default function GoalCreateScreen() {
               약 10~20초 소요됩니다.
             </p>
             <p className="text-indigo-500 text-xs mt-1.5">
-              💚 5분 학습은 지금도, 앞으로도 완전 무료예요.
+              💚 하루 5분이면 충분해요.
             </p>
           </div>
 

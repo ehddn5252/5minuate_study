@@ -125,7 +125,7 @@ export default function SettingsScreen() {
             </div>
           )}
           <p className="text-xs text-green-600 mt-4 pt-3 border-t border-gray-100">
-            💚 5분 학습은 지금도, 앞으로도 완전 무료예요.
+            💚 오늘 5분, 내일도 5분이면 충분해요.
           </p>
         </div>
 
