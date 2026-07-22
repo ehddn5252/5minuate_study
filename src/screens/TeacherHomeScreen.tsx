@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { listMyClasses, createClass, type TeacherClassRow } from '../services/academy';
+import {
+  listMyClasses,
+  createClass,
+  getTeacherTodaySummary,
+  type TeacherClassRow,
+  type TeacherTodaySummary,
+} from '../services/academy';
 import { signOut } from '../services/supabase';
 import BottomNav from '../components/BottomNav';
 
@@ -11,10 +17,13 @@ export default function TeacherHomeScreen() {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
   const [error, setError] = useState('');
+  const [summary, setSummary] = useState<TeacherTodaySummary | null>(null);
 
   const refresh = async () => {
     setLoading(true);
-    setClasses(await listMyClasses());
+    const [classList, todaySummary] = await Promise.all([listMyClasses(), getTeacherTodaySummary()]);
+    setClasses(classList);
+    setSummary(todaySummary);
     setLoading(false);
   };
 
@@ -57,6 +66,24 @@ export default function TeacherHomeScreen() {
             </button>
           </div>
         </div>
+
+        {!loading && summary && summary.dueTodayCount > 0 && (
+          <div
+            className={`rounded-2xl p-4 mb-4 border ${
+              summary.incompleteCount > 0 ? 'bg-amber-50 border-amber-100' : 'bg-green-50 border-green-100'
+            }`}
+          >
+            {summary.incompleteCount > 0 ? (
+              <p className="text-sm text-amber-700">
+                📌 오늘 마감 숙제 {summary.dueTodayCount}개 · 아직 안 한 학생 <strong>{summary.incompleteCount}명</strong>
+              </p>
+            ) : (
+              <p className="text-sm text-green-700">
+                ✅ 오늘 마감 숙제 {summary.dueTodayCount}개, 전원 완료했어요!
+              </p>
+            )}
+          </div>
+        )}
 
         {loading ? (
           <p className="text-gray-400 text-sm text-center py-8">불러오는 중…</p>

@@ -83,6 +83,52 @@ export async function listMyClasses(): Promise<TeacherClassRow[]> {
   return (data ?? []).map((c) => ({ id: c.id, name: c.name, inviteCode: c.invite_code, createdAt: c.created_at }));
 }
 
+export interface TeacherTodaySummary {
+  dueTodayCount: number;
+  incompleteCount: number;
+}
+
+// 선생님 홈에서 "오늘 확인할 것"을 한눈에 보여주기 위한 요약 — 반/숙제를 일일이 열어보지 않아도 됨
+export async function getTeacherTodaySummary(): Promise<TeacherTodaySummary> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { dueTodayCount: 0, incompleteCount: 0 };
+
+  const today = new Date().toISOString().split('T')[0];
+  const { data: assignments } = await supabase
+    .from('assignments')
+    .select('id, class_id')
+    .eq('teacher_id', user.id)
+    .eq('due_date', today);
+
+  if (!assignments || assignments.length === 0) return { dueTodayCount: 0, incompleteCount: 0 };
+
+  const classIds = [...new Set(assignments.map((a) => a.class_id))];
+  const assignmentIds = assignments.map((a) => a.id);
+
+  const { data: members } = await supabase
+    .from('class_members')
+    .select('class_id, student_id')
+    .in('class_id', classIds);
+
+  const { data: submissions } = await supabase
+    .from('assignment_submissions')
+    .select('assignment_id, student_id, completed_at')
+    .in('assignment_id', assignmentIds);
+
+  const completedSet = new Set(
+    (submissions ?? []).filter((s) => s.completed_at).map((s) => `${s.assignment_id}:${s.student_id}`)
+  );
+
+  let incompleteCount = 0;
+  for (const a of assignments) {
+    for (const m of (members ?? []).filter((mm) => mm.class_id === a.class_id)) {
+      if (!completedSet.has(`${a.id}:${m.student_id}`)) incompleteCount++;
+    }
+  }
+
+  return { dueTodayCount: assignments.length, incompleteCount };
+}
+
 export async function getClassInfo(classId: string): Promise<TeacherClassRow | null> {
   const { data } = await supabase
     .from('classes')
@@ -91,6 +137,35 @@ export async function getClassInfo(classId: string): Promise<TeacherClassRow | n
     .maybeSingle();
   if (!data) return null;
   return { id: data.id, name: data.name, inviteCode: data.invite_code, createdAt: data.created_at };
+}
+
+export interface RosterRow {
+  studentId: string;
+  studentName: string;
+  joinedAt: string;
+}
+
+export async function listClassRoster(classId: string): Promise<RosterRow[]> {
+  const { data } = await supabase
+    .from('class_members')
+    .select('student_id, student_name, joined_at')
+    .eq('class_id', classId)
+    .order('joined_at', { ascending: true });
+  return (data ?? []).map((m) => ({
+    studentId: m.student_id,
+    studentName: m.student_name ?? '(이름 없음)',
+    joinedAt: m.joined_at,
+  }));
+}
+
+export async function removeStudentFromClass(classId: string, studentId: string): Promise<{ error?: string }> {
+  const { error } = await supabase
+    .from('class_members')
+    .delete()
+    .eq('class_id', classId)
+    .eq('student_id', studentId);
+  if (error) return { error: '학생 내보내기에 실패했어요.' };
+  return {};
 }
 
 export async function createClass(name: string): Promise<{ classId?: string; error?: string }> {
@@ -341,4 +416,68 @@ export async function submitAssignment(
   });
   if (error || !data?.[0]) return null;
   return { score: data[0].score, total: data[0].total };
+}
+
+export interface ClassMaterialRow {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+}
+
+export async function listClassMaterials(classId: string): Promise<ClassMaterialRow[]> {
+  const { data } = await supabase
+    .from('class_materials')
+    .select('id, title, content, created_at')
+    .eq('class_id', classId)
+    .order('created_at', { ascending: false });
+  return (data ?? []).map((m) => ({ id: m.id, title: m.title, content: m.content, createdAt: m.created_at }));
+}
+
+export async function createClassMaterial(
+  classId: string,
+  title: string,
+  content: string
+): Promise<{ error?: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: '로그인이 필요해요.' };
+  const { error } = await supabase
+    .from('class_materials')
+    .insert({ class_id: classId, teacher_id: user.id, title, content });
+  if (error) return { error: '자료 등록에 실패했어요.' };
+  return {};
+}
+
+export async function deleteClassMaterial(materialId: string): Promise<{ error?: string }> {
+  const { error } = await supabase.from('class_materials').delete().eq('id', materialId);
+  if (error) return { error: '자료 삭제에 실패했어요.' };
+  return {};
+}
+
+export interface StudentMaterialRow {
+  id: string;
+  title: string;
+  content: string;
+  className: string;
+  createdAt: string;
+}
+
+export async function listMyClassMaterials(): Promise<StudentMaterialRow[]> {
+  const joined = await listMyJoinedClasses();
+  if (joined.length === 0) return [];
+  const classMap = new Map(joined.map((c) => [c.id, c.name]));
+
+  const { data } = await supabase
+    .from('class_materials')
+    .select('id, title, content, created_at, class_id')
+    .in('class_id', joined.map((c) => c.id))
+    .order('created_at', { ascending: false });
+
+  return (data ?? []).map((m) => ({
+    id: m.id,
+    title: m.title,
+    content: m.content,
+    className: classMap.get(m.class_id) ?? '',
+    createdAt: m.created_at,
+  }));
 }
