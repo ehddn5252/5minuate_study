@@ -41,8 +41,8 @@ export default function GoalCreateScreen() {
   });
   const [rawContent, setRawContent] = useState('');
   const [level, setLevel] = useState<QuizLevel>('intermediate');
-  const [practicalMode, setPracticalMode] = useState(false);
-  // 말투 선택 UI는 제거됨 — 항상 기본 톤으로 생성(피드백 반영, 2026-07-22)
+  // 실무 연계 강조 토글과 말투 선택 UI는 제거됨 — 항상 기본값으로 생성(피드백 반영, 2026-07-22)
+  const practicalMode = false;
   const mateTone: MateTone = 'plain';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -294,27 +294,6 @@ export default function GoalCreateScreen() {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200">
-            <div className="pr-3">
-              <p className="text-sm font-medium text-gray-700">실무 연계 강조</p>
-              <p className="text-xs text-gray-400 mt-0.5">요약·해설에 "실무에서 이렇게 쓰인다"는 예시를 포함해요</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPracticalMode((v) => !v)}
-              disabled={loading}
-              className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none ${
-                practicalMode ? 'bg-indigo-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                  practicalMode ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
           </div>
 
           <div>
