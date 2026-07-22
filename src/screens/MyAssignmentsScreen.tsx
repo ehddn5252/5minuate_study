@@ -9,6 +9,10 @@ import {
 } from '../services/academy';
 import BottomNav from '../components/BottomNav';
 
+function isOverdue(dueDate: string): boolean {
+  return dueDate < new Date().toISOString().split('T')[0];
+}
+
 export default function MyAssignmentsScreen() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<'assignments' | 'materials'>('assignments');
@@ -95,7 +99,12 @@ export default function MyAssignmentsScreen() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs text-gray-400">{a.className} · 마감 {a.dueDate}</p>
+                      <p className="text-xs text-gray-400">
+                        {a.className} ·{' '}
+                        <span className={!a.completed && isOverdue(a.dueDate) ? 'text-red-500 font-medium' : ''}>
+                          {!a.completed && isOverdue(a.dueDate) ? `마감 지남 (${a.dueDate})` : `마감 ${a.dueDate}`}
+                        </span>
+                      </p>
                       <p className="font-semibold text-gray-900 truncate">{a.title}</p>
                     </div>
                     {a.completed ? (

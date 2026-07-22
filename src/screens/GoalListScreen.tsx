@@ -68,9 +68,6 @@ function GoalItem({
             {goal.streak > 0 && (
               <span className="text-xs text-orange-500">🔥 {goal.streak}일 연속</span>
             )}
-            {goal.status === 'active' && (goal.streakFreezeRemaining ?? 0) > 0 && (
-              <span className="text-xs text-sky-500">🧊 리듬 유지권 {goal.streakFreezeRemaining}개</span>
-            )}
             <DelayLabel goal={goal} />
           </div>
         </div>

@@ -127,7 +127,6 @@ export default function GoalCreateScreen() {
         summaryContent: summary,
         quizPoolIds: quizPool.map((q) => q.id),
         level,
-        streakFreezeRemaining: 2,
         practicalMode,
         mateTone,
         examScoped,

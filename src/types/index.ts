@@ -25,7 +25,6 @@ export interface Goal {
   summaryContent: string;
   quizPoolIds: string[];
   level: QuizLevel;
-  streakFreezeRemaining: number;
   practicalMode?: boolean;
   mateTone?: MateTone;
   examScoped?: boolean;

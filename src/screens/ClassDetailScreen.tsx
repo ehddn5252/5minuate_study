@@ -6,6 +6,8 @@ import {
   listAssignmentChecklist,
   listAssignmentQuestions,
   deleteAssignment,
+  copyAssignmentToClasses,
+  listMyClasses,
   listClassMaterials,
   createClassMaterial,
   deleteClassMaterial,
@@ -21,6 +23,10 @@ import {
 } from '../services/academy';
 import type { SharedQuiz } from '../types';
 
+function isOverdue(dueDate: string): boolean {
+  return dueDate < new Date().toISOString().split('T')[0];
+}
+
 export default function ClassDetailScreen() {
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
@@ -35,6 +41,13 @@ export default function ClassDetailScreen() {
   const [activeTab, setActiveTab] = useState<'status' | 'questions'>('status');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // 다른 반에 복사
+  const [otherClasses, setOtherClasses] = useState<TeacherClassRow[]>([]);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
+  const [copyTargetIds, setCopyTargetIds] = useState<Set<string>>(new Set());
+  const [copySaving, setCopySaving] = useState(false);
+  const [copyDone, setCopyDone] = useState<string | null>(null);
 
   // 수업 자료
   const [materials, setMaterials] = useState<ClassMaterialRow[]>([]);
@@ -57,19 +70,41 @@ export default function ClassDetailScreen() {
     if (!classId) return;
     (async () => {
       setLoading(true);
-      const [info, list, materialList, rosterList] = await Promise.all([
+      const [info, list, materialList, rosterList, myClasses] = await Promise.all([
         getClassInfo(classId),
         listClassAssignments(classId),
         listClassMaterials(classId),
         listClassRoster(classId),
+        listMyClasses(),
       ]);
       setClassInfo(info);
       setAssignments(list);
       setMaterials(materialList);
       setRoster(rosterList);
+      setOtherClasses(myClasses.filter((c) => c.id !== classId));
       setLoading(false);
     })();
   }, [classId]);
+
+  const handleToggleCopyTarget = (id: string) => {
+    setCopyTargetIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleCopyAssignment = async (assignmentId: string) => {
+    setCopySaving(true);
+    const result = await copyAssignmentToClasses(assignmentId, [...copyTargetIds]);
+    setCopySaving(false);
+    if (result.error) return;
+    setCopyingId(null);
+    setCopyTargetIds(new Set());
+    setCopyDone(assignmentId);
+    setTimeout(() => setCopyDone(null), 3000);
+  };
 
   const handleRemoveStudent = async (studentId: string) => {
     if (!classId) return;
@@ -247,7 +282,16 @@ export default function ClassDetailScreen() {
                   <button onClick={() => handleToggle(a.id)} className="flex-1 flex items-center justify-between text-left min-w-0">
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-900 truncate">{a.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">마감 {a.dueDate}</p>
+                      <p className="text-xs mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        <span className={isOverdue(a.dueDate) ? 'text-red-500 font-medium' : 'text-gray-400'}>
+                          {isOverdue(a.dueDate) ? `마감 지남 (${a.dueDate})` : `마감 ${a.dueDate}`}
+                        </span>
+                        {typeof a.targetCount === 'number' && (
+                          <span className="text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">
+                            👤 학생 {a.targetCount}명 대상
+                          </span>
+                        )}
+                      </p>
                     </div>
                     <svg
                       className={`w-4 h-4 text-gray-400 flex-shrink-0 ml-2 transition-transform ${openId === a.id ? 'rotate-90' : ''}`}
@@ -258,6 +302,20 @@ export default function ClassDetailScreen() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
+                  {otherClasses.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setCopyingId((prev) => (prev === a.id ? null : a.id));
+                        setCopyTargetIds(new Set());
+                      }}
+                      aria-label="다른 반에 복사"
+                      className="flex-shrink-0 p-2 rounded-xl text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 min-h-[40px] min-w-[40px] flex items-center justify-center"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  )}
                   <button
                     onClick={() => setConfirmDeleteId((prev) => (prev === a.id ? null : a.id))}
                     aria-label="숙제 삭제"
@@ -268,6 +326,42 @@ export default function ClassDetailScreen() {
                     </svg>
                   </button>
                 </div>
+
+                {copyingId === a.id && (
+                  <div className="px-5 pb-4">
+                    <p className="text-xs text-gray-500 mb-2">복사할 반을 선택하세요</p>
+                    <div className="space-y-1.5 mb-3">
+                      {otherClasses.map((c) => (
+                        <label key={c.id} className="flex items-center gap-2 text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={copyTargetIds.has(c.id)}
+                            onChange={() => handleToggleCopyTarget(c.id)}
+                          />
+                          {c.name}
+                        </label>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCopyingId(null)}
+                        className="px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-xs font-medium"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={() => handleCopyAssignment(a.id)}
+                        disabled={copyTargetIds.size === 0 || copySaving}
+                        className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-medium disabled:opacity-50"
+                      >
+                        {copySaving ? '복사 중…' : `${copyTargetIds.size}개 반에 복사`}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {copyDone === a.id && (
+                  <p className="px-5 pb-3 text-xs text-green-600">✓ 복사했어요.</p>
+                )}
 
                 {confirmDeleteId === a.id && (
                   <div className="px-5 pb-4 flex gap-2">

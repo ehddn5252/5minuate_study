@@ -250,7 +250,8 @@ export async function createAssignment(
   classId: string,
   title: string,
   dueDate: string,
-  questions: DraftQuestion[]
+  questions: DraftQuestion[],
+  targetStudentIds?: string[]
 ): Promise<{ error?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: '로그인이 필요해요.' };
@@ -258,7 +259,14 @@ export async function createAssignment(
 
   const { data: assignment, error: aErr } = await supabase
     .from('assignments')
-    .insert({ class_id: classId, teacher_id: user.id, title, source_type: 'teacher_quiz', due_date: dueDate })
+    .insert({
+      class_id: classId,
+      teacher_id: user.id,
+      title,
+      source_type: 'teacher_quiz',
+      due_date: dueDate,
+      target_student_ids: targetStudentIds && targetStudentIds.length > 0 ? targetStudentIds : null,
+    })
     .select('id')
     .single();
   if (aErr || !assignment) return { error: '숙제 생성에 실패했어요.' };
@@ -283,21 +291,79 @@ export interface AssignmentRow {
   title: string;
   dueDate: string;
   createdAt: string;
+  targetCount?: number;
 }
 
 export async function listClassAssignments(classId: string): Promise<AssignmentRow[]> {
   const { data } = await supabase
     .from('assignments')
-    .select('id, title, due_date, created_at')
+    .select('id, title, due_date, created_at, target_student_ids')
     .eq('class_id', classId)
     .order('due_date', { ascending: false });
-  return (data ?? []).map((a) => ({ id: a.id, title: a.title, dueDate: a.due_date, createdAt: a.created_at }));
+  return (data ?? []).map((a) => ({
+    id: a.id,
+    title: a.title,
+    dueDate: a.due_date,
+    createdAt: a.created_at,
+    targetCount: (a.target_student_ids as string[] | null)?.length ?? undefined,
+  }));
 }
 
 // assignment_questions/assignment_submissions는 assignments 삭제 시 on delete cascade로 함께 지워진다
 export async function deleteAssignment(assignmentId: string): Promise<{ error?: string }> {
   const { error } = await supabase.from('assignments').delete().eq('id', assignmentId);
   if (error) return { error: '숙제 삭제에 실패했어요.' };
+  return {};
+}
+
+// 같은 숙제(문제 포함)를 선생님의 다른 반에도 그대로 복사한다 — 여러 섹션에 같은 커리큘럼을
+// 가르칠 때 매번 처음부터 다시 만들지 않아도 되게 하기 위함. 대상 학생 지정은 반마다 다를 수
+// 있으니 복사본은 항상 반 전체 대상으로 만든다.
+export async function copyAssignmentToClasses(
+  assignmentId: string,
+  targetClassIds: string[]
+): Promise<{ error?: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: '로그인이 필요해요.' };
+  if (targetClassIds.length === 0) return { error: '복사할 반을 선택해주세요.' };
+
+  const { data: original } = await supabase
+    .from('assignments')
+    .select('title, source_type, due_date')
+    .eq('id', assignmentId)
+    .maybeSingle();
+  if (!original) return { error: '원본 숙제를 찾을 수 없어요.' };
+
+  const questions = await listAssignmentQuestions(assignmentId);
+  if (questions.length === 0) return { error: '문제가 없는 숙제는 복사할 수 없어요.' };
+
+  for (const classId of targetClassIds) {
+    const { data: newAssignment, error: aErr } = await supabase
+      .from('assignments')
+      .insert({
+        class_id: classId,
+        teacher_id: user.id,
+        title: original.title,
+        source_type: original.source_type,
+        due_date: original.due_date,
+      })
+      .select('id')
+      .single();
+    if (aErr || !newAssignment) return { error: '복사에 실패했어요.' };
+
+    const rows = questions.map((q, i) => ({
+      assignment_id: newAssignment.id,
+      question: q.question,
+      type: q.type,
+      options: q.options ?? null,
+      answer: q.answer,
+      explanation: q.explanation,
+      order_index: i,
+    }));
+    const { error: qErr } = await supabase.from('assignment_questions').insert(rows);
+    if (qErr) return { error: '문제 복사에 실패했어요.' };
+  }
+
   return {};
 }
 
@@ -315,17 +381,27 @@ export interface ChecklistRow {
 }
 
 export async function listAssignmentChecklist(classId: string, assignmentId: string): Promise<ChecklistRow[]> {
+  const { data: assignment } = await supabase
+    .from('assignments')
+    .select('target_student_ids')
+    .eq('id', assignmentId)
+    .maybeSingle();
+  const targetIds = assignment?.target_student_ids as string[] | null;
+
   const { data: members } = await supabase
     .from('class_members')
     .select('student_id, student_name')
     .eq('class_id', classId);
+  // 특정 학생에게만 낸 숙제면, 대상이 아닌 학생은 체크리스트에도 안 보이게 한다
+  const scopedMembers = targetIds ? (members ?? []).filter((m) => targetIds.includes(m.student_id)) : members ?? [];
+
   const { data: submissions } = await supabase
     .from('assignment_submissions')
     .select('student_id, completed_at, score, total, wrong_indexes, answers')
     .eq('assignment_id', assignmentId);
   const subMap = new Map((submissions ?? []).map((s) => [s.student_id, s]));
 
-  return (members ?? []).map((m) => {
+  return scopedMembers.map((m) => {
     const s = subMap.get(m.student_id);
     return {
       studentId: m.student_id,

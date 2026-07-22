@@ -5,7 +5,6 @@ import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
 import { getIdentityStatement } from '../utils/identity';
 import { getCompletionFace, getMascotFace } from '../utils/mascot';
-import { getStreakCrisisMessage, getStreakCrisisMood } from '../utils/streakCrisisMessage';
 import { useCountUp } from '../utils/useCountUp';
 import { nextLevel, LEVEL_LABEL } from '../utils/difficultyAdaptation';
 import type { LevelSuggestion } from '../utils/difficultyAdaptation';
@@ -19,10 +18,8 @@ interface LocationState {
   streak: number;
   newBadges?: BadgeId[];
   topic?: string;
-  usedFreeze?: boolean;
   growthFeedback?: GrowthFeedback;
   mateTone?: MateTone;
-  freezeRemaining?: number;
   xpGained?: number;
   newXp?: number;
   newLevel?: number;
@@ -44,10 +41,8 @@ export default function SessionCompleteScreen() {
   const streak = state?.streak ?? 1;
   const newBadges = state?.newBadges ?? [];
   const topic = state?.topic ?? '학습';
-  const usedFreeze = state?.usedFreeze ?? false;
   const growthFeedback = state?.growthFeedback;
   const mateTone = state?.mateTone ?? 'plain';
-  const freezeRemaining = state?.freezeRemaining ?? 0;
   const xpGained = state?.xpGained ?? 0;
   const newLevel = state?.newLevel ?? 1;
   const didLevelUp = state?.didLevelUp ?? false;
@@ -147,18 +142,6 @@ export default function SessionCompleteScreen() {
               );
             })}
           </div>
-        </div>
-      ),
-    },
-    usedFreeze && {
-      key: 'freeze',
-      chip: { icon: '🧊', label: '리듬 유지권 사용' },
-      full: (
-        <div className="bg-sky-50 rounded-2xl p-4 mb-4 border border-sky-100 flex items-start gap-2">
-          <span className="text-xl flex-shrink-0">{getMascotFace(getStreakCrisisMood(freezeRemaining), mateTone)}</span>
-          <p className="text-sky-700 text-sm font-medium text-left">
-            {getStreakCrisisMessage(mateTone, freezeRemaining)}
-          </p>
         </div>
       ),
     },

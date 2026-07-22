@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createAssignment, type DraftQuestion } from '../services/academy';
+import { createAssignment, listClassRoster, type DraftQuestion, type RosterRow } from '../services/academy';
 import { sanitizeQuiz } from '../utils/quizValidation';
 import { generateGoalContent } from '../services/gemini';
 import type { QuizLevel, QuizType } from '../types';
@@ -44,6 +44,25 @@ export default function AssignmentCreateScreen() {
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  // 대상 학생 — 기본은 반 전체, 켜면 특정 학생만 골라서 배정
+  const [roster, setRoster] = useState<RosterRow[]>([]);
+  const [targetSpecific, setTargetSpecific] = useState(false);
+  const [targetStudentIds, setTargetStudentIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!classId) return;
+    listClassRoster(classId).then(setRoster);
+  }, [classId]);
+
+  const toggleTargetStudent = (studentId: string) => {
+    setTargetStudentIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(studentId)) next.delete(studentId);
+      else next.add(studentId);
+      return next;
+    });
+  };
 
   const resetQuestionForm = () => {
     setQText('');
@@ -118,9 +137,16 @@ export default function AssignmentCreateScreen() {
 
   const handleSave = async () => {
     if (!classId || !title.trim()) return;
+    if (targetSpecific && targetStudentIds.size === 0) return;
     setSaving(true);
     setSaveError('');
-    const result = await createAssignment(classId, title.trim(), dueDate, questions);
+    const result = await createAssignment(
+      classId,
+      title.trim(),
+      dueDate,
+      questions,
+      targetSpecific ? [...targetStudentIds] : undefined
+    );
     if (result.error) {
       setSaveError(result.error);
       setSaving(false);
@@ -163,6 +189,46 @@ export default function AssignmentCreateScreen() {
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
             />
           </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-sm font-medium text-gray-700">대상 학생</p>
+            <button
+              type="button"
+              onClick={() => setTargetSpecific((prev) => !prev)}
+              className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none ${
+                targetSpecific ? 'bg-indigo-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  targetSpecific ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mb-2">
+            {targetSpecific ? '선택한 학생에게만 이 숙제가 보여요' : '기본은 반 전체 학생에게 배정돼요'}
+          </p>
+          {targetSpecific && (
+            roster.length === 0 ? (
+              <p className="text-xs text-gray-400">아직 참여한 학생이 없어요.</p>
+            ) : (
+              <div className="space-y-1.5 mt-2">
+                {roster.map((r) => (
+                  <label key={r.studentId} className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={targetStudentIds.has(r.studentId)}
+                      onChange={() => toggleTargetStudent(r.studentId)}
+                    />
+                    {r.studentName}
+                  </label>
+                ))}
+              </div>
+            )
+          )}
         </div>
 
         <div className="bg-indigo-50 rounded-2xl border border-indigo-100 p-5 mb-4 space-y-3">
@@ -355,10 +421,14 @@ export default function AssignmentCreateScreen() {
 
         <button
           onClick={handleSave}
-          disabled={!title.trim() || questions.length === 0 || saving}
+          disabled={!title.trim() || questions.length === 0 || (targetSpecific && targetStudentIds.size === 0) || saving}
           className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
         >
-          {saving ? '저장 중…' : `숙제 저장 (문제 ${questions.length}개)`}
+          {saving
+            ? '저장 중…'
+            : targetSpecific && targetStudentIds.size > 0
+              ? `숙제 저장 (${targetStudentIds.size}명 대상, 문제 ${questions.length}개)`
+              : `숙제 저장 (문제 ${questions.length}개)`}
         </button>
       </div>
     </div>

@@ -286,26 +286,13 @@ export default function TestScreen() {
       const hadYesterdaySession = allSessions.some(
         (s) => s.goalId === goal.id && s.date === yesterdayStr && s.status === 'completed'
       );
-      // F-18: 어제 세션이 없어도, 남은 "리듬 유지권"이 있으면 스트릭을 끊지 않고 이어감
-      const freezeAvailable = (goal.streakFreezeRemaining ?? 0) > 0 && goal.streak > 0;
-      const canUseFreeze = !alreadyCompletedToday && !hadYesterdaySession && freezeAvailable;
-      const usedFreeze = canUseFreeze;
       const newStreak = alreadyCompletedToday
         ? goal.streak
-        : hadYesterdaySession || canUseFreeze
+        : hadYesterdaySession
           ? goal.streak + 1
           : 1;
       const newCompletedSessions = goal.completedSessions + 1;
       const isGoalComplete = goal.totalSessions > 0 && newCompletedSessions >= goal.totalSessions;
-
-      // 30세션마다 리듬 유지권 1개 재충전(최대 2개)
-      const FREEZE_CAP = 2;
-      const freezeAfterUse = usedFreeze
-        ? (goal.streakFreezeRemaining ?? 0) - 1
-        : (goal.streakFreezeRemaining ?? 0);
-      const newFreezeRemaining = newCompletedSessions % 30 === 0
-        ? Math.min(FREEZE_CAP, freezeAfterUse + 1)
-        : freezeAfterUse;
 
       // F-37: XP/레벨업 — 개인 누적치만 저장(비교 UI 없음, 소셜 랭킹 비목표와 무관)
       const xpGained = computeXpGain(score, total);
@@ -318,7 +305,6 @@ export default function TestScreen() {
         completedSessions: newCompletedSessions,
         streak: newStreak,
         bestStreak: Math.max(goal.bestStreak, newStreak),
-        streakFreezeRemaining: newFreezeRemaining,
         xp: newXp,
         xpLevel: newLevel,
         ...(isGoalComplete ? { status: 'completed' as const, completedAt: new Date().toISOString() } : {}),
@@ -363,8 +349,8 @@ export default function TestScreen() {
       } else {
         navigate(`/complete/${sessionId}`, {
           state: {
-            score, total, streak: newStreak, newBadges, topic: goal.topic, usedFreeze, growthFeedback,
-            mateTone: goal.mateTone, freezeRemaining: newFreezeRemaining, xpGained, newXp, newLevel, didLevelUp, surpriseReward,
+            score, total, streak: newStreak, newBadges, topic: goal.topic, growthFeedback,
+            mateTone: goal.mateTone, xpGained, newXp, newLevel, didLevelUp, surpriseReward,
             goalId: goal.id, levelSuggestion,
           },
         });
