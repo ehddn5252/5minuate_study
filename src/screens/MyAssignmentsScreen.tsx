@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   listMyAssignments,
   listMyClassMaterials,
+  getClassMaterialFileUrl,
   type StudentAssignmentRow,
   type StudentMaterialRow,
 } from '../services/academy';
@@ -14,7 +15,15 @@ export default function MyAssignmentsScreen() {
   const [assignments, setAssignments] = useState<StudentAssignmentRow[]>([]);
   const [materials, setMaterials] = useState<StudentMaterialRow[]>([]);
   const [openMaterialId, setOpenMaterialId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleDownload = async (materialId: string, filePath: string) => {
+    setDownloadingId(materialId);
+    const url = await getClassMaterialFileUrl(filePath);
+    setDownloadingId(null);
+    if (url) window.open(url, '_blank');
+  };
 
   useEffect(() => {
     Promise.all([listMyAssignments(), listMyClassMaterials()]).then(([a, m]) => {
@@ -112,7 +121,10 @@ export default function MyAssignmentsScreen() {
                   className="w-full text-left p-5 flex items-center justify-between"
                 >
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400">{m.className} · {m.createdAt.split('T')[0]}</p>
+                    <p className="text-xs text-gray-400">
+                      {m.className} · {m.createdAt.split('T')[0]}
+                      {m.fileName && <span className="text-indigo-500"> · 📎 {m.fileName}</span>}
+                    </p>
                     <p className="font-semibold text-gray-900 truncate">{m.title}</p>
                   </div>
                   <svg
@@ -126,7 +138,16 @@ export default function MyAssignmentsScreen() {
                 </button>
                 {openMaterialId === m.id && (
                   <div className="border-t border-gray-100 px-5 py-4">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{m.content}</p>
+                    {m.content && <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">{m.content}</p>}
+                    {m.filePath && (
+                      <button
+                        onClick={() => handleDownload(m.id, m.filePath!)}
+                        disabled={downloadingId === m.id}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-sm font-medium disabled:opacity-50"
+                      >
+                        📎 {downloadingId === m.id ? '여는 중…' : `${m.fileName} 열기`}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

@@ -23,6 +23,20 @@ export async function fetchMyRole(): Promise<UserRole> {
   return (data?.role as UserRole) ?? 'student';
 }
 
+// profiles 행이 있으면 role만 갱신, 없으면 새로 만든다 — 선생님↔학생 화면 전환에 사용.
+// academy_members(학원 소속)는 건드리지 않으므로 학생 모드로 바꿔도 소속은 그대로 남아
+// 나중에 초대 코드를 다시 입력할 필요 없이 다시 선생님 모드로 돌아올 수 있다.
+export async function setRole(role: UserRole): Promise<{ error?: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: '로그인이 필요해요.' };
+
+  const { error } = await supabase
+    .from('profiles')
+    .upsert({ user_id: user.id, role, display_name: myDisplayName(user) }, { onConflict: 'user_id' });
+  if (error) return { error: '역할 변경에 실패했어요.' };
+  return {};
+}
+
 // 이미 학원에 참여한 선생님인지(설정 화면에서 "선생님 시작하기"를 또 보여줄지 판단용)
 export async function getMyAcademyName(): Promise<string | null> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -56,12 +70,8 @@ export async function becomeTeacher(inviteCode: string): Promise<{ error?: strin
     .insert({ academy_id: match.academy_id, teacher_id: user.id });
   if (joinErr && joinErr.code !== '23505') return { error: '학원 참여에 실패했어요.' };
 
-  const { error: profileErr } = await supabase
-    .from('profiles')
-    .insert({ user_id: user.id, role: 'teacher', display_name: myDisplayName(user) });
-  if (profileErr && profileErr.code !== '23505') return { error: '프로필 저장에 실패했어요.' };
-
-  return {};
+  // upsert라 이미 profiles 행이 있어도(예: 학생 모드로 전환했던 계정) role이 확실히 teacher로 바뀐다
+  return setRole('teacher');
 }
 
 export interface TeacherClassRow {
@@ -418,39 +428,99 @@ export async function submitAssignment(
   return { score: data[0].score, total: data[0].total };
 }
 
+const MATERIAL_FILES_BUCKET = 'class-materials';
+const MAX_MATERIAL_FILE_SIZE = 10 * 1024 * 1024; // 10MB — 무료 Supabase Storage 용량을 고려한 상한
+
+export interface UploadedMaterialFile {
+  path: string;
+  name: string;
+  size: number;
+}
+
+// 저장 경로는 반드시 "{classId}/..."로 시작해야 한다 — RLS(storage.objects)가
+// storage.foldername(name)의 첫 세그먼트를 class_id로 보고 소속 반을 판별하기 때문.
+export async function uploadClassMaterialFile(
+  classId: string,
+  file: File
+): Promise<{ file?: UploadedMaterialFile; error?: string }> {
+  if (file.size > MAX_MATERIAL_FILE_SIZE) {
+    return { error: '파일은 10MB 이하만 올릴 수 있어요.' };
+  }
+  const safeName = file.name.replace(/[^\w.\-가-힣 ]/g, '_');
+  const path = `${classId}/${Date.now()}_${safeName}`;
+  const { error } = await supabase.storage.from(MATERIAL_FILES_BUCKET).upload(path, file);
+  if (error) return { error: '파일 업로드에 실패했어요.' };
+  return { file: { path, name: file.name, size: file.size } };
+}
+
+// 비공개 버킷이라 매번 짧은 유효기간의 서명 URL을 새로 발급해서 다운로드/미리보기에 쓴다.
+export async function getClassMaterialFileUrl(path: string): Promise<string | null> {
+  const { data, error } = await supabase.storage.from(MATERIAL_FILES_BUCKET).createSignedUrl(path, 600);
+  if (error || !data) return null;
+  return data.signedUrl;
+}
+
 export interface ClassMaterialRow {
   id: string;
   title: string;
   content: string;
   createdAt: string;
+  filePath?: string;
+  fileName?: string;
+  fileSize?: number;
 }
 
 export async function listClassMaterials(classId: string): Promise<ClassMaterialRow[]> {
   const { data } = await supabase
     .from('class_materials')
-    .select('id, title, content, created_at')
+    .select('id, title, content, created_at, file_path, file_name, file_size')
     .eq('class_id', classId)
     .order('created_at', { ascending: false });
-  return (data ?? []).map((m) => ({ id: m.id, title: m.title, content: m.content, createdAt: m.created_at }));
+  return (data ?? []).map((m) => ({
+    id: m.id,
+    title: m.title,
+    content: m.content,
+    createdAt: m.created_at,
+    filePath: m.file_path ?? undefined,
+    fileName: m.file_name ?? undefined,
+    fileSize: m.file_size ?? undefined,
+  }));
 }
 
 export async function createClassMaterial(
   classId: string,
   title: string,
-  content: string
+  content: string,
+  file?: UploadedMaterialFile
 ): Promise<{ error?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: '로그인이 필요해요.' };
-  const { error } = await supabase
-    .from('class_materials')
-    .insert({ class_id: classId, teacher_id: user.id, title, content });
+  const { error } = await supabase.from('class_materials').insert({
+    class_id: classId,
+    teacher_id: user.id,
+    title,
+    content,
+    file_path: file?.path ?? null,
+    file_name: file?.name ?? null,
+    file_size: file?.size ?? null,
+  });
   if (error) return { error: '자료 등록에 실패했어요.' };
   return {};
 }
 
 export async function deleteClassMaterial(materialId: string): Promise<{ error?: string }> {
+  const { data: existing } = await supabase
+    .from('class_materials')
+    .select('file_path')
+    .eq('id', materialId)
+    .maybeSingle();
+
   const { error } = await supabase.from('class_materials').delete().eq('id', materialId);
   if (error) return { error: '자료 삭제에 실패했어요.' };
+
+  if (existing?.file_path) {
+    await supabase.storage.from(MATERIAL_FILES_BUCKET).remove([existing.file_path]).catch(() => {});
+  }
   return {};
 }
 
@@ -460,6 +530,9 @@ export interface StudentMaterialRow {
   content: string;
   className: string;
   createdAt: string;
+  filePath?: string;
+  fileName?: string;
+  fileSize?: number;
 }
 
 export async function listMyClassMaterials(): Promise<StudentMaterialRow[]> {
@@ -469,7 +542,7 @@ export async function listMyClassMaterials(): Promise<StudentMaterialRow[]> {
 
   const { data } = await supabase
     .from('class_materials')
-    .select('id, title, content, created_at, class_id')
+    .select('id, title, content, created_at, class_id, file_path, file_name, file_size')
     .in('class_id', joined.map((c) => c.id))
     .order('created_at', { ascending: false });
 
@@ -479,5 +552,8 @@ export async function listMyClassMaterials(): Promise<StudentMaterialRow[]> {
     content: m.content,
     className: classMap.get(m.class_id) ?? '',
     createdAt: m.created_at,
+    filePath: m.file_path ?? undefined,
+    fileName: m.file_name ?? undefined,
+    fileSize: m.file_size ?? undefined,
   }));
 }

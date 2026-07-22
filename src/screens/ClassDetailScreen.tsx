@@ -9,6 +9,8 @@ import {
   listClassMaterials,
   createClassMaterial,
   deleteClassMaterial,
+  uploadClassMaterialFile,
+  getClassMaterialFileUrl,
   listClassRoster,
   removeStudentFromClass,
   type TeacherClassRow,
@@ -41,8 +43,10 @@ export default function ClassDetailScreen() {
   const [showMaterialForm, setShowMaterialForm] = useState(false);
   const [materialTitle, setMaterialTitle] = useState('');
   const [materialContent, setMaterialContent] = useState('');
+  const [materialFile, setMaterialFile] = useState<File | null>(null);
   const [materialSaving, setMaterialSaving] = useState(false);
   const [materialError, setMaterialError] = useState('');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   // 학생 명단
   const [roster, setRoster] = useState<RosterRow[]>([]);
@@ -76,10 +80,22 @@ export default function ClassDetailScreen() {
   };
 
   const handleCreateMaterial = async () => {
-    if (!classId || !materialTitle.trim() || !materialContent.trim()) return;
+    if (!classId || !materialTitle.trim() || (!materialContent.trim() && !materialFile)) return;
     setMaterialSaving(true);
     setMaterialError('');
-    const result = await createClassMaterial(classId, materialTitle.trim(), materialContent.trim());
+
+    let uploadedFile;
+    if (materialFile) {
+      const uploadResult = await uploadClassMaterialFile(classId, materialFile);
+      if (uploadResult.error) {
+        setMaterialError(uploadResult.error);
+        setMaterialSaving(false);
+        return;
+      }
+      uploadedFile = uploadResult.file;
+    }
+
+    const result = await createClassMaterial(classId, materialTitle.trim(), materialContent.trim(), uploadedFile);
     setMaterialSaving(false);
     if (result.error) {
       setMaterialError(result.error);
@@ -87,8 +103,16 @@ export default function ClassDetailScreen() {
     }
     setMaterialTitle('');
     setMaterialContent('');
+    setMaterialFile(null);
     setShowMaterialForm(false);
     setMaterials(await listClassMaterials(classId));
+  };
+
+  const handleDownload = async (materialId: string, filePath: string) => {
+    setDownloadingId(materialId);
+    const url = await getClassMaterialFileUrl(filePath);
+    setDownloadingId(null);
+    if (url) window.open(url, '_blank');
   };
 
   const handleDeleteMaterial = async (materialId: string) => {
@@ -374,14 +398,32 @@ export default function ClassDetailScreen() {
             <textarea
               value={materialContent}
               onChange={(e) => setMaterialContent(e.target.value)}
-              placeholder="학생들에게 전달할 내용을 입력하세요"
+              placeholder="학생들에게 전달할 내용을 입력하세요 (파일만 올릴 거면 비워둬도 돼요)"
               rows={5}
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none"
             />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                파일 첨부 <span className="text-gray-400 font-normal">(선택, 10MB 이하)</span>
+              </label>
+              <input
+                type="file"
+                onChange={(e) => setMaterialFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-600 file:text-sm file:font-medium"
+              />
+              {materialFile && (
+                <p className="text-xs text-gray-400 mt-1">
+                  📎 {materialFile.name} ({(materialFile.size / 1024).toFixed(0)}KB)
+                  <button onClick={() => setMaterialFile(null)} className="ml-2 text-red-400 underline">
+                    제거
+                  </button>
+                </p>
+              )}
+            </div>
             {materialError && <p className="text-red-500 text-sm">{materialError}</p>}
             <button
               onClick={handleCreateMaterial}
-              disabled={!materialTitle.trim() || !materialContent.trim() || materialSaving}
+              disabled={!materialTitle.trim() || (!materialContent.trim() && !materialFile) || materialSaving}
               className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
             >
               {materialSaving ? '올리는 중…' : '자료 올리기'}
@@ -402,7 +444,10 @@ export default function ClassDetailScreen() {
                   >
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-900 truncate">{m.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{m.createdAt.split('T')[0]}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {m.createdAt.split('T')[0]}
+                        {m.fileName && <span className="text-indigo-500"> · 📎 {m.fileName}</span>}
+                      </p>
                     </div>
                     <svg
                       className={`w-4 h-4 text-gray-400 flex-shrink-0 ml-2 transition-transform ${openMaterialId === m.id ? 'rotate-90' : ''}`}
@@ -444,7 +489,16 @@ export default function ClassDetailScreen() {
 
                 {openMaterialId === m.id && (
                   <div className="border-t border-gray-100 px-5 py-4">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{m.content}</p>
+                    {m.content && <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">{m.content}</p>}
+                    {m.filePath && (
+                      <button
+                        onClick={() => handleDownload(m.id, m.filePath!)}
+                        disabled={downloadingId === m.id}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-sm font-medium disabled:opacity-50"
+                      >
+                        📎 {downloadingId === m.id ? '여는 중…' : `${m.fileName} 열기`}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
