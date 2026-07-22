@@ -6,6 +6,8 @@ import {
   getMyAcademyName,
   listMyJoinedClasses,
   setRole as setUserRole,
+  getMyDisplayName,
+  setDisplayName,
   type UserRole,
   type JoinedClass,
 } from '../services/academy';
@@ -28,6 +30,12 @@ export default function SettingsScreen() {
   const [academyLoading, setAcademyLoading] = useState(true);
   const [switchingRole, setSwitchingRole] = useState(false);
 
+  // 닉네임 — 안 정해두면 Google 이름을 그대로 씀
+  const [nickname, setNickname] = useState('');
+  const [nicknameSaved, setNicknameSaved] = useState('');
+  const [nicknameSaving, setNicknameSaving] = useState(false);
+  const [nicknameMsg, setNicknameMsg] = useState('');
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user: u } }) => setUser(u));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -35,6 +43,28 @@ export default function SettingsScreen() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    getMyDisplayName().then((name) => {
+      setNickname(name);
+      setNicknameSaved(name);
+    });
+  }, []);
+
+  const handleSaveNickname = async () => {
+    if (!nickname.trim() || nickname.trim() === nicknameSaved) return;
+    setNicknameSaving(true);
+    setNicknameMsg('');
+    const result = await setDisplayName(nickname);
+    setNicknameSaving(false);
+    if (result.error) {
+      setNicknameMsg(result.error);
+      return;
+    }
+    setNicknameSaved(nickname.trim());
+    setNicknameMsg('저장됐어요!');
+    setTimeout(() => setNicknameMsg(''), 2000);
+  };
 
   useEffect(() => {
     (async () => {
@@ -147,6 +177,32 @@ export default function SettingsScreen() {
             💚 오늘 5분, 내일도 5분이면 충분해요.
           </p>
         </div>
+
+        {user && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+            <h2 className="font-semibold text-gray-900 mb-3">닉네임</h2>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveNickname()}
+                placeholder="닉네임을 입력하세요"
+                maxLength={20}
+                className="flex-1 px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+              />
+              <button
+                onClick={handleSaveNickname}
+                disabled={!nickname.trim() || nickname.trim() === nicknameSaved || nicknameSaving}
+                className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium disabled:opacity-40"
+              >
+                {nicknameSaving ? '저장 중…' : '저장'}
+              </button>
+            </div>
+            {nicknameMsg && <p className="text-xs text-indigo-500 mt-2">{nicknameMsg}</p>}
+            <p className="text-xs text-gray-400 mt-2">학원 반에 참여 중이면 선생님께 보이는 이름도 함께 바뀌어요.</p>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">학습 데이터</h2>

@@ -8,6 +8,12 @@ function myDisplayName(user: { user_metadata?: Record<string, unknown>; email?: 
   return (meta.full_name as string) || (meta.name as string) || user.email || '이름 없음';
 }
 
+// 닉네임을 직접 설정해뒀으면 그걸 우선 쓰고, 없으면 Google 이름으로 대체
+async function effectiveDisplayName(user: { id: string; user_metadata?: Record<string, unknown>; email?: string }): Promise<string> {
+  const { data } = await supabase.from('profiles').select('display_name').eq('user_id', user.id).maybeSingle();
+  return data?.display_name || myDisplayName(user);
+}
+
 // 혼동되는 0/O/1/I 제외
 const INVITE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function generateInviteCode(): string {
@@ -26,14 +32,45 @@ export async function fetchMyRole(): Promise<UserRole> {
 // profiles 행이 있으면 role만 갱신, 없으면 새로 만든다 — 선생님↔학생 화면 전환에 사용.
 // academy_members(학원 소속)는 건드리지 않으므로 학생 모드로 바꿔도 소속은 그대로 남아
 // 나중에 초대 코드를 다시 입력할 필요 없이 다시 선생님 모드로 돌아올 수 있다.
+// role만 update하고 display_name은 건드리지 않는다 — 안 그러면 역할 전환할 때마다
+// 사용자가 정해둔 닉네임이 Google 이름으로 도로 덮어써진다.
 export async function setRole(role: UserRole): Promise<{ error?: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: '로그인이 필요해요.' };
+
+  const { data: existing } = await supabase.from('profiles').select('user_id').eq('user_id', user.id).maybeSingle();
+  if (existing) {
+    const { error } = await supabase.from('profiles').update({ role }).eq('user_id', user.id);
+    if (error) return { error: '역할 변경에 실패했어요.' };
+    return {};
+  }
+  const { error } = await supabase.from('profiles').insert({ user_id: user.id, role, display_name: myDisplayName(user) });
+  if (error) return { error: '역할 변경에 실패했어요.' };
+  return {};
+}
+
+export async function getMyDisplayName(): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return '';
+  return effectiveDisplayName(user);
+}
+
+// 닉네임 저장 + 이미 참여 중인 반들의 명단 표시 이름도 함께 갱신.
+// class_members에 학생 self-UPDATE 정책을 새로 여는 대신, 본인 행의 student_name만
+// 정확히 건드리는 좁은 RPC로 처리해서 class_id를 바꿔치기해(초대 코드 없이) 다른 반으로
+// 옮겨 들어가는 우회로가 생기지 않게 한다.
+export async function setDisplayName(name: string): Promise<{ error?: string }> {
+  const trimmed = name.trim();
+  if (!trimmed) return { error: '닉네임을 입력해주세요.' };
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: '로그인이 필요해요.' };
 
   const { error } = await supabase
     .from('profiles')
-    .upsert({ user_id: user.id, role, display_name: myDisplayName(user) }, { onConflict: 'user_id' });
-  if (error) return { error: '역할 변경에 실패했어요.' };
+    .upsert({ user_id: user.id, display_name: trimmed }, { onConflict: 'user_id' });
+  if (error) return { error: '닉네임 저장에 실패했어요.' };
+
+  await supabase.rpc('sync_my_display_name', { p_name: trimmed });
   return {};
 }
 
@@ -232,7 +269,7 @@ export async function joinClassByCode(code: string): Promise<{ error?: string; c
 
   const { error } = await supabase
     .from('class_members')
-    .insert({ class_id: match.class_id, student_id: user.id, student_name: myDisplayName(user) });
+    .insert({ class_id: match.class_id, student_id: user.id, student_name: await effectiveDisplayName(user) });
   if (error && error.code !== '23505') return { error: '반 참여에 실패했어요.' };
 
   return { className: match.class_name };
