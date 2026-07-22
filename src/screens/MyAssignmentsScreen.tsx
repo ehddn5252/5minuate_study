@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   listMyAssignments,
   listMyClassMaterials,
+  listMyClassAnnouncements,
   getClassMaterialFileUrl,
   type StudentAssignmentRow,
   type StudentMaterialRow,
+  type StudentAnnouncementRow,
 } from '../services/academy';
 import BottomNav from '../components/BottomNav';
 
@@ -15,9 +17,10 @@ function isOverdue(dueDate: string): boolean {
 
 export default function MyAssignmentsScreen() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'assignments' | 'materials'>('assignments');
+  const [tab, setTab] = useState<'assignments' | 'materials' | 'announcements'>('assignments');
   const [assignments, setAssignments] = useState<StudentAssignmentRow[]>([]);
   const [materials, setMaterials] = useState<StudentMaterialRow[]>([]);
+  const [announcements, setAnnouncements] = useState<StudentAnnouncementRow[]>([]);
   const [openMaterialId, setOpenMaterialId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,14 +33,15 @@ export default function MyAssignmentsScreen() {
   };
 
   useEffect(() => {
-    Promise.all([listMyAssignments(), listMyClassMaterials()]).then(([a, m]) => {
+    Promise.all([listMyAssignments(), listMyClassMaterials(), listMyClassAnnouncements()]).then(([a, m, n]) => {
       setAssignments(a);
       setMaterials(m);
+      setAnnouncements(n);
       setLoading(false);
     });
   }, []);
 
-  const nothingAtAll = assignments.length === 0 && materials.length === 0;
+  const nothingAtAll = assignments.length === 0 && materials.length === 0 && announcements.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -70,6 +74,12 @@ export default function MyAssignmentsScreen() {
               className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'materials' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
             >
               📄 수업 자료 {materials.length > 0 ? `(${materials.length})` : ''}
+            </button>
+            <button
+              onClick={() => setTab('announcements')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'announcements' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
+            >
+              📢 공지 {announcements.length > 0 ? `(${announcements.length})` : ''}
             </button>
           </div>
         )}
@@ -116,6 +126,19 @@ export default function MyAssignmentsScreen() {
                     )}
                   </div>
                 </button>
+              ))}
+            </div>
+          )
+        ) : tab === 'announcements' ? (
+          announcements.length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-8">아직 올라온 공지가 없어요.</p>
+          ) : (
+            <div className="space-y-2">
+              {announcements.map((a) => (
+                <div key={a.id} className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                  <p className="text-xs text-gray-400 mb-1">{a.className} · {a.createdAt.split('T')[0]}</p>
+                  <p className="text-sm text-gray-800 whitespace-pre-wrap">{a.content}</p>
+                </div>
               ))}
             </div>
           )

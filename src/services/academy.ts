@@ -637,6 +637,65 @@ export async function deleteClassMaterial(materialId: string): Promise<{ error?:
   return {};
 }
 
+export interface AnnouncementRow {
+  id: string;
+  content: string;
+  createdAt: string;
+}
+
+export async function listClassAnnouncements(classId: string): Promise<AnnouncementRow[]> {
+  const { data } = await supabase
+    .from('class_announcements')
+    .select('id, content, created_at')
+    .eq('class_id', classId)
+    .order('created_at', { ascending: false });
+  return (data ?? []).map((a) => ({ id: a.id, content: a.content, createdAt: a.created_at }));
+}
+
+export async function createAnnouncement(classId: string, content: string): Promise<{ error?: string }> {
+  const trimmed = content.trim();
+  if (!trimmed) return { error: '공지 내용을 입력해주세요.' };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: '로그인이 필요해요.' };
+  const { error } = await supabase
+    .from('class_announcements')
+    .insert({ class_id: classId, teacher_id: user.id, content: trimmed });
+  if (error) return { error: '공지 등록에 실패했어요.' };
+  return {};
+}
+
+export async function deleteAnnouncement(announcementId: string): Promise<{ error?: string }> {
+  const { error } = await supabase.from('class_announcements').delete().eq('id', announcementId);
+  if (error) return { error: '공지 삭제에 실패했어요.' };
+  return {};
+}
+
+export interface StudentAnnouncementRow {
+  id: string;
+  content: string;
+  className: string;
+  createdAt: string;
+}
+
+export async function listMyClassAnnouncements(): Promise<StudentAnnouncementRow[]> {
+  const joined = await listMyJoinedClasses();
+  if (joined.length === 0) return [];
+  const classMap = new Map(joined.map((c) => [c.id, c.name]));
+
+  const { data } = await supabase
+    .from('class_announcements')
+    .select('id, content, created_at, class_id')
+    .in('class_id', joined.map((c) => c.id))
+    .order('created_at', { ascending: false });
+
+  return (data ?? []).map((a) => ({
+    id: a.id,
+    content: a.content,
+    className: classMap.get(a.class_id) ?? '',
+    createdAt: a.created_at,
+  }));
+}
+
 export interface StudentMaterialRow {
   id: string;
   title: string;

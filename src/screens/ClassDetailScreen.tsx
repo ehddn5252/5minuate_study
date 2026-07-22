@@ -15,11 +15,15 @@ import {
   getClassMaterialFileUrl,
   listClassRoster,
   removeStudentFromClass,
+  listClassAnnouncements,
+  createAnnouncement,
+  deleteAnnouncement,
   type TeacherClassRow,
   type AssignmentRow,
   type ChecklistRow,
   type ClassMaterialRow,
   type RosterRow,
+  type AnnouncementRow,
 } from '../services/academy';
 import type { SharedQuiz } from '../types';
 
@@ -38,9 +42,16 @@ export default function ClassDetailScreen() {
   const [openQuestions, setOpenQuestions] = useState<SharedQuiz[]>([]);
   const [checklistLoading, setChecklistLoading] = useState(false);
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'status' | 'questions'>('status');
+  const [activeTab, setActiveTab] = useState<'status' | 'questions' | 'stats'>('status');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // 공지사항
+  const [announcements, setAnnouncements] = useState<AnnouncementRow[]>([]);
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
+  const [announcementContent, setAnnouncementContent] = useState('');
+  const [announcementSaving, setAnnouncementSaving] = useState(false);
+  const [confirmDeleteAnnouncementId, setConfirmDeleteAnnouncementId] = useState<string | null>(null);
 
   // 다른 반에 복사
   const [otherClasses, setOtherClasses] = useState<TeacherClassRow[]>([]);
@@ -70,18 +81,20 @@ export default function ClassDetailScreen() {
     if (!classId) return;
     (async () => {
       setLoading(true);
-      const [info, list, materialList, rosterList, myClasses] = await Promise.all([
+      const [info, list, materialList, rosterList, myClasses, announcementList] = await Promise.all([
         getClassInfo(classId),
         listClassAssignments(classId),
         listClassMaterials(classId),
         listClassRoster(classId),
         listMyClasses(),
+        listClassAnnouncements(classId),
       ]);
       setClassInfo(info);
       setAssignments(list);
       setMaterials(materialList);
       setRoster(rosterList);
       setOtherClasses(myClasses.filter((c) => c.id !== classId));
+      setAnnouncements(announcementList);
       setLoading(false);
     })();
   }, [classId]);
@@ -112,6 +125,24 @@ export default function ClassDetailScreen() {
     if (result.error) return;
     setRoster((prev) => prev.filter((r) => r.studentId !== studentId));
     setConfirmRemoveId(null);
+  };
+
+  const handleCreateAnnouncement = async () => {
+    if (!classId || !announcementContent.trim()) return;
+    setAnnouncementSaving(true);
+    const result = await createAnnouncement(classId, announcementContent.trim());
+    setAnnouncementSaving(false);
+    if (result.error) return;
+    setAnnouncementContent('');
+    setShowAnnouncementForm(false);
+    setAnnouncements(await listClassAnnouncements(classId));
+  };
+
+  const handleDeleteAnnouncement = async (announcementId: string) => {
+    const result = await deleteAnnouncement(announcementId);
+    if (result.error) return;
+    setAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
+    setConfirmDeleteAnnouncementId(null);
   };
 
   const handleCreateMaterial = async () => {
@@ -218,6 +249,69 @@ export default function ClassDetailScreen() {
             <p className="text-gray-400 text-xs mt-0.5">학생 참여 코드: {classInfo.inviteCode}</p>
           </div>
         </div>
+
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-gray-900">📢 공지사항</h2>
+          <button
+            onClick={() => setShowAnnouncementForm((prev) => !prev)}
+            className="text-sm text-indigo-600 font-medium"
+          >
+            {showAnnouncementForm ? '취소' : '+ 공지 올리기'}
+          </button>
+        </div>
+
+        {showAnnouncementForm && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3 space-y-2">
+            <textarea
+              value={announcementContent}
+              onChange={(e) => setAnnouncementContent(e.target.value)}
+              placeholder="예: 내일 수업은 휴강이에요."
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none"
+            />
+            <button
+              onClick={handleCreateAnnouncement}
+              disabled={!announcementContent.trim() || announcementSaving}
+              className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
+            >
+              {announcementSaving ? '올리는 중…' : '공지 올리기'}
+            </button>
+          </div>
+        )}
+
+        {announcements.length > 0 && (
+          <div className="space-y-2 mb-4">
+            {announcements.map((a) => (
+              <div key={a.id} className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-800 whitespace-pre-wrap">{a.content}</p>
+                  <p className="text-xs text-gray-400 mt-1">{a.createdAt.split('T')[0]}</p>
+                </div>
+                {confirmDeleteAnnouncementId === a.id ? (
+                  <span className="flex items-center gap-2 flex-shrink-0">
+                    <button onClick={() => setConfirmDeleteAnnouncementId(null)} className="text-xs text-gray-400">
+                      취소
+                    </button>
+                    <button
+                      onClick={() => handleDeleteAnnouncement(a.id)}
+                      className="px-2.5 py-1 bg-red-500 text-white rounded-lg text-xs font-medium"
+                    >
+                      삭제 확인
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDeleteAnnouncementId(a.id)}
+                    aria-label="공지 삭제"
+                    className="flex-shrink-0 text-gray-300 hover:text-red-500 text-xs"
+                  >
+                    삭제
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         <button
           onClick={() => setShowRoster((prev) => !prev)}
@@ -397,11 +491,51 @@ export default function ClassDetailScreen() {
                       >
                         문제 내용 ({openQuestions.length})
                       </button>
+                      <button
+                        onClick={() => setActiveTab('stats')}
+                        className={`px-3 py-1.5 text-sm font-medium border-b-2 -mb-px ${activeTab === 'stats' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-400'}`}
+                      >
+                        오답 통계
+                      </button>
                     </div>
 
                     <div className="px-5 py-4">
                       {checklistLoading ? (
                         <p className="text-gray-400 text-sm">불러오는 중…</p>
+                      ) : activeTab === 'stats' ? (
+                        (() => {
+                          const completed = checklist.filter((m) => m.completed);
+                          if (completed.length === 0) {
+                            return <p className="text-gray-400 text-sm">아직 제출한 학생이 없어요.</p>;
+                          }
+                          const stats = openQuestions
+                            .map((q, i) => ({
+                              index: i,
+                              question: q.question,
+                              wrongCount: completed.filter((m) => m.wrongIndexes.includes(i)).length,
+                            }))
+                            .filter((s) => s.wrongCount > 0)
+                            .sort((a, b) => b.wrongCount - a.wrongCount);
+                          if (stats.length === 0) {
+                            return <p className="text-gray-400 text-sm">제출한 학생 모두 만점이에요. 🎉</p>;
+                          }
+                          return (
+                            <ul className="space-y-2">
+                              {stats.map((s) => (
+                                <li key={s.index} className="text-sm">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-gray-800 truncate">
+                                      {s.index + 1}. {s.question}
+                                    </span>
+                                    <span className="flex-shrink-0 text-amber-600 bg-amber-50 px-2 py-0.5 rounded text-xs font-medium">
+                                      {s.wrongCount}/{completed.length}명 오답
+                                    </span>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          );
+                        })()
                       ) : activeTab === 'questions' ? (
                         <ul className="space-y-2">
                           {openQuestions.map((q, i) => (
