@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 // LoginScreen만 즉시 로드 — 로그인 전 첫 화면이라 지연 로드하면 첫 화면 자체가 느려짐.
 // 나머지 화면은 전부 lazy로 분리해 초기 번들 크기를 줄인다(각 화면은 실제로 들어갈 때만 받음).
@@ -64,6 +64,18 @@ function PendingTemplateRedirect() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return null;
+}
+
+// 화면 전환이 라우터 기본 동작(순간 전환)이라 딱딱하게 느껴져서, 경로가 바뀔 때마다
+// key를 새로 줘서 살짝 페이드+슬라이드 인 되게 한다. 새 라이브러리(framer-motion 등)
+// 없이 Tailwind 키프레임(page-enter)만으로 구현.
+function AnimatedRoutes({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  return (
+    <div key={location.pathname} className="animate-page-enter">
+      {children}
+    </div>
+  );
 }
 
 // 같은 브라우저에서 다른 Google 계정으로 로그인하면, migrateLocalToCloud가 "클라우드에 데이터가
@@ -169,13 +181,15 @@ export default function App() {
   if (!user) {
     return (
       <BrowserRouter>
-        <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
-          <Routes>
-            <Route path="/shorts/:templateId" element={<ShortsScreen />} />
-            <Route path="/goals/create" element={<CaptureTemplateThenLogin />} />
-            <Route path="*" element={<LoginScreen />} />
-          </Routes>
-        </Suspense>
+        <AnimatedRoutes>
+          <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+            <Routes>
+              <Route path="/shorts/:templateId" element={<ShortsScreen />} />
+              <Route path="/goals/create" element={<CaptureTemplateThenLogin />} />
+              <Route path="*" element={<LoginScreen />} />
+            </Routes>
+          </Suspense>
+        </AnimatedRoutes>
       </BrowserRouter>
     );
   }
@@ -187,6 +201,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <PendingTemplateRedirect />
+      <AnimatedRoutes>
       <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
       <Routes>
         <Route path="/" element={role === 'teacher' ? <TeacherHomeScreen /> : <HomeScreen />} />
@@ -218,6 +233,7 @@ export default function App() {
         <Route path="/settings" element={<SettingsScreen />} />
       </Routes>
       </Suspense>
+      </AnimatedRoutes>
     </BrowserRouter>
   );
 }

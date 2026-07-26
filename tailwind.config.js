@@ -23,11 +23,16 @@ export default {
           '0%': { transform: 'scale(0.9)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
+        'page-enter': {
+          '0%': { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'feedback-pop': 'feedback-pop 0.35s ease-out',
         'feedback-shake': 'feedback-shake 0.4s ease-in-out',
         'count-up-pop': 'count-up-pop 0.3s ease-out',
+        'page-enter': 'page-enter 0.22s ease-out',
       },
     },
   },
