@@ -21,6 +21,12 @@ export default function AssignmentSolveScreen() {
   const [revealed, setRevealed] = useState(false);
   const [selfJudge, setSelfJudge] = useState<boolean | null>(null);
 
+  // 틀린 문제는 채점(제출)이 끝난 뒤 복습용으로 한 번 더 물어봐 큐 뒤로 보낸다 — 실제 점수는
+  // 이미 첫 시도 답으로 확정 제출됐으므로 여기서 맞혀도 점수가 바뀌지 않는다(채점 조작 방지).
+  const [retryQueue, setRetryQueue] = useState<SharedQuiz[]>([]);
+  const [currentRetryQuiz, setCurrentRetryQuiz] = useState<SharedQuiz | null>(null);
+  const [inRetryPhase, setInRetryPhase] = useState(false);
+
   useEffect(() => {
     if (!assignmentId) return;
     Promise.all([listAssignmentQuestions(assignmentId), getMySubmission(assignmentId)]).then(([qs, submission]) => {
@@ -30,7 +36,7 @@ export default function AssignmentSolveScreen() {
     });
   }, [assignmentId]);
 
-  const quiz = questions[index];
+  const quiz = inRetryPhase ? currentRetryQuiz : questions[index];
 
   const resetQuestionState = () => {
     setSelected(null);
@@ -45,18 +51,52 @@ export default function AssignmentSolveScreen() {
   // 단답형을 틀렸다고 자기채점한 경우엔 빈 문자열 대신 실제로 입력한 답을 그대로 보내서,
   // 교사가 나중에 체크리스트에서 학생이 뭐라고 답했는지 볼 수 있게 한다(채점 결과엔 영향 없음).
   const goNext = async () => {
+    const currentQuestion = questions[index];
+    if (!currentQuestion) return;
     const answerText =
-      quiz.type === 'multiple_choice' ? (selected ?? '') : selfJudge ? quiz.answer : shortInput;
+      currentQuestion.type === 'multiple_choice' ? (selected ?? '') : selfJudge ? currentQuestion.answer : shortInput;
+    const wasCorrect =
+      currentQuestion.type === 'multiple_choice' ? selected === currentQuestion.answer : selfJudge === true;
     const nextAnswers = [...answers, answerText];
     setAnswers(nextAnswers);
+    const nextRetryQueue = wasCorrect ? retryQueue : [...retryQueue, currentQuestion];
 
     if (index + 1 >= questions.length) {
       const graded = assignmentId ? await submitAssignment(assignmentId, nextAnswers) : null;
       setResult(graded ?? { score: nextAnswers.filter((a, i) => a === questions[i]?.answer).length, total: questions.length });
-      setFinished(true);
+      if (nextRetryQueue.length > 0) {
+        const [head, ...rest] = nextRetryQueue;
+        setCurrentRetryQuiz(head);
+        setRetryQueue(rest);
+        setInRetryPhase(true);
+        resetQuestionState();
+      } else {
+        setFinished(true);
+      }
       return;
     }
+    setRetryQueue(nextRetryQueue);
     setIndex((i) => i + 1);
+    resetQuestionState();
+  };
+
+  // 채점과 무관한 복습 라운드 — 여기서 맞혀도 이미 제출된 점수는 바뀌지 않는다
+  const goNextRetry = () => {
+    if (!currentRetryQuiz) return;
+    const wasCorrect =
+      currentRetryQuiz.type === 'multiple_choice' ? selected === currentRetryQuiz.answer : selfJudge === true;
+    const nextQueue = wasCorrect ? retryQueue : [...retryQueue, currentRetryQuiz];
+
+    if (nextQueue.length === 0) {
+      setInRetryPhase(false);
+      setCurrentRetryQuiz(null);
+      setFinished(true);
+      resetQuestionState();
+      return;
+    }
+    const [head, ...rest] = nextQueue;
+    setCurrentRetryQuiz(head);
+    setRetryQueue(rest);
     resetQuestionState();
   };
 
@@ -166,7 +206,9 @@ export default function AssignmentSolveScreen() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <p className="text-gray-400 text-sm">{index + 1} / {questions.length}</p>
+          <p className={`text-sm ${inRetryPhase ? 'text-amber-600 font-medium' : 'text-gray-400'}`}>
+            {inRetryPhase ? `🔁 오답 다시 풀기 · 남은 ${retryQueue.length + 1}개` : `${index + 1} / ${questions.length}`}
+          </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -254,10 +296,16 @@ export default function AssignmentSolveScreen() {
 
           {showFeedback && (
             <button
-              onClick={() => goNext()}
+              onClick={() => (inRetryPhase ? goNextRetry() : goNext())}
               className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] mt-4"
             >
-              {index + 1 >= questions.length ? '제출하기' : '다음 문제'}
+              {inRetryPhase
+                ? retryQueue.length === 0
+                  ? '복습 마치기'
+                  : '다음 문제'
+                : index + 1 >= questions.length
+                  ? '제출하기'
+                  : '다음 문제'}
             </button>
           )}
         </div>

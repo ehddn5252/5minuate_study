@@ -741,6 +741,70 @@ export async function listMyClassAnnouncements(): Promise<StudentAnnouncementRow
   }));
 }
 
+export interface WrongAssignmentQuestion {
+  assignmentId: string;
+  assignmentTitle: string;
+  className: string;
+  question: string;
+  type: QuizType;
+  options?: string[];
+  answer: string;
+  myAnswer: string;
+  explanation: string;
+}
+
+// 숙제를 채점할 때 서버(submit_assignment RPC)가 이미 계산해둔 wrong_indexes를 그대로 활용해서,
+// 학생이 지금까지 제출한 모든 숙제 중 틀린 문제만 모아 보여준다 — 따로 "오답노트에 담기"를
+// 누를 필요 없이 항상 최신 상태로 자동 집계됨.
+export async function listMyWrongQuestions(): Promise<WrongAssignmentQuestion[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const joined = await listMyJoinedClasses();
+  if (joined.length === 0) return [];
+  const classMap = new Map(joined.map((c) => [c.id, c.name]));
+
+  const { data: assignments } = await supabase
+    .from('assignments')
+    .select('id, title, class_id')
+    .in('class_id', joined.map((c) => c.id));
+  if (!assignments || assignments.length === 0) return [];
+  const assignmentMap = new Map(assignments.map((a) => [a.id, a]));
+
+  const { data: submissions } = await supabase
+    .from('assignment_submissions')
+    .select('assignment_id, wrong_indexes, answers')
+    .eq('student_id', user.id)
+    .not('completed_at', 'is', null);
+
+  const withWrongs = (submissions ?? []).filter((s) => ((s.wrong_indexes as number[] | null)?.length ?? 0) > 0);
+  if (withWrongs.length === 0) return [];
+
+  const results: WrongAssignmentQuestion[] = [];
+  for (const s of withWrongs) {
+    const assignment = assignmentMap.get(s.assignment_id);
+    if (!assignment) continue;
+    const questions = await listAssignmentQuestions(s.assignment_id);
+    const myAnswers = (s.answers as string[] | null) ?? [];
+    for (const idx of s.wrong_indexes as number[]) {
+      const q = questions[idx];
+      if (!q) continue;
+      results.push({
+        assignmentId: s.assignment_id,
+        assignmentTitle: assignment.title,
+        className: classMap.get(assignment.class_id) ?? '',
+        question: q.question,
+        type: q.type,
+        options: q.options,
+        answer: q.answer,
+        myAnswer: myAnswers[idx] ?? '',
+        explanation: q.explanation,
+      });
+    }
+  }
+  return results;
+}
+
 export interface StudentMaterialRow {
   id: string;
   title: string;

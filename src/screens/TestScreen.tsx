@@ -41,6 +41,13 @@ export default function TestScreen() {
   const [answered, setAnswered] = useState(false);
   const initialized = useRef(false);
 
+  // 틀린 문제는 세션 마지막에 다시 물어봐 맞힐 때까지 큐 뒤로 계속 보냄 — 점수/XP(answers)에는
+  // 영향 없이 순수 복습용 추가 라운드. 같은 문제가 재출제될 때 QuizCard가 리렌더되도록 cardSeq로 key를 강제로 바꾼다.
+  const [retryQueue, setRetryQueue] = useState<Quiz[]>([]);
+  const [currentRetryQuiz, setCurrentRetryQuiz] = useState<Quiz | null>(null);
+  const [inRetryPhase, setInRetryPhase] = useState(false);
+  const [cardSeq, setCardSeq] = useState(0);
+
   // F-25: 듣는 5분 학습 — 오디오 퍼스트 모드
   const [audioMode, setAudioMode] = useState(appState.audioModeEnabled);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -135,7 +142,7 @@ export default function TestScreen() {
     );
   }
 
-  const currentQuiz = testQuizzes[currentIndex];
+  const currentQuiz = inRetryPhase ? (currentRetryQuiz as Quiz) : testQuizzes[currentIndex];
   const isLast = currentIndex === testQuizzes.length - 1;
 
   const handleToggleAudioMode = () => {
@@ -179,7 +186,41 @@ export default function TestScreen() {
     }
   };
 
-  const handleAnswer = (correct: boolean) => {
+  // D-1: 정답이면 복습 간격을 늘리고, 오답이면 처음 단계로 리셋 — 오답풀(다른 화면들과 공유하는
+  // 기록)은 여기서 갱신하고, 세션 내 즉시 재출제는 handleAnswer의 retryQueue로 별도 처리한다.
+  const applySrsUpdate = (quiz: Quiz, correct: boolean) => {
+    const { intervalIndex, nextReviewAt } = nextReviewSchedule(quiz.intervalIndex, correct);
+    if (!correct) {
+      updateQuiz({
+        ...quiz,
+        isWrong: true,
+        wrongCount: quiz.wrongCount + 1,
+        lastAttemptedAt: new Date().toISOString(),
+        intervalIndex,
+        nextReviewAt,
+      });
+      // 감사(code review) 수정: 오답 다시풀기/복습믹스와 동일하게 기존 오답풀 기록을 보존한다.
+      // 항상 새로 리셋하면 그 화면들이 쌓아온 addedAt/retryCount가 여기서 조용히 사라진다.
+      const existingWrongEntry = getActiveWrongPool(goal.id).find((w) => w.quizId === quiz.id);
+      addToWrongPool({
+        goalId: goal.id,
+        quizId: quiz.id,
+        addedAt: existingWrongEntry?.addedAt ?? new Date().toISOString(),
+        retryCount: existingWrongEntry ? existingWrongEntry.retryCount + 1 : 0,
+      });
+    } else {
+      updateQuiz({
+        ...quiz,
+        isWrong: false,
+        lastAttemptedAt: new Date().toISOString(),
+        intervalIndex,
+        nextReviewAt,
+      });
+      removeFromWrongPool(goal.id, quiz.id);
+    }
+  };
+
+  const handleScoredAnswer = (correct: boolean) => {
     const nextAnswers = [...answers, correct];
     setAnswers(nextAnswers);
     setAnswered(true);
@@ -204,45 +245,34 @@ export default function TestScreen() {
     }
 
     const quiz = testQuizzes[currentIndex];
-    // D-1: 정답이면 복습 간격을 늘리고, 오답이면 처음 단계로 리셋
-    const { intervalIndex, nextReviewAt } = nextReviewSchedule(quiz.intervalIndex, correct);
+    applySrsUpdate(quiz, correct);
     if (!correct) {
-      const updated = {
-        ...quiz,
-        isWrong: true,
-        wrongCount: quiz.wrongCount + 1,
-        lastAttemptedAt: new Date().toISOString(),
-        intervalIndex,
-        nextReviewAt,
-      };
-      updateQuiz(updated);
-      // 감사(code review) 수정: 오답 다시풀기/복습믹스와 동일하게 기존 오답풀 기록을 보존한다.
-      // 항상 새로 리셋하면 그 화면들이 쌓아온 addedAt/retryCount가 여기서 조용히 사라진다.
-      const existingWrongEntry = getActiveWrongPool(goal.id).find((w) => w.quizId === quiz.id);
-      addToWrongPool({
-        goalId: goal.id,
-        quizId: quiz.id,
-        addedAt: existingWrongEntry?.addedAt ?? new Date().toISOString(),
-        retryCount: existingWrongEntry ? existingWrongEntry.retryCount + 1 : 0,
-      });
-    } else {
-      updateQuiz({
-        ...quiz,
-        isWrong: false,
-        lastAttemptedAt: new Date().toISOString(),
-        intervalIndex,
-        nextReviewAt,
-      });
-      removeFromWrongPool(goal.id, quiz.id);
+      setRetryQueue((prev) => [...prev, quiz]);
     }
   };
 
-  const handleNext = () => {
-    if (isLast) {
-      const score = [...answers].filter(Boolean).length;
-      const total = testQuizzes.length;
+  const handleRetryAnswer = (correct: boolean) => {
+    if (!currentRetryQuiz) return;
+    setAnswered(true);
+    applySrsUpdate(currentRetryQuiz, correct);
+    if (!correct) {
+      setRetryQueue((prev) => [...prev, currentRetryQuiz]);
+    }
+  };
 
-      // Update session
+  const handleAnswer = (correct: boolean) => {
+    if (inRetryPhase) {
+      handleRetryAnswer(correct);
+    } else {
+      handleScoredAnswer(correct);
+    }
+  };
+
+  const finishSession = () => {
+    const score = [...answers].filter(Boolean).length;
+    const total = testQuizzes.length;
+
+    // Update session
       const existingSession = getTodaySession(goal.id);
       let sessionId: string;
       if (existingSession) {
@@ -339,26 +369,55 @@ export default function TestScreen() {
       const recentPercents = [...priorPercents, total > 0 ? score / total : 0];
       const levelSuggestion = suggestLevelChange(recentPercents, goal.level);
 
-      if (isGoalComplete) {
-        navigate(`/goal-complete/${goal.id}`, {
-          state: {
-            score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges,
-            topic: goal.topic, growthFeedback, mateTone: goal.mateTone, xpGained, newXp, newLevel, didLevelUp,
-          },
-        });
-      } else {
-        navigate(`/complete/${sessionId}`, {
-          state: {
-            score, total, streak: newStreak, newBadges, topic: goal.topic, growthFeedback,
-            mateTone: goal.mateTone, xpGained, newXp, newLevel, didLevelUp, surpriseReward,
-            goalId: goal.id, levelSuggestion,
-          },
-        });
-      }
+    if (isGoalComplete) {
+      navigate(`/goal-complete/${goal.id}`, {
+        state: {
+          score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges,
+          topic: goal.topic, growthFeedback, mateTone: goal.mateTone, xpGained, newXp, newLevel, didLevelUp,
+        },
+      });
     } else {
-      setCurrentIndex((i) => i + 1);
-      setAnswered(false);
+      navigate(`/complete/${sessionId}`, {
+        state: {
+          score, total, streak: newStreak, newBadges, topic: goal.topic, growthFeedback,
+          mateTone: goal.mateTone, xpGained, newXp, newLevel, didLevelUp, surpriseReward,
+          goalId: goal.id, levelSuggestion,
+        },
+      });
     }
+  };
+
+  const handleNext = () => {
+    if (inRetryPhase) {
+      if (retryQueue.length === 0) {
+        setInRetryPhase(false);
+        setCurrentRetryQuiz(null);
+        finishSession();
+        return;
+      }
+      const [head, ...rest] = retryQueue;
+      setCurrentRetryQuiz(head);
+      setRetryQueue(rest);
+      setAnswered(false);
+      setCardSeq((s) => s + 1);
+      return;
+    }
+    if (isLast) {
+      if (retryQueue.length > 0) {
+        const [head, ...rest] = retryQueue;
+        setCurrentRetryQuiz(head);
+        setRetryQueue(rest);
+        setInRetryPhase(true);
+        setAnswered(false);
+        setCardSeq((s) => s + 1);
+        return;
+      }
+      finishSession();
+      return;
+    }
+    setCurrentIndex((i) => i + 1);
+    setAnswered(false);
+    setCardSeq((s) => s + 1);
   };
 
   return (
@@ -374,16 +433,25 @@ export default function TestScreen() {
             </svg>
           </button>
           <div className="flex-1">
-            <div className="flex justify-between text-xs text-gray-500 mb-1">
-              <span>진행 · ⏱ {formatElapsed(elapsedSeconds)}</span>
-              <span>{currentIndex + 1}/{testQuizzes.length}</span>
-            </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-indigo-500 rounded-full transition-all"
-                style={{ width: `${((currentIndex + (answered ? 1 : 0)) / testQuizzes.length) * 100}%` }}
-              />
-            </div>
+            {inRetryPhase ? (
+              <div className="flex items-center justify-between text-xs text-amber-600 font-medium">
+                <span>🔁 오답 다시 풀기</span>
+                <span>남은 {retryQueue.length + 1}개</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <span>진행 · ⏱ {formatElapsed(elapsedSeconds)}</span>
+                  <span>{currentIndex + 1}/{testQuizzes.length}</span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-indigo-500 rounded-full transition-all"
+                    style={{ width: `${((currentIndex + (answered ? 1 : 0)) / testQuizzes.length) * 100}%` }}
+                  />
+                </div>
+              </>
+            )}
           </div>
           {isSpeechSupported() && (
             <button
@@ -414,7 +482,7 @@ export default function TestScreen() {
           </div>
         )}
 
-        {comboBanner !== null && (
+        {comboBanner !== null && !inRetryPhase && (
           <div className="mb-3 text-center">
             <span className="inline-block px-4 py-1.5 bg-orange-100 text-orange-600 rounded-full text-sm font-bold animate-count-up-pop">
               🔥 {comboBanner}연속 정답!
@@ -424,10 +492,10 @@ export default function TestScreen() {
 
         <div className="flex-1">
           <QuizCard
-            key={currentQuiz.id}
+            key={`${currentQuiz.id}-${cardSeq}`}
             quiz={currentQuiz}
-            index={currentIndex}
-            total={testQuizzes.length}
+            index={inRetryPhase ? 0 : currentIndex}
+            total={inRetryPhase ? retryQueue.length + 1 : testQuizzes.length}
             onAnswer={handleAnswer}
             mateTone={goal.mateTone}
           />
@@ -438,7 +506,15 @@ export default function TestScreen() {
             onClick={handleNext}
             className="w-full mt-4 py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
           >
-            {isLast ? '결과 보기' : '다음 문제'}
+            {inRetryPhase
+              ? retryQueue.length === 0
+                ? '결과 보기'
+                : '다음 문제'
+              : isLast
+                ? retryQueue.length > 0
+                  ? '오답 다시 풀기'
+                  : '결과 보기'
+                : '다음 문제'}
           </button>
         )}
       </div>

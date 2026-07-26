@@ -4,10 +4,12 @@ import {
   listMyAssignments,
   listMyClassMaterials,
   listMyClassAnnouncements,
+  listMyWrongQuestions,
   getClassMaterialFileUrl,
   type StudentAssignmentRow,
   type StudentMaterialRow,
   type StudentAnnouncementRow,
+  type WrongAssignmentQuestion,
 } from '../services/academy';
 import BottomNav from '../components/BottomNav';
 
@@ -17,10 +19,11 @@ function isOverdue(dueDate: string): boolean {
 
 export default function MyAssignmentsScreen() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'assignments' | 'materials' | 'announcements'>('assignments');
+  const [tab, setTab] = useState<'assignments' | 'materials' | 'announcements' | 'wrong'>('assignments');
   const [assignments, setAssignments] = useState<StudentAssignmentRow[]>([]);
   const [materials, setMaterials] = useState<StudentMaterialRow[]>([]);
   const [announcements, setAnnouncements] = useState<StudentAnnouncementRow[]>([]);
+  const [wrongQuestions, setWrongQuestions] = useState<WrongAssignmentQuestion[]>([]);
   const [openMaterialId, setOpenMaterialId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,12 +36,15 @@ export default function MyAssignmentsScreen() {
   };
 
   useEffect(() => {
-    Promise.all([listMyAssignments(), listMyClassMaterials(), listMyClassAnnouncements()]).then(([a, m, n]) => {
-      setAssignments(a);
-      setMaterials(m);
-      setAnnouncements(n);
-      setLoading(false);
-    });
+    Promise.all([listMyAssignments(), listMyClassMaterials(), listMyClassAnnouncements(), listMyWrongQuestions()]).then(
+      ([a, m, n, w]) => {
+        setAssignments(a);
+        setMaterials(m);
+        setAnnouncements(n);
+        setWrongQuestions(w);
+        setLoading(false);
+      }
+    );
   }, []);
 
   const nothingAtAll = assignments.length === 0 && materials.length === 0 && announcements.length === 0;
@@ -81,6 +87,14 @@ export default function MyAssignmentsScreen() {
             >
               📢 공지 {announcements.length > 0 ? `(${announcements.length})` : ''}
             </button>
+            {wrongQuestions.length > 0 && (
+              <button
+                onClick={() => setTab('wrong')}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'wrong' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
+              >
+                📝 오답노트 ({wrongQuestions.length})
+              </button>
+            )}
           </div>
         )}
 
@@ -129,6 +143,18 @@ export default function MyAssignmentsScreen() {
               ))}
             </div>
           )
+        ) : tab === 'wrong' ? (
+          <div className="space-y-3">
+            {wrongQuestions.map((w, i) => (
+              <div key={`${w.assignmentId}-${i}`} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <p className="text-xs text-gray-400 mb-2">{w.className} · {w.assignmentTitle}</p>
+                <p className="text-sm font-medium text-gray-900 mb-3">{w.question}</p>
+                <p className="text-sm text-red-500 mb-1">내 답: {w.myAnswer.trim() ? w.myAnswer : '(답 없음)'}</p>
+                <p className="text-sm text-green-600 mb-2">정답: {w.answer}</p>
+                <p className="text-xs text-gray-400">{w.explanation}</p>
+              </div>
+            ))}
+          </div>
         ) : tab === 'announcements' ? (
           announcements.length === 0 ? (
             <p className="text-gray-400 text-sm text-center py-8">아직 올라온 공지가 없어요.</p>
