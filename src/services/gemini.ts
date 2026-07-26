@@ -283,3 +283,57 @@ JSON만 응답하세요.
 
   return { summary: parsed.summary, quizzes };
 }
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      // data:audio/webm;base64,XXXX 형태이므로 콤마 뒤 순수 base64만 취한다
+      const result = reader.result as string;
+      resolve(result.slice(result.indexOf(',') + 1));
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Loora 등 AI 회화 코칭 앱 오마주 — 녹음한 음성을 Gemini의 오디오 이해 기능(inline_data)에
+// 그대로 넣어 듣고 피드백을 준다. 과목을 가리지 않는 범용 퀴즈 녹음이라 "발음 교정" 전용이
+// 아니라 "답변 내용이 적절한지 + (외국어라면) 표현" 정도로 넓게 잡는다.
+export async function getSpeakingFeedback(
+  audioBlob: Blob,
+  mimeType: string,
+  questionText: string
+): Promise<string> {
+  const base64Audio = await blobToBase64(audioBlob);
+
+  const prompt = `
+당신은 다정한 학습 코치입니다. 학생이 아래 문제에 대해 음성으로 답한 녹음을 듣고 피드백을 주세요.
+
+문제: ${questionText}
+
+한국어로 3~4문장 이내로 간결하게:
+1. 학생이 말한 내용을 한 줄로 요약
+2. 문제에 대한 답변으로 적절한지, 부족하거나 틀린 부분이 있다면 무엇인지
+3. 외국어로 답했다면 발음·표현 중 개선하면 좋을 점 한 가지 (한국어로 답했다면 이 항목은 생략)
+
+격려하는 톤을 유지하고, 음성만으로 판단하는 것이니 발음을 너무 단정적으로 지적하지 마세요.
+`.trim();
+
+  const data = await callGemini({
+    contents: [
+      {
+        parts: [{ text: prompt }, { inline_data: { mime_type: mimeType, data: base64Audio } }],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.4,
+      maxOutputTokens: 400,
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+  });
+
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  if (!text.trim()) throw new Error('AI가 피드백을 만들지 못했습니다. 다시 시도해주세요.');
+  return text.trim();
+}

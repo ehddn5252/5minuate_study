@@ -77,7 +77,7 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
 
       {/* F-45: 정답을 확인하기 전에 먼저 소리 내어 답해보고 녹음할 수 있게 함 */}
       <div className="mb-5">
-        <VoiceRecorder quizId={quiz.id} />
+        <VoiceRecorder quizId={quiz.id} questionText={quiz.question} />
       </div>
 
       {quiz.type === 'multiple_choice' && quiz.options ? (
@@ -180,7 +180,7 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
               말로 설명해보는 쪽이 개념 정정과 장기 기억에 더 효과적이라는 연구를 반영 */}
           {!isCorrect && (
             <div className="mt-3 pt-3 border-t border-amber-100">
-              <VoiceRecorder quizId={quiz.id} kind="explanation" label="왜 틀렸는지 설명하기" />
+              <VoiceRecorder quizId={quiz.id} kind="explanation" label="왜 틀렸는지 설명하기" questionText={quiz.question} />
             </div>
           )}
         </div>
