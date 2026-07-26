@@ -1028,9 +1028,408 @@ const ENGLISH_VOCAB_CURRICULUM: Curriculum = {
   ],
 };
 
+const ENGLISH_WRITING_CURRICULUM: Curriculum = {
+  id: 'english_writing',
+  name: '영작 매일',
+  totalDays: 30,
+  days: [
+    {
+      day: 1,
+      topic: '기본 문장 구조 (S+V, S+V+O) 영작',
+      content: `한국어 문장을 영어 기본 어순(주어+동사)으로 옮기기
+• 새가 노래한다. → The bird sings.
+• 나는 음악을 좋아한다. → I like music.
+• 그녀는 매일 달린다. → She runs every day.
+• 우리는 책을 읽는다. → We read books.
+• 그는 커피를 마신다. → He drinks coffee.
+• 아이들이 논다. → The children play.
+• 나는 학교에 간다. → I go to school.
+• 그들은 영어를 공부한다. → They study English.`,
+    },
+    {
+      day: 2,
+      topic: 'be동사 문장 영작',
+      content: `상태·신분을 나타내는 be동사 문장 영작
+• 나는 학생이다. → I am a student.
+• 그는 의사다. → He is a doctor.
+• 그녀는 행복하다. → She is happy.
+• 우리는 친구다. → We are friends.
+• 그것은 크다. → It is big.
+• 날씨가 춥다. → It is cold.
+• 그들은 바쁘다. → They are busy.
+• 나는 피곤하다. → I am tired.`,
+    },
+    {
+      day: 3,
+      topic: '현재시제 문장 영작 (습관·사실)',
+      content: `반복되는 습관이나 일반적 사실을 현재시제로 영작
+• 나는 매일 아침 7시에 일어난다. → I wake up at 7 every morning.
+• 그는 주말마다 축구를 한다. → He plays soccer every weekend.
+• 태양은 동쪽에서 뜬다. → The sun rises in the east.
+• 그녀는 커피를 좋아하지 않는다. → She doesn't like coffee.
+• 우리는 보통 버스를 탄다. → We usually take the bus.
+• 물은 100도에서 끓는다. → Water boils at 100 degrees.
+• 그는 세 개의 언어를 구사한다. → He speaks three languages.
+• 나는 채식주의자다. → I am a vegetarian.`,
+    },
+    {
+      day: 4,
+      topic: '과거시제 문장 영작',
+      content: `이미 끝난 일을 과거시제로 영작 (규칙·불규칙 동사)
+• 나는 어제 학교에 갔다. → I went to school yesterday.
+• 그녀는 지난주에 책을 샀다. → She bought a book last week.
+• 우리는 영화를 봤다. → We watched a movie.
+• 그는 늦게 도착했다. → He arrived late.
+• 나는 아침을 먹지 않았다. → I didn't eat breakfast.
+• 그들은 파티에 갔다. → They went to the party.
+• 나는 그 소식을 들었다. → I heard the news.
+• 그녀는 편지를 썼다. → She wrote a letter.`,
+    },
+    {
+      day: 5,
+      topic: '미래시제 문장 영작 (will / be going to)',
+      content: `앞으로 일어날 일을 will과 be going to로 영작
+• 나는 내일 그를 만날 것이다. → I will meet him tomorrow.
+• 우리는 다음 달에 여행을 갈 것이다. → We are going to travel next month.
+• 그녀는 곧 도착할 것이다. → She will arrive soon.
+• 나는 그 일을 끝낼 계획이다. → I am going to finish the work.
+• 내일 비가 올 것이다. → It will rain tomorrow.
+• 그는 새 차를 살 것이다. → He is going to buy a new car.
+• 우리는 절대 포기하지 않을 것이다. → We will never give up.
+• 나는 다음 주에 이사할 것이다. → I am going to move next week.`,
+    },
+    {
+      day: 6,
+      topic: '의문문 영작',
+      content: `평서문을 의문문으로 바꿔 영작하기
+• 너는 학생이니? → Are you a student?
+• 그는 커피를 마시니? → Does he drink coffee?
+• 그녀는 어제 왔니? → Did she come yesterday?
+• 너는 무엇을 좋아하니? → What do you like?
+• 그는 어디에 사니? → Where does he live?
+• 왜 늦었니? → Why were you late?
+• 이것은 누구의 책이니? → Whose book is this?
+• 회의가 몇 시에 시작하니? → What time does the meeting start?`,
+    },
+    {
+      day: 7,
+      topic: '부정문 영작',
+      content: `not, never, no 등을 활용한 부정문 영작
+• 나는 육류를 먹지 않는다. → I don't eat meat.
+• 그는 거짓말을 하지 않는다. → He doesn't tell lies.
+• 그녀는 결코 늦지 않는다. → She never comes late.
+• 우리는 아직 결정하지 않았다. → We haven't decided yet.
+• 그것은 사실이 아니다. → That is not true.
+• 나는 아무것도 몰랐다. → I knew nothing about it.
+• 그는 아무도 만나지 않았다. → He didn't meet anyone.
+• 시간이 충분하지 않다. → There isn't enough time.`,
+    },
+    {
+      day: 8,
+      topic: '조동사 문장 영작 (can/must/should)',
+      content: `가능·의무·충고를 나타내는 조동사 문장 영작
+• 나는 수영할 수 있다. → I can swim.
+• 너는 이 규칙을 지켜야 한다. → You must follow this rule.
+• 너는 의사를 만나보는 게 좋겠다. → You should see a doctor.
+• 제가 들어가도 될까요? → May I come in?
+• 그는 곧 도착할지도 모른다. → He might arrive soon.
+• 우리는 여기서 주차하면 안 된다. → We must not park here.
+• 너는 그럴 필요 없다. → You don't have to do that.
+• 제가 창문을 열어도 될까요? → Could I open the window?`,
+    },
+    {
+      day: 9,
+      topic: '형용사로 묘사하는 문장 영작',
+      content: `사람·사물의 성질을 형용사로 묘사하는 영작
+• 이 영화는 정말 흥미롭다. → This movie is very interesting.
+• 그녀는 친절하고 똑똑하다. → She is kind and smart.
+• 그 상자는 무겁다. → The box is heavy.
+• 날씨가 맑고 따뜻하다. → The weather is clear and warm.
+• 그는 자신의 실수를 부끄러워했다. → He was ashamed of his mistake.
+• 이 문제는 복잡하다. → This problem is complex.
+• 그 소식은 놀라웠다. → The news was surprising.
+• 그녀의 방은 항상 깨끗하다. → Her room is always clean.`,
+    },
+    {
+      day: 10,
+      topic: '부사로 꾸미는 문장 영작',
+      content: `동사·형용사를 부사로 수식하는 영작
+• 그는 빨리 달린다. → He runs quickly.
+• 그녀는 조용히 말했다. → She spoke quietly.
+• 나는 그것을 완전히 이해한다. → I completely understand it.
+• 우리는 마침내 도착했다. → We finally arrived.
+• 그는 매우 열심히 일한다. → He works very hard.
+• 그녀는 항상 제시간에 온다. → She always comes on time.
+• 나는 그 소식을 방금 들었다. → I just heard the news.
+• 그것은 거의 불가능하다. → It is almost impossible.`,
+    },
+    {
+      day: 11,
+      topic: '전치사구 활용 문장 영작',
+      content: `시간·장소 전치사구를 넣어 문장 영작
+• 나는 아침에 커피를 마신다. → I drink coffee in the morning.
+• 책이 탁자 위에 있다. → The book is on the table.
+• 우리는 3시에 만날 것이다. → We will meet at 3 o'clock.
+• 그녀는 서울에 산다. → She lives in Seoul.
+• 그는 월요일부터 일한다. → He works from Monday.
+• 고양이가 상자 안에 있다. → The cat is in the box.
+• 나는 저녁까지 기다렸다. → I waited until evening.
+• 그 다리는 강 위에 있다. → The bridge is over the river.`,
+    },
+    {
+      day: 12,
+      topic: '접속사로 문장 연결하기 (and/but/because)',
+      content: `등위·종속 접속사로 두 문장을 하나로 연결하는 영작
+• 나는 피곤했지만 계속 일했다. → I was tired, but I kept working.
+• 비가 와서 우리는 집에 있었다. → We stayed home because it rained.
+• 그는 똑똑하고 부지런하다. → He is smart and diligent.
+• 나는 배가 고파서 샌드위치를 먹었다. → I ate a sandwich because I was hungry.
+• 서두르지 않으면 늦을 것이다. → If you don't hurry, you will be late.
+• 그녀는 노래하면서 요리했다. → She cooked while singing.
+• 나는 돈이 없어서 그것을 살 수 없다. → I can't buy it because I have no money.
+• 비록 어렵지만 나는 최선을 다할 것이다. → Although it is hard, I will do my best.`,
+    },
+    {
+      day: 13,
+      topic: '비교급·최상급 문장 영작',
+      content: `두 대상 이상을 비교하는 문장 영작
+• 이것이 저것보다 크다. → This is bigger than that.
+• 그녀는 반에서 가장 똑똑하다. → She is the smartest in the class.
+• 오늘은 어제보다 춥다. → Today is colder than yesterday.
+• 이것은 세상에서 가장 비싼 차다. → This is the most expensive car in the world.
+• 그는 나보다 더 빨리 달린다. → He runs faster than me.
+• 시간이 돈보다 중요하다. → Time is more important than money.
+• 이 책이 저 책만큼 재미있다. → This book is as interesting as that one.
+• 그것이 최선의 선택이었다. → It was the best choice.`,
+    },
+    {
+      day: 14,
+      topic: 'to부정사 활용 문장 영작',
+      content: `목적·의도를 to부정사로 표현하는 영작
+• 나는 영어를 배우고 싶다. → I want to learn English.
+• 그는 시험에 합격하기 위해 열심히 공부했다. → He studied hard to pass the exam.
+• 그녀는 책을 읽을 시간이 없다. → She has no time to read books.
+• 나는 무엇을 해야 할지 모르겠다. → I don't know what to do.
+• 그것은 이해하기 어렵다. → It is difficult to understand.
+• 우리는 일찍 떠나기로 결정했다. → We decided to leave early.
+• 그는 새 직장을 구하기를 희망한다. → He hopes to find a new job.
+• 물을 마시는 것은 건강에 좋다. → To drink water is good for health.`,
+    },
+    {
+      day: 15,
+      topic: '동명사 활용 문장 영작',
+      content: `동사를 명사처럼 쓰는 동명사 문장 영작
+• 나는 영화 보는 것을 즐긴다. → I enjoy watching movies.
+• 수영은 좋은 운동이다. → Swimming is good exercise.
+• 그는 담배를 끊었다. → He gave up smoking.
+• 그녀는 노래하는 것을 좋아한다. → She likes singing.
+• 계속 연습하는 것이 중요하다. → Keeping practicing is important.
+• 나는 그를 만난 것을 기억한다. → I remember meeting him.
+• 그는 늦은 것에 대해 사과했다. → He apologized for being late.
+• 책을 읽는 것은 시야를 넓혀준다. → Reading books broadens your view.`,
+    },
+    {
+      day: 16,
+      topic: '분사 활용 문장 영작 (현재분사/과거분사)',
+      content: `-ing, -ed 형태로 명사를 꾸미는 분사 문장 영작
+• 저기서 웃고 있는 소녀는 내 동생이다. → The girl laughing over there is my sister.
+• 이것은 한국에서 만들어진 제품이다. → This is a product made in Korea.
+• 나는 그 지루한 영화를 봤다. → I watched the boring movie.
+• 그는 그 소식에 놀랐다. → He was surprised at the news.
+• 창문에서 자고 있는 고양이를 봐. → Look at the cat sleeping by the window.
+• 깨진 유리를 조심해라. → Be careful of the broken glass.
+• 그녀는 흥분한 목소리로 말했다. → She spoke in an excited voice.
+• 그 영화는 매우 지루했다. → The movie was very boring.`,
+    },
+    {
+      day: 17,
+      topic: '현재완료 문장 영작',
+      content: `have/has + p.p.로 경험·완료·결과·계속을 표현하는 영작
+• 나는 파리에 가본 적이 있다. → I have been to Paris.
+• 그녀는 방금 숙제를 끝냈다. → She has just finished her homework.
+• 그는 열쇠를 잃어버렸다(지금도 없음). → He has lost his key.
+• 우리는 10년 동안 서로 알아왔다. → We have known each other for ten years.
+• 나는 아직 저녁을 안 먹었다. → I haven't eaten dinner yet.
+• 너는 그 영화를 본 적이 있니? → Have you ever seen that movie?
+• 그는 이미 떠났다. → He has already left.
+• 나는 이 도시에 5년째 살고 있다. → I have lived in this city for five years.`,
+    },
+    {
+      day: 18,
+      topic: '수동태 문장 영작',
+      content: `be + p.p. 구조로 수동태 문장 영작
+• 이 집은 1990년에 지어졌다. → This house was built in 1990.
+• 그 편지는 그녀에 의해 쓰였다. → The letter was written by her.
+• 영어는 전 세계에서 사용된다. → English is spoken all over the world.
+• 그 문제는 아직 해결되지 않았다. → The problem hasn't been solved yet.
+• 그 책은 많은 언어로 번역되었다. → The book was translated into many languages.
+• 창문이 깨졌다. → The window was broken.
+• 그 회의는 취소될 것이다. → The meeting will be canceled.
+• 그 도시는 지진으로 파괴되었다. → The city was destroyed by the earthquake.`,
+    },
+    {
+      day: 19,
+      topic: '4형식(수여동사) 문장 영작',
+      content: `~에게 ~을 주다 구조를 수여동사로 영작
+• 그는 나에게 선물을 주었다. → He gave me a gift.
+• 그녀는 우리에게 이야기를 들려주었다. → She told us a story.
+• 나는 그에게 이메일을 보냈다. → I sent him an email.
+• 선생님은 학생들에게 영어를 가르친다. → The teacher teaches students English.
+• 그는 나에게 질문을 했다. → He asked me a question.
+• 그녀는 나에게 케이크를 만들어줬다. → She made me a cake.
+• 아버지는 나에게 시계를 사주셨다. → My father bought me a watch.
+• 그는 나에게 진실을 보여주었다. → He showed me the truth.`,
+    },
+    {
+      day: 20,
+      topic: '5형식(목적격보어) 문장 영작',
+      content: `목적어를 보충 설명하는 5형식 문장 영작
+• 우리는 그를 천재라고 부른다. → We call him a genius.
+• 그것은 나를 행복하게 만들었다. → It made me happy.
+• 나는 그 책이 흥미롭다고 생각한다. → I found the book interesting.
+• 그들은 그녀를 반장으로 뽑았다. → They elected her class president.
+• 나는 그가 떠나는 것을 봤다. → I saw him leave.
+• 선생님은 우리가 조용히 하게 했다. → The teacher made us be quiet.
+• 나는 그녀가 노래하는 것을 들었다. → I heard her sing.
+• 그는 나를 도와달라고 부탁했다. → He asked me to help him.`,
+    },
+    {
+      day: 21,
+      topic: '관계대명사 문장 영작 (who/which/that)',
+      content: `두 문장을 관계대명사로 연결하는 영작
+• 나는 영어를 가르치는 선생님을 안다. → I know a teacher who teaches English.
+• 이것은 내가 어제 산 책이다. → This is the book which I bought yesterday.
+• 저기 서 있는 남자는 내 삼촌이다. → The man who is standing there is my uncle.
+• 그것은 내가 찾던 정보다. → It is the information that I was looking for.
+• 나는 파란 눈을 가진 소녀를 만났다. → I met a girl whose eyes are blue.
+• 그가 쓴 소설은 유명하다. → The novel that he wrote is famous.
+• 그것은 내가 가장 좋아하는 노래다. → It is the song which I like the most.
+• 나는 도움이 필요한 사람들을 돕는다. → I help people who need help.`,
+    },
+    {
+      day: 22,
+      topic: '관계부사 문장 영작 (when/where/why/how)',
+      content: `시간·장소·이유·방법을 관계부사로 연결하는 영작
+• 나는 그가 태어난 해를 기억한다. → I remember the year when he was born.
+• 이곳은 내가 자란 곳이다. → This is the place where I grew up.
+• 나는 그가 늦은 이유를 모른다. → I don't know the reason why he was late.
+• 그것이 내가 그것을 만든 방법이다. → That is how I made it.
+• 그가 떠난 날은 비가 왔다. → It rained on the day when he left.
+• 우리가 처음 만난 곳은 도서관이었다. → The place where we first met was the library.
+• 나는 그가 성공한 이유가 궁금하다. → I wonder why he succeeded.
+• 그것이 일이 진행된 방식이다. → That is how things happened.`,
+    },
+    {
+      day: 23,
+      topic: '명사절 문장 영작 (that/whether/의문사)',
+      content: `문장 전체를 명사처럼 쓰는 명사절 영작
+• 나는 그가 옳다고 생각한다. → I think that he is right.
+• 그가 올지 안 올지 모르겠다. → I don't know whether he will come.
+• 중요한 것은 네가 최선을 다했다는 것이다. → What matters is that you did your best.
+• 나는 그녀가 어디 사는지 안다. → I know where she lives.
+• 문제는 우리가 시간이 없다는 것이다. → The problem is that we have no time.
+• 나는 그가 왜 화났는지 궁금하다. → I wonder why he is angry.
+• 사실은 내가 그것을 몰랐다는 것이다. → The fact is that I didn't know it.
+• 나는 그것이 사실인지 확신할 수 없다. → I am not sure if it is true.`,
+    },
+    {
+      day: 24,
+      topic: '부사절 문장 영작 (시간·이유·조건·양보)',
+      content: `시간·이유·조건·양보를 나타내는 부사절 영작
+• 내가 집에 도착했을 때 비가 오고 있었다. → When I arrived home, it was raining.
+• 그는 아파서 결석했다. → He was absent because he was sick.
+• 만약 내일 비가 오면 우리는 집에 있을 것이다. → If it rains tomorrow, we will stay home.
+• 비록 그는 어리지만 매우 현명하다. → Although he is young, he is very wise.
+• 그녀가 도착할 때까지 나는 기다릴 것이다. → I will wait until she arrives.
+• 나는 늦었기 때문에 택시를 탔다. → Since I was late, I took a taxi.
+• 그가 서두르지 않으면 기차를 놓칠 것이다. → Unless he hurries, he will miss the train.
+• 그녀는 피곤했지만 계속 일했다. → Even though she was tired, she kept working.`,
+    },
+    {
+      day: 25,
+      topic: '간접의문문 영작',
+      content: `의문문을 문장 속에 자연스럽게 넣는 간접의문문 영작
+• 그가 몇 시에 오는지 아세요? → Do you know what time he is coming?
+• 나는 그녀가 누구인지 모른다. → I don't know who she is.
+• 그것이 얼마인지 말해줄 수 있나요? → Can you tell me how much it is?
+• 나는 그가 왜 떠났는지 궁금하다. → I wonder why he left.
+• 그녀가 어디 사는지 아세요? → Do you know where she lives?
+• 나는 무엇을 해야 할지 모르겠다. → I don't know what I should do.
+• 그것이 사실인지 아닌지 나는 모른다. → I don't know if it is true or not.
+• 그가 왜 그렇게 말했는지 이해가 안 된다. → I can't understand why he said that.`,
+    },
+    {
+      day: 26,
+      topic: '가정법 과거 문장 영작 (현재 사실 반대)',
+      content: `현재 사실과 반대되는 상황을 가정하는 영작
+• 내가 새라면 날 수 있을 텐데. → If I were a bird, I could fly.
+• 내가 돈이 많다면 세계 여행을 할 텐데. → If I had a lot of money, I would travel the world.
+• 그가 여기 있다면 도와줄 텐데. → If he were here, he would help us.
+• 시간이 있다면 너와 함께 갈 텐데. → If I had time, I would go with you.
+• 내가 너라면 그렇게 하지 않을 텐데. → If I were you, I wouldn't do that.
+• 그녀가 안다면 화낼 텐데. → If she knew, she would be angry.
+• 시간이 더 있으면 좋을 텐데. → I wish I had more time.
+• 그가 더 신중하면 좋을 텐데. → I wish he were more careful.`,
+    },
+    {
+      day: 27,
+      topic: '가정법 과거완료 문장 영작 (과거 사실 반대)',
+      content: `과거 사실과 반대되는 상황을 가정하는 영작
+• 내가 더 일찍 떠났다면 기차를 놓치지 않았을 텐데. → If I had left earlier, I wouldn't have missed the train.
+• 그가 열심히 공부했다면 시험에 합격했을 텐데. → If he had studied hard, he would have passed the exam.
+• 네가 나에게 말해줬다면 나는 도와줬을 텐데. → If you had told me, I would have helped you.
+• 그녀가 서둘렀다면 비행기를 탔을 텐데. → If she had hurried, she would have caught the flight.
+• 내가 그것을 알았다면 다르게 행동했을 텐데. → If I had known that, I would have acted differently.
+• 우리가 더 조심했다면 실수하지 않았을 텐데. → If we had been more careful, we wouldn't have made a mistake.
+• 그가 더 일찍 왔다면 좋았을 텐데. → I wish he had come earlier.
+• 내가 그 말을 하지 않았다면 좋았을 텐데. → I wish I hadn't said that.`,
+    },
+    {
+      day: 28,
+      topic: '강조·도치 구문 영작',
+      content: `내용을 강조하거나 어순을 도치해 표현하는 영작
+• 내가 그 창문을 깬 것이 아니다. → It was not I who broke the window.
+• 바로 그가 그 문제를 해결한 사람이다. → It is he who solved the problem.
+• 나는 정말로 그것을 좋아한다. → I do like it.
+• 나는 그렇게 아름다운 광경을 본 적이 없다. → Never have I seen such a beautiful sight.
+• 그가 도착하자마자 비가 내리기 시작했다. → No sooner had he arrived than it began to rain.
+• 그녀는 좀처럼 늦지 않는다. → Rarely does she come late.
+• 저기 그가 온다. → There he comes.
+• 나무 아래 한 소년이 앉아 있었다. → Under the tree sat a boy.`,
+    },
+    {
+      day: 29,
+      topic: '이메일·메시지 영작 (실용문)',
+      content: `실생활에서 자주 쓰는 이메일·메시지 표현 영작
+• 회신 감사합니다. → Thank you for your reply.
+• 회의 일정을 확인하고 싶습니다. → I would like to confirm the meeting schedule.
+• 빠른 답변 부탁드립니다. → I look forward to your prompt reply.
+• 첨부 파일을 확인해 주세요. → Please check the attached file.
+• 불편을 드려 죄송합니다. → I apologize for the inconvenience.
+• 다음 주에 시간 되시나요? → Are you available next week?
+• 자세한 내용은 아래를 참고해 주세요. → Please refer to the details below.
+• 궁금한 점이 있으면 언제든 연락 주세요. → Feel free to contact me if you have any questions.`,
+    },
+    {
+      day: 30,
+      topic: '자기소개·의견 말하기 영작 (종합)',
+      content: `배운 문형을 종합해 자기소개와 의견을 영작하기
+• 제 이름은 민준이고 서울에 삽니다. → My name is Minjun, and I live in Seoul.
+• 저는 책 읽는 것과 영화 보는 것을 좋아합니다. → I like reading books and watching movies.
+• 제 생각에는 꾸준함이 재능보다 중요합니다. → In my opinion, consistency is more important than talent.
+• 저는 5년 동안 영어를 공부해 왔습니다. → I have studied English for five years.
+• 만약 시간이 더 있다면 여행을 더 많이 다닐 텐데요. → If I had more time, I would travel more.
+• 제가 가장 존경하는 사람은 저의 어머니입니다. → The person whom I respect the most is my mother.
+• 저는 앞으로 더 나은 사람이 되기 위해 노력할 것입니다. → I will try to become a better person.
+• 들어주셔서 감사합니다. → Thank you for listening.`,
+    },
+  ],
+};
+
 const CURRICULA: Record<string, Curriculum> = {
   english_grammar: ENGLISH_GRAMMAR_CURRICULUM,
   english_vocab: ENGLISH_VOCAB_CURRICULUM,
+  english_writing: ENGLISH_WRITING_CURRICULUM,
 };
 
 export function getCurriculum(id: string): Curriculum | undefined {

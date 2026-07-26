@@ -110,6 +110,15 @@ export const TEMPLATES: Template[] = [
     category: '어학',
     curriculumId: 'english_grammar',
   },
+  {
+    id: 'english_writing',
+    icon: '✍️',
+    name: '영작 매일',
+    topic: '한글 문장을 영어로 작문하기 - 기본 문장부터 관계사·가정법까지',
+    recommendedDays: 30,
+    category: '어학',
+    curriculumId: 'english_writing',
+  },
   // F-33: 내신·수능 카테고리 — 학교·학년마다 시험 범위가 달라 고정 커리큘럼 대신
   // topic만 프리필하고 참고자료(rawContent)에 시험 범위를 직접 입력받는 방식
   {
