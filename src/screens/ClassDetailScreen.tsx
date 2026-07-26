@@ -18,12 +18,14 @@ import {
   listClassAnnouncements,
   createAnnouncement,
   deleteAnnouncement,
+  listStudentAssignments,
   type TeacherClassRow,
   type AssignmentRow,
   type ChecklistRow,
   type ClassMaterialRow,
   type RosterRow,
   type AnnouncementRow,
+  type StudentAssignmentDetailRow,
 } from '../services/academy';
 import type { SharedQuiz } from '../types';
 
@@ -76,6 +78,9 @@ export default function ClassDetailScreen() {
   const [roster, setRoster] = useState<RosterRow[]>([]);
   const [showRoster, setShowRoster] = useState(false);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+  const [expandedStudentDetailId, setExpandedStudentDetailId] = useState<string | null>(null);
+  const [studentDetail, setStudentDetail] = useState<StudentAssignmentDetailRow[]>([]);
+  const [studentDetailLoading, setStudentDetailLoading] = useState(false);
 
   useEffect(() => {
     if (!classId) return;
@@ -117,6 +122,18 @@ export default function ClassDetailScreen() {
     setCopyTargetIds(new Set());
     setCopyDone(assignmentId);
     setTimeout(() => setCopyDone(null), 3000);
+  };
+
+  const handleToggleStudentDetail = async (studentId: string) => {
+    if (!classId) return;
+    if (expandedStudentDetailId === studentId) {
+      setExpandedStudentDetailId(null);
+      return;
+    }
+    setExpandedStudentDetailId(studentId);
+    setStudentDetailLoading(true);
+    setStudentDetail(await listStudentAssignments(classId, studentId));
+    setStudentDetailLoading(false);
   };
 
   const handleRemoveStudent = async (studentId: string) => {
@@ -327,30 +344,74 @@ export default function ClassDetailScreen() {
             ) : (
               <ul className="space-y-2">
                 {roster.map((r) => (
-                  <li key={r.studentId} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">{r.studentName}</span>
-                    {confirmRemoveId === r.studentId ? (
-                      <span className="flex items-center gap-2">
-                        <button
-                          onClick={() => setConfirmRemoveId(null)}
-                          className="text-xs text-gray-400"
-                        >
-                          취소
-                        </button>
-                        <button
-                          onClick={() => handleRemoveStudent(r.studentId)}
-                          className="px-2.5 py-1 bg-red-500 text-white rounded-lg text-xs font-medium"
-                        >
-                          내보내기 확인
-                        </button>
-                      </span>
-                    ) : (
+                  <li key={r.studentId}>
+                    <div className="flex items-center justify-between text-sm">
                       <button
-                        onClick={() => setConfirmRemoveId(r.studentId)}
-                        className="text-xs text-gray-300 hover:text-red-500"
+                        onClick={() => handleToggleStudentDetail(r.studentId)}
+                        className="flex items-center gap-1.5 text-gray-700 min-w-0"
                       >
-                        내보내기
+                        <svg
+                          className={`w-3.5 h-3.5 text-gray-400 flex-shrink-0 transition-transform ${expandedStudentDetailId === r.studentId ? 'rotate-90' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span className="truncate">{r.studentName}</span>
                       </button>
+                      {confirmRemoveId === r.studentId ? (
+                        <span className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => setConfirmRemoveId(null)}
+                            className="text-xs text-gray-400"
+                          >
+                            취소
+                          </button>
+                          <button
+                            onClick={() => handleRemoveStudent(r.studentId)}
+                            className="px-2.5 py-1 bg-red-500 text-white rounded-lg text-xs font-medium"
+                          >
+                            내보내기 확인
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmRemoveId(r.studentId)}
+                          className="flex-shrink-0 text-xs text-gray-300 hover:text-red-500"
+                        >
+                          내보내기
+                        </button>
+                      )}
+                    </div>
+
+                    {expandedStudentDetailId === r.studentId && (
+                      <div className="mt-1.5 mb-1 pl-5 border-l-2 border-gray-100">
+                        {studentDetailLoading ? (
+                          <p className="text-xs text-gray-400">불러오는 중…</p>
+                        ) : studentDetail.length === 0 ? (
+                          <p className="text-xs text-gray-400">해당하는 숙제가 없어요.</p>
+                        ) : (
+                          <ul className="space-y-1">
+                            {studentDetail.map((d) => (
+                              <li key={d.id} className="flex items-center justify-between gap-2 text-xs">
+                                <span className="text-gray-600 truncate">{d.title}</span>
+                                {d.completed ? (
+                                  <span className="flex-shrink-0 text-green-600 font-medium">
+                                    ✅ {typeof d.score === 'number' ? `${d.score}/${d.total}` : '완료'}
+                                  </span>
+                                ) : (
+                                  <span
+                                    className={`flex-shrink-0 font-medium ${isOverdue(d.dueDate) ? 'text-red-500' : 'text-gray-400'}`}
+                                  >
+                                    ❌ {isOverdue(d.dueDate) ? '미완료 (마감 지남)' : '미완료'}
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     )}
                   </li>
                 ))}

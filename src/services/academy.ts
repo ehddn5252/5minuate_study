@@ -205,6 +205,51 @@ export async function listClassRoster(classId: string): Promise<RosterRow[]> {
   }));
 }
 
+export interface StudentAssignmentDetailRow {
+  id: string;
+  title: string;
+  dueDate: string;
+  completed: boolean;
+  score?: number;
+  total?: number;
+}
+
+// 학생 명단에서 특정 학생을 눌렀을 때 "이 학생이 이 반에서 어떤 숙제를 했는지/안 했는지"를
+// 보여주기 위한 조회. 특정 학생에게만 낸 숙제(target_student_ids)면 대상이 아닌 학생에게는
+// 애초에 해당 사항이 없으므로 목록에서 제외한다.
+export async function listStudentAssignments(classId: string, studentId: string): Promise<StudentAssignmentDetailRow[]> {
+  const { data: assignments } = await supabase
+    .from('assignments')
+    .select('id, title, due_date, target_student_ids')
+    .eq('class_id', classId)
+    .order('due_date', { ascending: false });
+
+  const applicable = (assignments ?? []).filter((a) => {
+    const targetIds = a.target_student_ids as string[] | null;
+    return !targetIds || targetIds.includes(studentId);
+  });
+  if (applicable.length === 0) return [];
+
+  const { data: submissions } = await supabase
+    .from('assignment_submissions')
+    .select('assignment_id, completed_at, score, total')
+    .eq('student_id', studentId)
+    .in('assignment_id', applicable.map((a) => a.id));
+  const subMap = new Map((submissions ?? []).map((s) => [s.assignment_id, s]));
+
+  return applicable.map((a) => {
+    const s = subMap.get(a.id);
+    return {
+      id: a.id,
+      title: a.title,
+      dueDate: a.due_date,
+      completed: !!s?.completed_at,
+      score: s?.score ?? undefined,
+      total: s?.total ?? undefined,
+    };
+  });
+}
+
 export async function removeStudentFromClass(classId: string, studentId: string): Promise<{ error?: string }> {
   const { error } = await supabase
     .from('class_members')
