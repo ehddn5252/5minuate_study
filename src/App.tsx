@@ -1,39 +1,70 @@
-import { useEffect, useRef, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
-import HomeScreen from './screens/HomeScreen';
+// LoginScreen만 즉시 로드 — 로그인 전 첫 화면이라 지연 로드하면 첫 화면 자체가 느려짐.
+// 나머지 화면은 전부 lazy로 분리해 초기 번들 크기를 줄인다(각 화면은 실제로 들어갈 때만 받음).
 import LoginScreen from './screens/LoginScreen';
-import GoalCreateScreen from './screens/GoalCreateScreen';
-import GoalListScreen from './screens/GoalListScreen';
-import GoalEditScreen from './screens/GoalEditScreen';
-import LearningScreen from './screens/LearningScreen';
-import TestScreen from './screens/TestScreen';
-import SessionCompleteScreen from './screens/SessionCompleteScreen';
-import GoalCompleteScreen from './screens/GoalCompleteScreen';
-import WrongPoolScreen from './screens/WrongPoolScreen';
-import RetryWrongScreen from './screens/RetryWrongScreen';
-import MyQuestionBookScreen from './screens/MyQuestionBookScreen';
-import CalendarScreen from './screens/CalendarScreen';
-import LanguageHubScreen from './screens/LanguageHubScreen';
-import MixReviewScreen from './screens/MixReviewScreen';
-import RecordingsScreen from './screens/RecordingsScreen';
-import AchievementsScreen from './screens/AchievementsScreen';
-import StudyMaterialsScreen from './screens/StudyMaterialsScreen';
-import ShortsScreen from './screens/ShortsScreen';
-import SettingsScreen from './screens/SettingsScreen';
-import TeacherOnboardScreen from './screens/TeacherOnboardScreen';
-import TeacherHomeScreen from './screens/TeacherHomeScreen';
-import ClassDetailScreen from './screens/ClassDetailScreen';
-import AssignmentCreateScreen from './screens/AssignmentCreateScreen';
-import JoinClassScreen from './screens/JoinClassScreen';
-import MyAssignmentsScreen from './screens/MyAssignmentsScreen';
-import AssignmentSolveScreen from './screens/AssignmentSolveScreen';
 import { supabase, loadFromCloud, migrateLocalToCloud, syncToCloud } from './services/supabase';
 import { fetchMyRole, type UserRole } from './services/academy';
 import { clearAllLocalData } from './utils/storage';
 import { useGoalStore, useSessionStore, useQuizStore, useAppStore } from './store';
+const HomeScreen = lazy(() => import('./screens/HomeScreen'));
+const GoalCreateScreen = lazy(() => import('./screens/GoalCreateScreen'));
+const GoalListScreen = lazy(() => import('./screens/GoalListScreen'));
+const GoalEditScreen = lazy(() => import('./screens/GoalEditScreen'));
+const LearningScreen = lazy(() => import('./screens/LearningScreen'));
+const TestScreen = lazy(() => import('./screens/TestScreen'));
+const SessionCompleteScreen = lazy(() => import('./screens/SessionCompleteScreen'));
+const GoalCompleteScreen = lazy(() => import('./screens/GoalCompleteScreen'));
+const WrongPoolScreen = lazy(() => import('./screens/WrongPoolScreen'));
+const RetryWrongScreen = lazy(() => import('./screens/RetryWrongScreen'));
+const MyQuestionBookScreen = lazy(() => import('./screens/MyQuestionBookScreen'));
+const CalendarScreen = lazy(() => import('./screens/CalendarScreen'));
+const LanguageHubScreen = lazy(() => import('./screens/LanguageHubScreen'));
+const MixReviewScreen = lazy(() => import('./screens/MixReviewScreen'));
+const RecordingsScreen = lazy(() => import('./screens/RecordingsScreen'));
+const AchievementsScreen = lazy(() => import('./screens/AchievementsScreen'));
+const StudyMaterialsScreen = lazy(() => import('./screens/StudyMaterialsScreen'));
+const ShortsScreen = lazy(() => import('./screens/ShortsScreen'));
+const SettingsScreen = lazy(() => import('./screens/SettingsScreen'));
+const TeacherOnboardScreen = lazy(() => import('./screens/TeacherOnboardScreen'));
+const TeacherHomeScreen = lazy(() => import('./screens/TeacherHomeScreen'));
+const ClassDetailScreen = lazy(() => import('./screens/ClassDetailScreen'));
+const AssignmentCreateScreen = lazy(() => import('./screens/AssignmentCreateScreen'));
+const JoinClassScreen = lazy(() => import('./screens/JoinClassScreen'));
+const MyAssignmentsScreen = lazy(() => import('./screens/MyAssignmentsScreen'));
+const AssignmentSolveScreen = lazy(() => import('./screens/AssignmentSolveScreen'));
 
 const LAST_USER_KEY = 'lastAuthUserId';
+// signInWithGoogle의 redirectTo가 항상 origin("/")으로 돌아오게 돼 있어(OAuth 리다이렉트는
+// 브라우저 풀 리로드라 현재 경로가 그대로 보존되지 않음), 로그인 전에 쇼츠에서 고른
+// templateId를 여기 잠깐 담아뒀다가 로그인 완료 후 목표 만들기 화면으로 이어서 보낸다.
+const PENDING_TEMPLATE_KEY = 'pendingTemplateId';
+
+// 로그인 안 된 상태에서 /goals/create?templateId=X로 오면(쇼츠 → "목표 만들고 제대로
+// 공부하기") templateId를 저장해두고 로그인 화면을 보여준다.
+function CaptureTemplateThenLogin() {
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const templateId = searchParams.get('templateId');
+    if (templateId) localStorage.setItem(PENDING_TEMPLATE_KEY, templateId);
+  }, [searchParams]);
+  return <LoginScreen />;
+}
+
+// 로그인 완료 후 한 번, 저장해둔 templateId가 있으면 목표 만들기 화면으로 이어서 보낸다.
+function PendingTemplateRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const pending = localStorage.getItem(PENDING_TEMPLATE_KEY);
+    if (pending) {
+      localStorage.removeItem(PENDING_TEMPLATE_KEY);
+      navigate(`/goals/create?templateId=${pending}`, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
 
 // 같은 브라우저에서 다른 Google 계정으로 로그인하면, migrateLocalToCloud가 "클라우드에 데이터가
 // 없으면 신규 계정"이라고 판단해 이전 계정이 남긴 로컬 데이터를 새 계정 것으로 착각해 업로드해버린다.
@@ -138,10 +169,13 @@ export default function App() {
   if (!user) {
     return (
       <BrowserRouter>
-        <Routes>
-          <Route path="/shorts/:templateId" element={<ShortsScreen />} />
-          <Route path="*" element={<LoginScreen />} />
-        </Routes>
+        <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+          <Routes>
+            <Route path="/shorts/:templateId" element={<ShortsScreen />} />
+            <Route path="/goals/create" element={<CaptureTemplateThenLogin />} />
+            <Route path="*" element={<LoginScreen />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     );
   }
@@ -152,6 +186,8 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <PendingTemplateRedirect />
+      <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
       <Routes>
         <Route path="/" element={role === 'teacher' ? <TeacherHomeScreen /> : <HomeScreen />} />
         {/* 선생님 계정도 개인 학습 화면을 볼 수 있는 통로 — role은 그대로 두고 화면만 잠깐 전환 */}
@@ -181,6 +217,7 @@ export default function App() {
         <Route path="/shorts/:templateId" element={<ShortsScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
