@@ -570,8 +570,467 @@ const ENGLISH_GRAMMAR_CURRICULUM: Curriculum = {
   ],
 };
 
+const ENGLISH_VOCAB_CURRICULUM: Curriculum = {
+  id: 'english_vocab',
+  name: '영어단어 매일',
+  totalDays: 30,
+  days: [
+    {
+      day: 1,
+      topic: '기초 동사 1 - 일상 행동',
+      content: `일상에서 자주 쓰는 기본 동사 10개
+• achieve (v) 성취하다 — "She achieved her goal."
+• accomplish (v) 해내다 — "He accomplished the task on time."
+• arrange (v) 준비하다, 배열하다 — "Let's arrange a meeting."
+• assist (v) 돕다 — "Can you assist me with this?"
+• borrow (v) 빌리다 — "May I borrow your pen?"
+• complete (v) 완료하다 — "I completed my homework."
+• deliver (v) 배달하다, 전달하다 — "They deliver food quickly."
+• examine (v) 조사하다, 검사하다 — "The doctor examined the patient."
+• gather (v) 모으다 — "We gathered information for the report."
+• maintain (v) 유지하다 — "It's hard to maintain good habits."`,
+    },
+    {
+      day: 2,
+      topic: '기초 동사 2 - 사고와 감정',
+      content: `생각과 판단을 나타내는 동사 10개
+• assume (v) 추측하다, 가정하다 — "I assume you're right."
+• believe (v) 믿다 — "I believe in her ability."
+• consider (v) 고려하다 — "Please consider my opinion."
+• doubt (v) 의심하다 — "I doubt he will come."
+• expect (v) 예상하다, 기대하다 — "We expect good results."
+• imagine (v) 상상하다 — "Imagine a world without conflict."
+• recognize (v) 알아보다, 인정하다 — "I recognized her voice."
+• regret (v) 후회하다 — "He regrets his decision."
+• suppose (v) 추정하다 — "I suppose you're tired."
+• realize (v) 깨닫다 — "I realized my mistake."`,
+    },
+    {
+      day: 3,
+      topic: '기본 형용사 - 성질과 상태',
+      content: `사물의 성질과 상태를 나타내는 형용사 10개
+• ancient (adj) 고대의 — "an ancient civilization"
+• brief (adj) 간단한, 짧은 — "a brief explanation"
+• complex (adj) 복잡한 — "a complex problem"
+• essential (adj) 필수적인 — "Water is essential for life."
+• fragile (adj) 부서지기 쉬운 — "Handle the glass carefully; it's fragile."
+• gradual (adj) 점진적인 — "a gradual change"
+• immense (adj) 거대한, 엄청난 — "an immense amount of work"
+• ordinary (adj) 평범한 — "an ordinary day"
+• precise (adj) 정확한 — "Give me the precise time."
+• vivid (adj) 생생한 — "a vivid memory"`,
+    },
+    {
+      day: 4,
+      topic: '감정을 나타내는 단어',
+      content: `감정과 심리 상태를 나타내는 형용사 10개
+• anxious (adj) 불안한 — "She felt anxious before the exam."
+• ashamed (adj) 부끄러운 — "He was ashamed of his mistake."
+• curious (adj) 호기심 많은 — "The child was curious about everything."
+• eager (adj) 열망하는 — "She was eager to learn."
+• furious (adj) 몹시 화난 — "He was furious about the delay."
+• grateful (adj) 감사하는 — "I'm grateful for your help."
+• jealous (adj) 질투하는 — "He felt jealous of his friend."
+• nervous (adj) 긴장한 — "I was nervous before the interview."
+• relieved (adj) 안도한 — "She felt relieved after the test."
+• sorrowful (adj) 슬픈 — "a sorrowful expression"`,
+    },
+    {
+      day: 5,
+      topic: '사람과 관계',
+      content: `사람과 인간관계를 나타내는 단어 10개
+• acquaintance (n) 아는 사람, 지인 — "He's just an acquaintance, not a close friend."
+• colleague (n) 동료 — "My colleague helped me with the project."
+• companion (n) 동반자 — "a travel companion"
+• generation (n) 세대 — "the younger generation"
+• neighbor (n) 이웃 — "My neighbor is very kind."
+• relative (n) 친척 — "I have relatives in Busan."
+• sibling (n) 형제자매 — "I have two siblings."
+• spouse (n) 배우자 — "Bring your spouse to the party."
+• stranger (n) 낯선 사람 — "Don't talk to strangers."
+• teenager (n) 십대 — "Many teenagers use social media."`,
+    },
+    {
+      day: 6,
+      topic: '학교와 공부',
+      content: `학업과 관련된 단어 10개
+• academic (adj) 학업의 — "academic performance"
+• assignment (n) 과제 — "Submit your assignment by Friday."
+• curriculum (n) 교육과정 — "a new school curriculum"
+• discipline (n) 훈육, 규율 — "self-discipline"
+• elementary (adj) 초등의, 기초적인 — "elementary school"
+• graduate (v) 졸업하다 — "She will graduate next year."
+• lecture (n) 강의 — "attend a lecture"
+• literacy (n) 읽고 쓰는 능력, 문해력 — "digital literacy"
+• scholarship (n) 장학금 — "He received a scholarship."
+• semester (n) 학기 — "the spring semester"`,
+    },
+    {
+      day: 7,
+      topic: '시간과 빈도',
+      content: `시간의 흐름과 빈도를 나타내는 부사 10개
+• constantly (adv) 끊임없이 — "He's constantly checking his phone."
+• eventually (adv) 결국 — "She eventually succeeded."
+• frequently (adv) 자주 — "They frequently visit their grandparents."
+• gradually (adv) 점차 — "The weather is gradually improving."
+• immediately (adv) 즉시 — "Call me immediately."
+• occasionally (adv) 가끔 — "I occasionally eat out."
+• permanently (adv) 영구적으로 — "The shop closed permanently."
+• previously (adv) 이전에 — "As previously mentioned..."
+• rarely (adv) 드물게 — "He rarely gets angry."
+• temporarily (adv) 일시적으로 — "The road is temporarily closed."`,
+    },
+    {
+      day: 8,
+      topic: '장소와 이동',
+      content: `장소와 이동을 나타내는 단어 10개
+• boundary (n) 경계 — "the boundary between two countries"
+• destination (n) 목적지 — "Our destination is Seoul."
+• journey (n) 여행, 여정 — "a long journey"
+• migrate (v) 이주하다 — "Birds migrate south in winter."
+• nearby (adj/adv) 근처의, 근처에 — "a nearby restaurant"
+• region (n) 지역 — "a mountainous region"
+• route (n) 경로 — "the shortest route"
+• suburb (n) 교외 — "They live in the suburbs."
+• territory (n) 영토 — "protect one's territory"
+• vehicle (n) 차량 — "an electric vehicle"`,
+    },
+    {
+      day: 9,
+      topic: '자연과 날씨',
+      content: `자연 현상과 날씨를 나타내는 단어 10개
+• atmosphere (n) 대기, 분위기 — "the Earth's atmosphere"
+• climate (n) 기후 — "a dry climate"
+• drought (n) 가뭄 — "a severe drought"
+• humid (adj) 습한 — "hot and humid weather"
+• moisture (n) 습기, 수분 — "The soil needs moisture."
+• rainfall (n) 강우량 — "heavy rainfall"
+• temperature (n) 온도, 기온 — "rising temperatures"
+• thunder (n) 천둥 — "thunder and lightning"
+• vegetation (n) 초목, 식생 — "dense vegetation"
+• wildlife (n) 야생동물 — "protect wildlife"`,
+    },
+    {
+      day: 10,
+      topic: '동물과 식물',
+      content: `생물과 관련된 단어 10개
+• creature (n) 생물 — "a strange creature"
+• endangered (adj) 멸종 위기의 — "an endangered species"
+• habitat (n) 서식지 — "the natural habitat of tigers"
+• insect (n) 곤충 — "insects like bees and ants"
+• mammal (n) 포유류 — "Whales are mammals."
+• nutrient (n) 영양소 — "nutrients in soil"
+• organism (n) 유기체 — "living organisms"
+• predator (n) 포식자 — "a natural predator"
+• species (n) 종(種) — "an endangered species"
+• breed (n/v) 품종, 사육하다 — "a rare breed of dog"`,
+    },
+    {
+      day: 11,
+      topic: '사회와 공동체',
+      content: `사회와 공동체를 나타내는 단어 10개
+• community (n) 공동체 — "a local community"
+• culture (n) 문화 — "traditional culture"
+• custom (n) 관습 — "a local custom"
+• diversity (n) 다양성 — "cultural diversity"
+• ethnic (adj) 민족의 — "ethnic groups"
+• institution (n) 기관 — "an educational institution"
+• minority (n) 소수 집단 — "protect minority rights"
+• norm (n) 규범 — "social norms"
+• tradition (n) 전통 — "a family tradition"
+• welfare (n) 복지 — "social welfare"`,
+    },
+    {
+      day: 12,
+      topic: '경제와 소비',
+      content: `경제와 소비 활동을 나타내는 단어 10개
+• budget (n) 예산 — "a tight budget"
+• commerce (n) 상업 — "electronic commerce"
+• consumer (n) 소비자 — "consumer rights"
+• currency (n) 화폐 — "foreign currency"
+• economy (n) 경제 — "a growing economy"
+• expense (n) 비용 — "living expenses"
+• income (n) 소득 — "monthly income"
+• investment (n) 투자 — "a wise investment"
+• profit (n) 이익 — "make a profit"
+• revenue (n) 수익, 세입 — "annual revenue"`,
+    },
+    {
+      day: 13,
+      topic: '과학과 기술',
+      content: `과학과 기술 관련 단어 10개
+• artificial (adj) 인공의 — "artificial intelligence"
+• device (n) 기기 — "an electronic device"
+• innovation (n) 혁신 — "technological innovation"
+• invention (n) 발명 — "a useful invention"
+• mechanism (n) 메커니즘, 장치 — "a defense mechanism"
+• molecule (n) 분자 — "water molecules"
+• technology (n) 기술 — "modern technology"
+• theory (n) 이론 — "a scientific theory"
+• laboratory (n) 실험실 — "work in a laboratory"
+• digital (adj) 디지털의 — "digital devices"`,
+    },
+    {
+      day: 14,
+      topic: '건강과 신체',
+      content: `건강과 신체 관련 단어 10개
+• symptom (n) 증상 — "symptoms of a cold"
+• treatment (n) 치료 — "medical treatment"
+• nutrition (n) 영양 — "good nutrition"
+• disease (n) 질병 — "prevent disease"
+• immune (adj) 면역의 — "the immune system"
+• injury (n) 부상 — "a serious injury"
+• medication (n) 약물 — "take medication"
+• therapy (n) 치료법 — "physical therapy"
+• vitamin (n) 비타민 — "vitamin C"
+• fatigue (n) 피로 — "suffer from fatigue"`,
+    },
+    {
+      day: 15,
+      topic: '예술과 문화',
+      content: `예술과 문화 관련 단어 10개
+• aesthetic (adj) 미적인 — "aesthetic value"
+• exhibit (v/n) 전시하다, 전시 — "an art exhibit"
+• heritage (n) 유산 — "cultural heritage"
+• masterpiece (n) 걸작 — "a literary masterpiece"
+• sculpture (n) 조각 — "a bronze sculpture"
+• literature (n) 문학 — "classic literature"
+• melody (n) 멜로디 — "a beautiful melody"
+• portrait (n) 초상화 — "paint a portrait"
+• artistic (adj) 예술적인 — "artistic talent"
+• creativity (n) 창의성 — "encourage creativity"`,
+    },
+    {
+      day: 16,
+      topic: '정치와 법',
+      content: `정치와 법 관련 단어 10개
+• authority (n) 권위, 당국 — "government authority"
+• campaign (n) 캠페인 — "an election campaign"
+• congress (n) 의회 — "pass a bill in congress"
+• democracy (n) 민주주의 — "a modern democracy"
+• legislation (n) 법률, 입법 — "new legislation"
+• policy (n) 정책 — "economic policy"
+• regulation (n) 규정 — "safety regulations"
+• election (n) 선거 — "a presidential election"
+• justice (n) 정의 — "social justice"
+• violation (n) 위반 — "a violation of the law"`,
+    },
+    {
+      day: 17,
+      topic: '역사와 전통',
+      content: `역사와 전통 관련 단어 10개
+• ancestor (n) 조상 — "our ancestors"
+• civilization (n) 문명 — "ancient civilization"
+• dynasty (n) 왕조 — "the Joseon dynasty"
+• era (n) 시대 — "a new era"
+• legacy (n) 유산 — "leave a legacy"
+• monument (n) 기념물 — "a historic monument"
+• myth (n) 신화 — "a Greek myth"
+• ritual (n) 의식 — "a traditional ritual"
+• historic (adj) 역사적인 — "a historic event"
+• chronicle (n/v) 연대기, 기록하다 — "chronicle the events"`,
+    },
+    {
+      day: 18,
+      topic: '심리와 성격',
+      content: `성격을 나타내는 형용사 10개
+• arrogant (adj) 거만한 — "an arrogant attitude"
+• cautious (adj) 신중한 — "a cautious driver"
+• generous (adj) 관대한 — "a generous donation"
+• humble (adj) 겸손한 — "a humble person"
+• optimistic (adj) 낙관적인 — "an optimistic view"
+• pessimistic (adj) 비관적인 — "a pessimistic outlook"
+• stubborn (adj) 고집 센 — "a stubborn child"
+• sincere (adj) 진실한 — "a sincere apology"
+• modest (adj) 겸손한, 적당한 — "a modest income"
+• sensitive (adj) 민감한 — "a sensitive topic"`,
+    },
+    {
+      day: 19,
+      topic: '의사소통',
+      content: `의사소통과 관련된 동사 10개
+• articulate (v) 명확히 표현하다 — "She articulated her ideas clearly."
+• convey (v) 전달하다 — "convey a message"
+• persuade (v) 설득하다 — "persuade him to join"
+• negotiate (v) 협상하다 — "negotiate a deal"
+• emphasize (v) 강조하다 — "emphasize the importance of safety"
+• imply (v) 암시하다 — "What are you implying?"
+• interpret (v) 해석하다 — "interpret the data"
+• clarify (v) 명확히 하다 — "Could you clarify your point?"
+• elaborate (v) 상세히 설명하다 — "Could you elaborate on that?"
+• express (v) 표현하다 — "express your feelings"`,
+    },
+    {
+      day: 20,
+      topic: '환경과 에너지',
+      content: `환경과 에너지 관련 단어 10개
+• pollution (n) 오염 — "air pollution"
+• renewable (adj) 재생 가능한 — "renewable energy"
+• resource (n) 자원 — "natural resources"
+• sustainable (adj) 지속 가능한 — "sustainable development"
+• emission (n) 배출 — "carbon emissions"
+• conserve (v) 보존하다 — "conserve energy"
+• ecosystem (n) 생태계 — "a fragile ecosystem"
+• recycle (v) 재활용하다 — "recycle plastic bottles"
+• exhaust (n/v) 배기가스, 소모시키다 — "car exhaust"
+• fossil (n) 화석 — "fossil fuels"`,
+    },
+    {
+      day: 21,
+      topic: '추상적 개념 1 - 원인과 결과',
+      content: `원인과 결과를 나타내는 단어 10개
+• consequence (n) 결과 — "face the consequences"
+• factor (n) 요인 — "a key factor"
+• impact (n/v) 영향 — "a positive impact"
+• outcome (n) 결과 — "a successful outcome"
+• contribute (v) 기여하다, 원인이 되다 — "contribute to climate change"
+• derive (v) 유래하다, 얻다 — "derive pleasure from reading"
+• result (v/n) 결과로 나타나다, 결과 — "result in failure"
+• trigger (v) 촉발하다 — "trigger a reaction"
+• stem (v) 유래하다 — "stem from a misunderstanding"
+• yield (v) 산출하다, 낳다 — "yield good results"`,
+    },
+    {
+      day: 22,
+      topic: '추상적 개념 2 - 비교와 대조',
+      content: `비교와 대조를 나타내는 단어 10개
+• contrast (n/v) 대조 — "in contrast to"
+• distinguish (v) 구별하다 — "distinguish right from wrong"
+• equivalent (adj) 동등한 — "an equivalent amount"
+• resemble (v) 닮다 — "She resembles her mother."
+• similarity (n) 유사성 — "a striking similarity"
+• differ (v) 다르다 — "opinions differ"
+• identical (adj) 동일한 — "identical twins"
+• contrary (adj) 반대의 — "contrary to popular belief"
+• parallel (adj/n) 평행한, 유사점 — "draw a parallel"
+• contradict (v) 모순되다 — "contradict yourself"`,
+    },
+    {
+      day: 23,
+      topic: '학술 어휘 1 - 분석과 논증',
+      content: `분석과 논증에 쓰이는 단어 10개
+• analyze (v) 분석하다 — "analyze the data"
+• assert (v) 주장하다 — "assert one's opinion"
+• evaluate (v) 평가하다 — "evaluate the results"
+• hypothesis (n) 가설 — "test a hypothesis"
+• illustrate (v) 설명하다, 예시로 보여주다 — "illustrate the point"
+• justify (v) 정당화하다 — "justify one's actions"
+• argue (v) 주장하다, 논쟁하다 — "argue for change"
+• evidence (n) 증거 — "strong evidence"
+• criterion (n) 기준 — "the main criterion"
+• valid (adj) 타당한 — "a valid argument"`,
+    },
+    {
+      day: 24,
+      topic: '학술 어휘 2 - 평가와 판단',
+      content: `평가와 판단에 쓰이는 단어 10개
+• assess (v) 평가하다 — "assess the situation"
+• conclude (v) 결론을 내리다 — "conclude that it works"
+• considerable (adj) 상당한 — "a considerable amount"
+• significant (adj) 중요한, 상당한 — "a significant difference"
+• presume (v) 추정하다 — "I presume you're right."
+• verify (v) 확인하다 — "verify the facts"
+• controversial (adj) 논란이 되는 — "a controversial topic"
+• plausible (adj) 그럴듯한 — "a plausible explanation"
+• credible (adj) 신뢰할 수 있는 — "a credible source"
+• objective (adj/n) 객관적인, 목표 — "an objective view"`,
+    },
+    {
+      day: 25,
+      topic: '수능 고난도 동사',
+      content: `수능 독해에 자주 나오는 고난도 동사 10개
+• alleviate (v) 완화하다 — "alleviate poverty"
+• compensate (v) 보상하다 — "compensate for the loss"
+• deteriorate (v) 악화되다 — "His health deteriorated."
+• enhance (v) 향상시키다 — "enhance performance"
+• fluctuate (v) 변동하다 — "prices fluctuate"
+• hinder (v) 방해하다 — "hinder progress"
+• manipulate (v) 조작하다 — "manipulate data"
+• mitigate (v) 완화시키다 — "mitigate the risk"
+• reinforce (v) 강화하다 — "reinforce the argument"
+• undermine (v) 약화시키다 — "undermine confidence"`,
+    },
+    {
+      day: 26,
+      topic: '수능 고난도 형용사',
+      content: `수능 독해에 자주 나오는 고난도 형용사 10개
+• ambiguous (adj) 모호한 — "an ambiguous statement"
+• arbitrary (adj) 임의의 — "an arbitrary decision"
+• coherent (adj) 일관성 있는 — "a coherent argument"
+• inevitable (adj) 불가피한 — "an inevitable result"
+• meticulous (adj) 꼼꼼한 — "meticulous planning"
+• notorious (adj) 악명 높은 — "notorious for crime"
+• redundant (adj) 불필요한, 중복된 — "redundant information"
+• subtle (adj) 미묘한 — "a subtle difference"
+• tangible (adj) 실재하는, 명백한 — "tangible benefits"
+• versatile (adj) 다재다능한 — "a versatile actor"`,
+    },
+    {
+      day: 27,
+      topic: '관용표현·구동사 1',
+      content: `자주 쓰이는 구동사 10개
+• bring about 초래하다 — "bring about change"
+• carry out 수행하다 — "carry out a plan"
+• come up with (아이디어를) 생각해내다 — "come up with a solution"
+• deal with 다루다, 처리하다 — "deal with a problem"
+• figure out 알아내다 — "figure out the answer"
+• give up 포기하다 — "give up smoking"
+• look into 조사하다 — "look into the matter"
+• make up for 보상하다, 만회하다 — "make up for lost time"
+• put off 미루다 — "put off the meeting"
+• take over 인수하다, 넘겨받다 — "take over the company"`,
+    },
+    {
+      day: 28,
+      topic: '관용표현·구동사 2',
+      content: `자주 쓰이는 구동사 10개
+• account for 설명하다, 차지하다 — "account for the difference"
+• break down 고장 나다, 분석하다 — "The car broke down."
+• catch up with ~을 따라잡다 — "catch up with the trend"
+• come across 우연히 마주치다 — "come across an old photo"
+• get over 극복하다 — "get over an illness"
+• hold on to ~을 붙잡다, 고수하다 — "hold on to your beliefs"
+• keep up with ~에 뒤처지지 않다 — "keep up with the news"
+• rely on ~에 의존하다 — "rely on public transport"
+• run out of ~이 바닥나다 — "run out of time"
+• turn out ~로 판명되다 — "It turned out to be true."`,
+    },
+    {
+      day: 29,
+      topic: '다의어 - 문맥별 의미',
+      content: `문맥에 따라 뜻이 달라지는 단어 10개
+• address (n/v) 주소, 다루다/연설하다 — "address the issue"
+• book (n/v) 책, 예약하다 — "book a hotel room"
+• fine (adj/n) 좋은, 벌금 — "pay a fine"
+• issue (n/v) 문제, 발행하다 — "a controversial issue"
+• mean (v/adj) 의미하다, 인색한 — "What does this word mean?"
+• novel (n/adj) 소설, 참신한 — "a novel idea"
+• plant (n/v) 식물, 공장, 심다 — "a power plant"
+• right (adj/n) 옳은, 권리 — "human rights"
+• subject (n/adj) 주제, 과목, ~하기 쉬운 — "the subject of the essay"
+• matter (n/v) 문제, 중요하다 — "It doesn't matter."`,
+    },
+    {
+      day: 30,
+      topic: '수능 최고난도 어휘 총정리',
+      content: `수능 최고난도 어휘 10개 - 지금까지 배운 내용 총정리
+• eloquent (adj) 웅변적인, 설득력 있는 — "an eloquent speech"
+• exemplify (v) 예시하다, 전형적인 예가 되다 — "This case exemplifies the problem."
+• formidable (adj) 만만찮은, 강력한 — "a formidable opponent"
+• indispensable (adj) 필수불가결한 — "an indispensable tool"
+• paradox (n) 역설 — "a strange paradox"
+• quintessential (adj) 전형적인, 본질적인 — "the quintessential example"
+• scrutinize (v) 면밀히 조사하다 — "scrutinize the details"
+• ubiquitous (adj) 어디에나 있는 — "smartphones are ubiquitous"
+• unprecedented (adj) 전례 없는 — "unprecedented growth"
+• viable (adj) 실행 가능한 — "a viable option"`,
+    },
+  ],
+};
+
 const CURRICULA: Record<string, Curriculum> = {
   english_grammar: ENGLISH_GRAMMAR_CURRICULUM,
+  english_vocab: ENGLISH_VOCAB_CURRICULUM,
 };
 
 export function getCurriculum(id: string): Curriculum | undefined {

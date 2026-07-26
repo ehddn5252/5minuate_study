@@ -83,6 +83,7 @@ export const TEMPLATES: Template[] = [
     topic: '수능 영어 필수 어휘 1000개 완성',
     recommendedDays: 30,
     category: '어학',
+    curriculumId: 'english_vocab',
   },
   {
     id: 'react_basics',
