@@ -26,6 +26,13 @@ const LEVEL_DESC: Record<QuizLevel, string> = {
 const PRACTICAL_MODE_INSTRUCTION =
   '각 요약 항목 또는 퀴즈 해설 중 적절한 곳에, 실무에서 어떻게 적용되는지 보여주는 예시를 1줄 이내로 자연스럽게 포함하세요. 항목 수나 분량 제한은 그대로 지키세요.';
 
+// 앱 화면은 서식(굵게/밑줄/색 표시) 없이 순수 텍스트로만 문제를 렌더링한다. "밑줄 친 부분",
+// "굵게 표시된 단어"처럼 실제로는 존재하지 않는 시각적 표시를 가리키는 문제를 내면 학생이
+// 답할 수 없는 문제가 되므로, 특정 단어·구절을 가리킬 때는 반드시 그 표현을 문제 텍스트
+// 안에 직접 인용부호로 명시하도록 지시한다.
+const NO_VISUAL_FORMATTING_INSTRUCTION =
+  '문제나 선택지에서 "밑줄 친", "굵게 표시된", "색칠된" 등 실제로 표시되지 않는 시각적 서식에 의존하는 표현은 쓰지 마세요. 특정 단어나 구절을 가리켜야 할 때는 그 표현을 문제 텍스트 안에 따옴표로 직접 인용해서 명확히 하세요(예: "밑줄 친 부사가 나타내는 것은?" (X) → "다음 문장에서 \'quickly\'가 나타내는 것은?" (O)).';
+
 // F-27: AI 케미 학습메이트 — 말투 프리셋. 'plain'은 기존과 동일한 중립 톤(기본값, 회귀 없음)이라 지시문을 추가하지 않는다.
 const TONE_INSTRUCTION: Record<MateTone, string> = {
   friendly: '설명 말투는 다정한 친구처럼 편안하고 다정하게 써주세요. 존댓말은 유지하되 따뜻하고 친근한 어조로 작성하세요.',
@@ -137,6 +144,7 @@ ${TONE_INSTRUCTION[mateTone]}
 }
 
 퀴즈는 정확히 ${quizCount}개를 생성하세요. multiple_choice는 ${mcCount}개, short_answer는 ${saCount}개.
+${NO_VISUAL_FORMATTING_INSTRUCTION}
 JSON만 응답하고 다른 텍스트는 포함하지 마세요.
 `.trim();
 
@@ -234,6 +242,7 @@ ${TONE_INSTRUCTION[mateTone]}
 }
 
 퀴즈는 정확히 8개. multiple_choice 6개, short_answer 2개. 오늘 배운 내용 기반으로 출제.
+${NO_VISUAL_FORMATTING_INSTRUCTION}
 JSON만 응답하세요.
 `.trim();
 

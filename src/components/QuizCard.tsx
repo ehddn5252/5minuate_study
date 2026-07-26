@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useQuizStore } from '../store';
 import { getMascotFace } from '../utils/mascot';
+import { removeFromWrongPool } from '../utils/storage';
+import { reportBankQuestion } from '../services/questionBank';
 import VoiceRecorder from './VoiceRecorder';
 import type { MateTone, Quiz } from '../types';
 
@@ -12,12 +14,16 @@ interface QuizCardProps {
   mateTone?: MateTone;
 }
 
+type ReportState = 'idle' | 'confirming' | 'sending' | 'done';
+
 export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: QuizCardProps) {
-  const { updateQuiz } = useQuizStore();
+  const { updateQuiz, deleteQuiz } = useQuizStore();
   const [selected, setSelected] = useState<string | null>(null);
   const [shortInput, setShortInput] = useState('');
   const [revealed, setRevealed] = useState(false);
   const [selfJudge, setSelfJudge] = useState<boolean | null>(null);
+  const [reportState, setReportState] = useState<ReportState>('idle');
+  const [reportMessage, setReportMessage] = useState('');
 
   const handleMultipleChoice = (option: string) => {
     if (revealed) return;
@@ -39,6 +45,26 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
 
   const handleToggleBookmark = () => {
     updateQuiz({ ...quiz, bookmarked: !quiz.bookmarked });
+  };
+
+  // question_bank(사전 제작 문제집) 문제면 즉시 지우지 않고 검토 목록에만 신고를 남기고,
+  // 그 외(개인용 AI 생성 문제)는 이미 내 데이터라 바로 지워도 안전하므로 즉시 삭제한다.
+  const handleConfirmReport = async () => {
+    setReportState('sending');
+    if (quiz.bankQuestionId) {
+      const result = await reportBankQuestion(quiz.bankQuestionId);
+      if (result.error) {
+        setReportMessage(result.error);
+        setReportState('confirming');
+        return;
+      }
+      setReportMessage('제보했어요. 검토 후 반영할게요!');
+    } else {
+      deleteQuiz(quiz.id);
+      removeFromWrongPool(quiz.goalId, quiz.id);
+      setReportMessage('삭제했어요. 다음부터는 이 문제가 안 나와요.');
+    }
+    setReportState('done');
   };
 
   const isCorrect =
@@ -183,6 +209,37 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
               <VoiceRecorder quizId={quiz.id} kind="explanation" label="왜 틀렸는지 설명하기" questionText={quiz.question} />
             </div>
           )}
+
+          <div className="mt-3 pt-3 border-t border-amber-100/60">
+            {reportState === 'idle' && (
+              <button
+                type="button"
+                onClick={() => setReportState('confirming')}
+                className="text-xs text-gray-400 hover:text-red-500"
+              >
+                🚩 문제가 잘못됐나요?
+              </button>
+            )}
+            {reportState === 'confirming' && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-gray-500">
+                  {quiz.bankQuestionId ? '이 문제를 신고할까요? 검토 목록에 남아요.' : '이 문제를 신고할까요? 바로 삭제되고 다시 안 나와요.'}
+                </span>
+                <button type="button" onClick={() => setReportState('idle')} className="text-xs text-gray-400">
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmReport}
+                  className="px-2.5 py-1 bg-red-500 text-white rounded-lg text-xs font-medium"
+                >
+                  신고
+                </button>
+              </div>
+            )}
+            {reportState === 'sending' && <span className="text-xs text-gray-400">신고하는 중…</span>}
+            {reportState === 'done' && <span className="text-xs text-gray-500">🚩 {reportMessage}</span>}
+          </div>
         </div>
       )}
     </div>

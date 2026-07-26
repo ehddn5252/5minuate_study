@@ -67,6 +67,9 @@ export interface Quiz {
   // 목표가 삭제될 때 이 문제가 북마크된 상태였다면, 목표를 찾을 수 없어도
   // "내 문제집"에서 계속 표시할 수 있도록 목표 주제를 스냅샷으로 남긴다.
   orphanedGoalTopic?: string;
+  // question_bank(사전 제작 문제집)에서 온 문제면 원본 행 id — 신고 시 로컬 삭제 대신
+  // 검토용 제보 테이블에 기록하기 위해 필요하다. 없으면 개인용 AI 생성 문제로 취급.
+  bankQuestionId?: string;
 }
 
 export interface WrongPool {

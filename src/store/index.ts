@@ -10,6 +10,7 @@ import {
   getQuizzes,
   saveQuiz,
   saveQuizzes,
+  deleteQuiz as deleteQuizFromStorage,
   getAppState,
   saveAppState,
 } from '../utils/storage';
@@ -73,6 +74,7 @@ interface QuizStore {
   addQuiz: (quiz: Quiz) => void;
   addQuizzes: (quizzes: Quiz[]) => void;
   updateQuiz: (quiz: Quiz) => void;
+  deleteQuiz: (id: string) => void;
 }
 
 export const useQuizStore = create<QuizStore>((set) => ({
@@ -88,6 +90,10 @@ export const useQuizStore = create<QuizStore>((set) => ({
   },
   updateQuiz: (quiz) => {
     saveQuiz(quiz);
+    set({ quizzes: getQuizzes() });
+  },
+  deleteQuiz: (id) => {
+    deleteQuizFromStorage(id);
     set({ quizzes: getQuizzes() });
   },
 }));

@@ -158,12 +158,13 @@ export default function LearningScreen() {
       if (goal.curriculumId && curricDay && !isPersonalized) {
         const bankData = await fetchFromBank(goal.curriculumId, dayNum, goal.level ?? 'intermediate');
         if (bankData) {
-          const quizzes: Quiz[] = bankData.quizzes.map((q) => ({
+          const quizzes: Quiz[] = bankData.quizzes.map(({ bankId, ...q }) => ({
             ...q,
             id: generateId(),
             goalId: goal.id,
             isWrong: false,
             wrongCount: 0,
+            bankQuestionId: bankId,
           }));
           applyContent(curricDay.content, quizzes);
           setGenerating(false);
