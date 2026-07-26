@@ -132,8 +132,18 @@ export default function App() {
     return <div className="min-h-screen bg-gray-50" />;
   }
 
+  // 로그인 전에도 "쇼츠" 미리보기는 열람 가능하게 함 — shared_content/curriculum은
+  // 공개 읽기라 로그인 없이도 안전하게 보여줄 수 있고, 로그인부터 요구하면 가치를
+  // 하나도 못 보여준 채 이탈시키게 된다.
   if (!user) {
-    return <LoginScreen />;
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/shorts/:templateId" element={<ShortsScreen />} />
+          <Route path="*" element={<LoginScreen />} />
+        </Routes>
+      </BrowserRouter>
+    );
   }
 
   if (!roleChecked) {

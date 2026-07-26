@@ -1,12 +1,19 @@
+import { useNavigate } from 'react-router-dom';
 import { signInWithGoogle } from '../services/supabase';
+import { TEMPLATES } from '../data/templates';
+
+// 로그인 없이 먼저 체험해볼 수 있는 쇼츠 미리보기 칩 — HomeScreen 빈 상태의 맛보기 칩과 같은 템플릿 구성
+const PREVIEW_TEMPLATE_IDS = ['english_grammar', 'iip_practical', 'driving_written'] as const;
 
 export default function LoginScreen() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">5분 학습</h1>
         <p className="text-gray-500 text-sm mb-8">
-          서비스를 이용하려면 Google 로그인이 필요해요.
+          매일 5분, 목표만 정하면 요약과 문제를 자동으로 만들어드려요.
         </p>
         <button
           onClick={() => signInWithGoogle()}
@@ -20,6 +27,24 @@ export default function LoginScreen() {
           </svg>
           Google로 로그인
         </button>
+
+        <p className="text-xs text-gray-400 mt-6 mb-3">계정 없이 먼저 둘러볼래요</p>
+        <div className="flex gap-2 justify-center flex-wrap">
+          {PREVIEW_TEMPLATE_IDS.map((tid) => {
+            const tpl = TEMPLATES.find((t) => t.id === tid);
+            if (!tpl) return null;
+            return (
+              <button
+                key={tid}
+                onClick={() => navigate(`/shorts/${tid}`)}
+                className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-medium text-indigo-700"
+              >
+                <span>{tpl.icon}</span>
+                <span>{tpl.name}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
