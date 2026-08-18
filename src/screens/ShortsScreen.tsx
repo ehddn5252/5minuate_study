@@ -89,11 +89,11 @@ async function buildCards(templateId: string): Promise<ShortsCard[]> {
 // ── 개념 카드 ─────────────────────────────────────────────────────────────
 
 const GRADIENTS = [
-  'from-indigo-600 to-violet-700',
-  'from-blue-600 to-indigo-700',
+  'from-[var(--accent-600)] to-violet-700',
+  'from-blue-600 to-[var(--accent-700)]',
   'from-violet-600 to-purple-700',
   'from-sky-600 to-blue-700',
-  'from-purple-600 to-indigo-800',
+  'from-purple-600 to-[var(--accent-800)]',
 ];
 
 function ConceptCardView({ card, index, onNext }: { card: ConceptCard; index: number; onNext: () => void }) {
@@ -295,7 +295,7 @@ export default function ShortsScreen() {
   if (loading) {
     return (
       <div className="h-screen bg-slate-900 flex flex-col items-center justify-center gap-4 text-white">
-        <svg className="animate-spin w-10 h-10 text-indigo-400" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin w-10 h-10 text-[var(--accent-400)]" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
@@ -313,7 +313,7 @@ export default function ShortsScreen() {
         <p className="text-white/60 text-sm">이 템플릿을 처음으로 공부하고<br/>콘텐츠를 만들어보세요!</p>
         <button
           onClick={() => navigate(`/goals/create`)}
-          className="mt-4 px-8 py-3 bg-indigo-600 rounded-xl font-semibold"
+          className="mt-4 px-8 py-3 bg-[var(--accent-600)] rounded-xl font-semibold"
         >
           목표 만들기
         </button>
@@ -371,7 +371,7 @@ export default function ShortsScreen() {
               <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-slate-900">
                 <button
                   onClick={goNext}
-                  className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-semibold text-base"
+                  className="w-full py-4 bg-[var(--accent-600)] text-white rounded-2xl font-semibold text-base"
                 >
                   다음 ↑
                 </button>

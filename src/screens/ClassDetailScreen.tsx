@@ -271,7 +271,7 @@ export default function ClassDetailScreen() {
           <h2 className="font-semibold text-gray-900">📢 공지사항</h2>
           <button
             onClick={() => setShowAnnouncementForm((prev) => !prev)}
-            className="text-sm text-indigo-600 font-medium"
+            className="text-sm text-[var(--accent-600)] font-medium"
           >
             {showAnnouncementForm ? '취소' : '+ 공지 올리기'}
           </button>
@@ -284,12 +284,12 @@ export default function ClassDetailScreen() {
               onChange={(e) => setAnnouncementContent(e.target.value)}
               placeholder="예: 내일 수업은 휴강이에요."
               rows={3}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-sm resize-none"
             />
             <button
               onClick={handleCreateAnnouncement}
               disabled={!announcementContent.trim() || announcementSaving}
-              className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
+              className="w-full py-2.5 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
             >
               {announcementSaving ? '올리는 중…' : '공지 올리기'}
             </button>
@@ -422,7 +422,7 @@ export default function ClassDetailScreen() {
 
         <button
           onClick={() => navigate(`/teacher/classes/${classId}/new-assignment`)}
-          className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] my-4"
+          className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] my-4"
         >
           + 숙제 내기
         </button>
@@ -442,7 +442,7 @@ export default function ClassDetailScreen() {
                           {isOverdue(a.dueDate) ? `마감 지남 (${a.dueDate})` : `마감 ${a.dueDate}`}
                         </span>
                         {typeof a.targetCount === 'number' && (
-                          <span className="text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">
+                          <span className="text-[var(--accent-500)] bg-[var(--accent-50)] px-1.5 py-0.5 rounded">
                             👤 학생 {a.targetCount}명 대상
                           </span>
                         )}
@@ -464,7 +464,7 @@ export default function ClassDetailScreen() {
                         setCopyTargetIds(new Set());
                       }}
                       aria-label="다른 반에 복사"
-                      className="flex-shrink-0 p-2 rounded-xl text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 min-h-[40px] min-w-[40px] flex items-center justify-center"
+                      className="flex-shrink-0 p-2 rounded-xl text-gray-300 hover:text-[var(--accent-500)] hover:bg-[var(--accent-50)] min-h-[40px] min-w-[40px] flex items-center justify-center"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -507,7 +507,7 @@ export default function ClassDetailScreen() {
                       <button
                         onClick={() => handleCopyAssignment(a.id)}
                         disabled={copyTargetIds.size === 0 || copySaving}
-                        className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-medium disabled:opacity-50"
+                        className="px-3 py-1.5 bg-[var(--accent-600)] text-white rounded-lg text-xs font-medium disabled:opacity-50"
                       >
                         {copySaving ? '복사 중…' : `${copyTargetIds.size}개 반에 복사`}
                       </button>
@@ -542,19 +542,19 @@ export default function ClassDetailScreen() {
                     <div className="flex px-5 pt-3">
                       <button
                         onClick={() => setActiveTab('status')}
-                        className={`px-3 py-1.5 text-sm font-medium border-b-2 -mb-px ${activeTab === 'status' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-400'}`}
+                        className={`px-3 py-1.5 text-sm font-medium border-b-2 -mb-px ${activeTab === 'status' ? 'border-[var(--accent-600)] text-[var(--accent-600)]' : 'border-transparent text-gray-400'}`}
                       >
                         학생 현황
                       </button>
                       <button
                         onClick={() => setActiveTab('questions')}
-                        className={`px-3 py-1.5 text-sm font-medium border-b-2 -mb-px ${activeTab === 'questions' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-400'}`}
+                        className={`px-3 py-1.5 text-sm font-medium border-b-2 -mb-px ${activeTab === 'questions' ? 'border-[var(--accent-600)] text-[var(--accent-600)]' : 'border-transparent text-gray-400'}`}
                       >
                         문제 내용 ({openQuestions.length})
                       </button>
                       <button
                         onClick={() => setActiveTab('stats')}
-                        className={`px-3 py-1.5 text-sm font-medium border-b-2 -mb-px ${activeTab === 'stats' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-400'}`}
+                        className={`px-3 py-1.5 text-sm font-medium border-b-2 -mb-px ${activeTab === 'stats' ? 'border-[var(--accent-600)] text-[var(--accent-600)]' : 'border-transparent text-gray-400'}`}
                       >
                         오답 통계
                       </button>
@@ -669,7 +669,7 @@ export default function ClassDetailScreen() {
           <h2 className="font-semibold text-gray-900">📄 수업 자료</h2>
           <button
             onClick={() => setShowMaterialForm((prev) => !prev)}
-            className="text-sm text-indigo-600 font-medium"
+            className="text-sm text-[var(--accent-600)] font-medium"
           >
             {showMaterialForm ? '취소' : '+ 자료 올리기'}
           </button>
@@ -682,14 +682,14 @@ export default function ClassDetailScreen() {
               value={materialTitle}
               onChange={(e) => setMaterialTitle(e.target.value)}
               placeholder="제목 (예: 3과 필기 정리)"
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
             />
             <textarea
               value={materialContent}
               onChange={(e) => setMaterialContent(e.target.value)}
               placeholder="학생들에게 전달할 내용을 입력하세요 (파일만 올릴 거면 비워둬도 돼요)"
               rows={5}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-sm resize-none"
             />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -698,7 +698,7 @@ export default function ClassDetailScreen() {
               <input
                 type="file"
                 onChange={(e) => setMaterialFile(e.target.files?.[0] ?? null)}
-                className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-600 file:text-sm file:font-medium"
+                className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-[var(--accent-50)] file:text-[var(--accent-600)] file:text-sm file:font-medium"
               />
               {materialFile && (
                 <p className="text-xs text-gray-400 mt-1">
@@ -713,7 +713,7 @@ export default function ClassDetailScreen() {
             <button
               onClick={handleCreateMaterial}
               disabled={!materialTitle.trim() || (!materialContent.trim() && !materialFile) || materialSaving}
-              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
+              className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
             >
               {materialSaving ? '올리는 중…' : '자료 올리기'}
             </button>
@@ -735,7 +735,7 @@ export default function ClassDetailScreen() {
                       <p className="font-semibold text-gray-900 truncate">{m.title}</p>
                       <p className="text-xs text-gray-400 mt-0.5">
                         {m.createdAt.split('T')[0]}
-                        {m.fileName && <span className="text-indigo-500"> · 📎 {m.fileName}</span>}
+                        {m.fileName && <span className="text-[var(--accent-500)]"> · 📎 {m.fileName}</span>}
                       </p>
                     </div>
                     <svg
@@ -783,7 +783,7 @@ export default function ClassDetailScreen() {
                       <button
                         onClick={() => handleDownload(m.id, m.filePath!)}
                         disabled={downloadingId === m.id}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-sm font-medium disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent-50)] text-[var(--accent-600)] rounded-xl text-sm font-medium disabled:opacity-50"
                       >
                         📎 {downloadingId === m.id ? '여는 중…' : `${m.fileName} 열기`}
                       </button>

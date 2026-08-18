@@ -156,15 +156,15 @@ export default function VoiceRecorder({ quizId, kind = 'answer', label, question
           type="button"
           onClick={handleGetFeedback}
           disabled={feedbackLoading}
-          className="self-start flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100 transition-colors disabled:opacity-50"
+          className="self-start flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--accent-50)] text-[var(--accent-600)] text-xs font-medium hover:bg-[var(--accent-100)] transition-colors disabled:opacity-50"
         >
           {feedbackLoading ? '듣는 중…' : '🤖 AI 피드백 받기'}
         </button>
       )}
       {feedbackError && <span className="text-xs text-red-500">{feedbackError}</span>}
       {feedback && (
-        <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-100">
-          <p className="text-xs font-semibold text-indigo-600 mb-1">🤖 AI 피드백</p>
+        <div className="p-3 rounded-xl bg-[var(--accent-50)] border border-[var(--accent-100)]">
+          <p className="text-xs font-semibold text-[var(--accent-600)] mb-1">🤖 AI 피드백</p>
           <p className="text-sm text-gray-700 whitespace-pre-wrap">{feedback}</p>
         </div>
       )}

@@ -24,7 +24,7 @@ function DaysLeft({ deadline }: { deadline: string }) {
   );
   if (diff < 0) return <span className="text-red-500 text-sm">마감 지남</span>;
   if (diff === 0) return <span className="text-orange-500 text-sm font-semibold">오늘 마감!</span>;
-  return <span className="text-indigo-500 text-sm">D-{diff}</span>;
+  return <span className="text-[var(--accent-500)] text-sm">D-{diff}</span>;
 }
 
 function DelayLabel({ goal }: { goal: Goal }) {
@@ -106,8 +106,8 @@ function GoalCard({ goal }: { goal: Goal }) {
           )}
           {/* F-37: XP/레벨업 — 완료 화면에서 한 번 반짝이고 사라지지 않도록 상시 배지로도 노출 */}
           {(goal.xp ?? 0) > 0 && (
-            <div className="flex items-center gap-1 bg-indigo-50 rounded-full px-3 py-1">
-              <span className="text-indigo-500 text-xs font-semibold">
+            <div className="flex items-center gap-1 bg-[var(--accent-50)] rounded-full px-3 py-1">
+              <span className="text-[var(--accent-500)] text-xs font-semibold">
                 ✨ Lv.{goal.xpLevel ?? 1}
               </span>
             </div>
@@ -128,7 +128,7 @@ function GoalCard({ goal }: { goal: Goal }) {
         )}
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${isNearFinish ? 'bg-amber-500' : 'bg-indigo-500'}`}
+            className={`h-full rounded-full transition-all ${isNearFinish ? 'bg-amber-500' : 'bg-[var(--accent-500)]'}`}
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -142,13 +142,13 @@ function GoalCard({ goal }: { goal: Goal }) {
           <div className="flex gap-2">
             <button
               onClick={handleStart}
-              className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
+              className="flex-1 py-3 rounded-xl bg-[var(--accent-600)] text-white font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
             >
               다음 학습 계속하기
             </button>
             <button
               onClick={() => navigate(`/materials/${goal.id}`)}
-              className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-600 font-medium text-sm min-h-[44px]"
+              className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-[var(--accent-50)] text-[var(--accent-600)] font-medium text-sm min-h-[44px]"
             >
               📚
             </button>
@@ -158,13 +158,13 @@ function GoalCard({ goal }: { goal: Goal }) {
         <div className="flex gap-2">
           <button
             onClick={() => navigate(`/test/${goal.id}`)}
-            className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
+            className="flex-1 py-3 rounded-xl bg-[var(--accent-600)] text-white font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
           >
             이어하기 · {totalQuizCount - answeredCount}문항 남음
           </button>
           <button
             onClick={() => navigate(`/materials/${goal.id}`)}
-            className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-600 font-medium text-sm min-h-[44px]"
+            className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-[var(--accent-50)] text-[var(--accent-600)] font-medium text-sm min-h-[44px]"
           >
             📚
           </button>
@@ -173,13 +173,13 @@ function GoalCard({ goal }: { goal: Goal }) {
         <div className="flex gap-2">
           <button
             onClick={handleStart}
-            className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
+            className="flex-1 py-3 rounded-xl bg-[var(--accent-600)] text-white font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
           >
             오늘 학습 시작 · 약 5분
           </button>
           <button
             onClick={() => navigate(`/materials/${goal.id}`)}
-            className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-600 font-medium text-sm min-h-[44px]"
+            className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-[var(--accent-50)] text-[var(--accent-600)] font-medium text-sm min-h-[44px]"
           >
             📚
           </button>
@@ -232,7 +232,7 @@ function UrgentBanner({ goals, onStart }: { goals: Goal[]; onStart: (goalId: str
 
   return (
     <div
-      className="mx-4 mb-4 p-4 bg-indigo-600 rounded-2xl flex items-center gap-3 cursor-pointer active:opacity-90 transition-opacity"
+      className="mx-4 mb-4 p-4 bg-[var(--accent-600)] rounded-2xl flex items-center gap-3 cursor-pointer active:opacity-90 transition-opacity"
       onClick={() => onStart(urgentGoal.id)}
     >
       <div className="flex-1">
@@ -245,7 +245,7 @@ function UrgentBanner({ goals, onStart }: { goals: Goal[]; onStart: (goalId: str
           e.stopPropagation();
           handleDismiss();
         }}
-        className="text-indigo-200 hover:text-white p-1 min-h-[36px] min-w-[36px] flex items-center justify-center"
+        className="text-[var(--accent-200)] hover:text-white p-1 min-h-[36px] min-w-[36px] flex items-center justify-center"
       >
         ✕
       </button>
@@ -345,7 +345,7 @@ export default function HomeScreen() {
             </p>
             <button
               onClick={() => navigate('/goals/create')}
-              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] mb-3"
+              className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-base min-h-[44px] mb-3"
             >
               목표 만들기
             </button>
@@ -358,11 +358,11 @@ export default function HomeScreen() {
                   <button
                     key={tid}
                     onClick={() => navigate(`/shorts/${tid}`)}
-                    className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-sm font-medium text-indigo-700"
+                    className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-[var(--accent-50)] border border-[var(--accent-200)] rounded-xl text-sm font-medium text-[var(--accent-700)]"
                   >
                     <span>{tpl.icon}</span>
                     <span>{tpl.name}</span>
-                    <span className="text-xs bg-indigo-600 text-white px-1.5 py-0.5 rounded-full">⚡ 쇼츠</span>
+                    <span className="text-xs bg-[var(--accent-600)] text-white px-1.5 py-0.5 rounded-full">⚡ 쇼츠</span>
                   </button>
                 );
               })}
@@ -388,7 +388,7 @@ export default function HomeScreen() {
             ))}
             <button
               onClick={() => navigate('/goals/create')}
-              className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-medium text-sm min-h-[44px] hover:border-indigo-300 hover:text-indigo-400 transition-colors"
+              className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-medium text-sm min-h-[44px] hover:border-[var(--accent-300)] hover:text-[var(--accent-400)] transition-colors"
             >
               + 목표 추가
             </button>

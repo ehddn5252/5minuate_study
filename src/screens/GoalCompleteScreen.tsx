@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useGoalStore } from '../store';
+import { useGoalStore, useAppStore } from '../store';
 import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
 import { getIdentityStatement } from '../utils/identity';
@@ -28,6 +28,7 @@ export default function GoalCompleteScreen() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const { goals } = useGoalStore();
+  const mascotSkin = useAppStore((s) => s.appState.mascotSkin);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const goal = goals.find((g) => g.id === goalId);
@@ -59,18 +60,18 @@ export default function GoalCompleteScreen() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-yellow-50 via-indigo-50 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-yellow-50 via-[var(--accent-50)] to-white flex items-center justify-center p-4">
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-50" />
       <div className="max-w-md w-full text-center">
         <div className="text-7xl mb-4 animate-bounce">🏆</div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">목표 달성!</h1>
         {goal && (
-          <p className="text-indigo-600 font-semibold text-lg mb-1">{goal.topic}</p>
+          <p className="text-[var(--accent-600)] font-semibold text-lg mb-1">{goal.topic}</p>
         )}
         <p className="text-gray-500 mb-8">처음부터 끝까지 완주했어요. 정말 대단합니다!</p>
 
         {didLevelUp && (
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 mb-4 text-center animate-count-up-pop">
+          <div className="bg-gradient-to-r from-[var(--accent-600)] to-purple-600 rounded-2xl p-5 mb-4 text-center animate-count-up-pop">
             <p className="text-3xl mb-1">🎉</p>
             <p className="text-white font-bold text-lg">레벨 {newLevel} 달성!</p>
           </div>
@@ -79,7 +80,7 @@ export default function GoalCompleteScreen() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex justify-around">
             <div className="text-center">
-              <p className="text-3xl font-bold text-indigo-600">{completedSessions}일</p>
+              <p className="text-3xl font-bold text-[var(--accent-600)]">{completedSessions}일</p>
               <p className="text-gray-500 text-sm mt-1">총 학습</p>
             </div>
             <div className="w-px bg-gray-100" />
@@ -101,10 +102,10 @@ export default function GoalCompleteScreen() {
           {growthFeedback && (
             <p
               className={`text-center text-xs mt-2 ${
-                growthFeedback.isPersonalBest ? 'text-amber-600 font-bold' : 'text-indigo-500 font-medium'
+                growthFeedback.isPersonalBest ? 'text-amber-600 font-bold' : 'text-[var(--accent-500)] font-medium'
               }`}
             >
-              {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone)} ` : '📈 '}
+              {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone, mascotSkin)} ` : '📈 '}
               {growthFeedback.message}
               {growthFeedback.isPersonalBest && ' — 자기 최고 기록!'}
             </p>
@@ -112,7 +113,7 @@ export default function GoalCompleteScreen() {
         </div>
 
         {goal && (
-          <div className="bg-indigo-600 rounded-2xl p-5 mb-4">
+          <div className="bg-[var(--accent-600)] rounded-2xl p-5 mb-4">
             <p className="text-white font-semibold leading-relaxed">
               "{getIdentityStatement(goal.topic)}"
             </p>
@@ -149,14 +150,14 @@ export default function GoalCompleteScreen() {
               }
             }}
             disabled={sharing}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
+            className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
           >
             {sharing ? '생성 중...' : '🙋 친구에게'}
           </button>
         </div>
         <button
           onClick={() => navigate('/goals/create')}
-          className="w-full mb-3 py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold min-h-[44px]"
+          className="w-full mb-3 py-3 border-2 border-[var(--accent-200)] text-[var(--accent-600)] rounded-xl font-semibold min-h-[44px]"
         >
           새 목표 만들기
         </button>

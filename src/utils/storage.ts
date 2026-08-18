@@ -220,6 +220,8 @@ const DEFAULT_APP_STATE: AppState = {
   audioModeEnabled: false,
   celebrationEffectsEnabled: true,
   notificationTrigger: '',
+  accentTheme: 'indigo',
+  mascotSkin: 'classic',
 };
 
 export function getAppState(): AppState {

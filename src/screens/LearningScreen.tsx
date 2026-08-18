@@ -262,7 +262,7 @@ export default function LearningScreen() {
   if (generating) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-4">
-        <svg className="animate-spin w-10 h-10 text-indigo-500" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin w-10 h-10 text-[var(--accent-500)]" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
@@ -289,7 +289,7 @@ export default function LearningScreen() {
         {!isRateLimit && (
           <button
             onClick={handleRetryGenerate}
-            className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px]"
+            className="px-5 py-2.5 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px]"
           >
             다시 시도
           </button>
@@ -323,7 +323,7 @@ export default function LearningScreen() {
             <button
               onClick={handleToggleAudioMode}
               className={`flex-shrink-0 px-3 py-2 rounded-xl text-sm font-medium min-h-[44px] transition-colors ${
-                audioMode ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'
+                audioMode ? 'bg-[var(--accent-600)] text-white' : 'bg-gray-100 text-gray-500'
               }`}
             >
               🔊 듣기
@@ -336,7 +336,7 @@ export default function LearningScreen() {
             <button
               onClick={handleTogglePlay}
               disabled={!summary}
-              className="flex-1 py-2.5 rounded-xl bg-indigo-50 text-indigo-700 font-semibold text-sm min-h-[44px] disabled:opacity-40"
+              className="flex-1 py-2.5 rounded-xl bg-[var(--accent-50)] text-[var(--accent-700)] font-semibold text-sm min-h-[44px] disabled:opacity-40"
             >
               {isPlaying ? '⏸ 일시정지' : '▶ 재생'}
             </button>
@@ -368,7 +368,7 @@ export default function LearningScreen() {
         >
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="bg-indigo-100 text-indigo-600 text-xs font-semibold px-3 py-1 rounded-full">
+              <span className="bg-[var(--accent-100)] text-[var(--accent-600)] text-xs font-semibold px-3 py-1 rounded-full">
                 Day {dayNum}
               </span>
               <h2 className="text-sm font-semibold text-gray-500">오늘의 핵심 내용</h2>
@@ -388,7 +388,7 @@ export default function LearningScreen() {
               if (!text) return null;
               return (
                 <li key={i} className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                  <span className="flex-shrink-0 w-6 h-6 bg-[var(--accent-100)] text-[var(--accent-600)] rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
                     {i + 1}
                   </span>
                   <p className="text-gray-800 text-base leading-relaxed">{text}</p>
@@ -407,7 +407,7 @@ export default function LearningScreen() {
         <button
           onClick={handleStartTest}
           disabled={!summary}
-          className="w-full py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity disabled:opacity-40"
+          className="w-full py-4 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity disabled:opacity-40"
         >
           테스트 시작
         </button>

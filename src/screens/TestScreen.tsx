@@ -446,7 +446,7 @@ export default function TestScreen() {
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-indigo-500 rounded-full transition-all"
+                    className="h-full bg-[var(--accent-500)] rounded-full transition-all"
                     style={{ width: `${((currentIndex + (answered ? 1 : 0)) / testQuizzes.length) * 100}%` }}
                   />
                 </div>
@@ -457,7 +457,7 @@ export default function TestScreen() {
             <button
               onClick={handleToggleAudioMode}
               className={`flex-shrink-0 px-3 py-2 rounded-xl text-sm font-medium min-h-[44px] transition-colors ${
-                audioMode ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'
+                audioMode ? 'bg-[var(--accent-600)] text-white' : 'bg-gray-100 text-gray-500'
               }`}
             >
               🔊
@@ -469,7 +469,7 @@ export default function TestScreen() {
           <div className="flex items-center gap-2 mb-4">
             <button
               onClick={handleTogglePlay}
-              className="flex-1 py-2.5 rounded-xl bg-indigo-50 text-indigo-700 font-semibold text-sm min-h-[44px]"
+              className="flex-1 py-2.5 rounded-xl bg-[var(--accent-50)] text-[var(--accent-700)] font-semibold text-sm min-h-[44px]"
             >
               {isPlaying ? '⏸ 일시정지' : '▶ 문제 듣기'}
             </button>
@@ -504,7 +504,7 @@ export default function TestScreen() {
         {answered && (
           <button
             onClick={handleNext}
-            className="w-full mt-4 py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] active:scale-95 transition-transform"
+            className="w-full mt-4 py-4 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-base min-h-[44px] active:scale-95 transition-transform"
           >
             {inRetryPhase
               ? retryQueue.length === 0

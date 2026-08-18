@@ -34,7 +34,7 @@ function CurriculumTab({
             <div
               key={day.day}
               className={`rounded-xl border overflow-hidden transition-all ${
-                done ? 'border-indigo-200 bg-indigo-50/50' : 'border-gray-200 bg-white'
+                done ? 'border-[var(--accent-200)] bg-[var(--accent-50)]' : 'border-gray-200 bg-white'
               }`}
             >
               <button
@@ -44,13 +44,13 @@ function CurriculumTab({
                 <span
                   className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                     done
-                      ? 'bg-indigo-500 text-white'
+                      ? 'bg-[var(--accent-500)] text-white'
                       : 'bg-gray-100 text-gray-500'
                   }`}
                 >
                   {done ? '✓' : day.day}
                 </span>
-                <span className={`flex-1 text-sm font-medium leading-snug ${done ? 'text-indigo-800' : 'text-gray-800'}`}>
+                <span className={`flex-1 text-sm font-medium leading-snug ${done ? 'text-[var(--accent-800)]' : 'text-gray-800'}`}>
                   {day.topic}
                 </span>
                 <svg
@@ -72,7 +72,7 @@ function CurriculumTab({
                       const isHeader = !line.startsWith('•') && !line.startsWith('-');
                       if (isHeader && i === 0) {
                         return (
-                          <p key={i} className="text-xs font-semibold text-indigo-600 mb-2">
+                          <p key={i} className="text-xs font-semibold text-[var(--accent-600)] mb-2">
                             {line}
                           </p>
                         );
@@ -81,7 +81,7 @@ function CurriculumTab({
                       if (!text) return null;
                       return (
                         <div key={i} className="flex items-start gap-2 mb-1.5">
-                          <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                          <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[var(--accent-400)]" />
                           <p className="text-sm text-gray-700 leading-relaxed">{text}</p>
                         </div>
                       );
@@ -137,12 +137,12 @@ function NotesTab({
         return (
           <div key={session.id} className="bg-white rounded-2xl border border-gray-100 p-4">
             <div className="flex items-center gap-2 mb-3">
-              <span className="bg-indigo-100 text-indigo-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+              <span className="bg-[var(--accent-100)] text-[var(--accent-600)] text-xs font-semibold px-2.5 py-1 rounded-full">
                 Day {dayNum}
               </span>
               <span className="text-xs text-gray-400">{dateStr}</span>
               {curricDay && (
-                <span className="text-xs text-indigo-500 font-medium ml-1">{curricDay.topic}</span>
+                <span className="text-xs text-[var(--accent-500)] font-medium ml-1">{curricDay.topic}</span>
               )}
             </div>
             <ul className="space-y-2">
@@ -151,7 +151,7 @@ function NotesTab({
                 if (!text) return null;
                 return (
                   <li key={i} className="flex items-start gap-2">
-                    <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                    <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[var(--accent-400)]" />
                     <p className="text-sm text-gray-700 leading-relaxed">{text}</p>
                   </li>
                 );
@@ -191,12 +191,12 @@ function MemoTab({
         onChange={(e) => setMemo(e.target.value)}
         placeholder={`예시:\n• systemd는 Linux의 init 시스템\n• systemctl start/stop/enable 명령어\n• 유닛 파일: /etc/systemd/system/`}
         rows={16}
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm leading-relaxed resize-none"
+        className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] text-sm leading-relaxed resize-none"
       />
       <button
         onClick={handleSave}
         disabled={memo === initialMemo}
-        className="mt-3 w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px] disabled:opacity-40"
+        className="mt-3 w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px] disabled:opacity-40"
       >
         {saved ? '저장됨!' : '저장'}
       </button>
@@ -268,7 +268,7 @@ export default function StudyMaterialsScreen() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                 activeTab === tab.id
-                  ? 'bg-white text-indigo-600 shadow-sm'
+                  ? 'bg-white text-[var(--accent-600)] shadow-sm'
                   : 'text-gray-500'
               }`}
             >

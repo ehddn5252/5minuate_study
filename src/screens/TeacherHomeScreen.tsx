@@ -58,7 +58,7 @@ export default function TeacherHomeScreen() {
             <p className="text-gray-400 text-xs mt-0.5">반을 만들고 학생 숙제를 확인해요</p>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/my-study')} className="text-indigo-500 text-sm hover:text-indigo-600">
+            <button onClick={() => navigate('/my-study')} className="text-[var(--accent-500)] text-sm hover:text-[var(--accent-600)]">
               개인 학습 보기
             </button>
             <button onClick={handleSignOut} className="text-gray-400 text-sm hover:text-gray-600">
@@ -95,7 +95,7 @@ export default function TeacherHomeScreen() {
               <button
                 key={c.id}
                 onClick={() => navigate(`/teacher/classes/${c.id}`)}
-                className="w-full text-left bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:border-indigo-200 transition-colors"
+                className="w-full text-left bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:border-[var(--accent-200)] transition-colors"
               >
                 <p className="font-semibold text-gray-900">{c.name}</p>
                 <p className="text-xs text-gray-400 mt-1">참여 코드: {c.inviteCode}</p>
@@ -114,7 +114,7 @@ export default function TeacherHomeScreen() {
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
               placeholder="예: 중2 영문법반"
               autoFocus
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base mb-3"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base mb-3"
             />
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
             <div className="flex gap-2">
@@ -127,7 +127,7 @@ export default function TeacherHomeScreen() {
               <button
                 onClick={handleCreate}
                 disabled={!newName.trim()}
-                className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
+                className="flex-1 py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
               >
                 만들기
               </button>
@@ -136,7 +136,7 @@ export default function TeacherHomeScreen() {
         ) : (
           <button
             onClick={() => setCreating(true)}
-            className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-medium text-sm min-h-[44px] hover:border-indigo-300 hover:text-indigo-400 transition-colors"
+            className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-medium text-sm min-h-[44px] hover:border-[var(--accent-300)] hover:text-[var(--accent-400)] transition-colors"
           >
             + 반 만들기
           </button>

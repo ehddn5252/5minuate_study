@@ -3,6 +3,8 @@ export type SessionStatus = 'pending' | 'in_progress' | 'completed';
 export type QuizType = 'multiple_choice' | 'short_answer';
 export type QuizLevel = 'beginner' | 'intermediate' | 'advanced';
 export type MateTone = 'friendly' | 'hype' | 'plain';
+export type AccentTheme = 'indigo' | 'rose' | 'emerald' | 'amber' | 'violet';
+export type MascotSkin = 'classic' | 'cat';
 
 export interface Goal {
   id: string;
@@ -114,4 +116,7 @@ export interface AppState {
   // D-3: 실행의도(if-then 계획) — "점심 먹고 나서"처럼 알림에 담을 상황 트리거 문구.
   // 프리셋으로만 설정되며(자유 입력 아님), 비어있으면 기존 감성 문구만 사용한다.
   notificationTrigger: string;
+  // F-41: 스킨 — 앱 전체 포인트 컬러(accentTheme)와 마스코트 캐릭터(mascotSkin)를 사용자가 고를 수 있게.
+  accentTheme: AccentTheme;
+  mascotSkin: MascotSkin;
 }

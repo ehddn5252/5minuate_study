@@ -115,7 +115,7 @@ function GoalItem({
         {goal.status === 'active' && (
           <button
             onClick={() => navigate(`/learn/${goal.id}`)}
-            className="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium min-h-[44px]"
+            className="flex-1 py-2 bg-[var(--accent-600)] text-white rounded-xl text-sm font-medium min-h-[44px]"
           >
             학습하기
           </button>
@@ -224,7 +224,7 @@ export default function GoalListScreen() {
           <h1 className="text-xl font-bold text-gray-900 flex-1">학습 목표</h1>
           <button
             onClick={() => navigate('/goals/create')}
-            className="p-2 rounded-xl bg-indigo-600 text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2 rounded-xl bg-[var(--accent-600)] text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -239,7 +239,7 @@ export default function GoalListScreen() {
               onClick={() => setFilter(f)}
               className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium min-h-[36px] transition-colors ${
                 filter === f
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-[var(--accent-600)] text-white'
                   : 'bg-white text-gray-500 border border-gray-200'
               }`}
             >
@@ -253,7 +253,7 @@ export default function GoalListScreen() {
             <p className="text-gray-400 mb-4">목표가 없습니다</p>
             <button
               onClick={() => navigate('/goals/create')}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium min-h-[44px]"
+              className="px-6 py-3 bg-[var(--accent-600)] text-white rounded-xl font-medium min-h-[44px]"
             >
               목표 추가
             </button>

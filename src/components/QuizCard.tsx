@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuizStore } from '../store';
+import { useQuizStore, useAppStore } from '../store';
 import { getMascotFace } from '../utils/mascot';
 import { removeFromWrongPool } from '../utils/storage';
 import { reportBankQuestion } from '../services/questionBank';
@@ -19,6 +19,7 @@ type ReportState = 'idle' | 'confirming' | 'sending' | 'done';
 
 export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: QuizCardProps) {
   const { updateQuiz, deleteQuiz } = useQuizStore();
+  const mascotSkin = useAppStore((s) => s.appState.mascotSkin);
   const [selected, setSelected] = useState<string | null>(null);
   const [shortInput, setShortInput] = useState('');
   const [revealed, setRevealed] = useState(false);
@@ -120,7 +121,7 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
             let cls =
               'w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] flex items-center justify-between gap-2 ';
             if (!revealed) {
-              cls += 'border-gray-200 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50 active:scale-[0.97]';
+              cls += 'border-gray-200 text-gray-700 hover:border-[var(--accent-300)] hover:bg-[var(--accent-50)] active:scale-[0.97]';
             } else if (isCorrectOption) {
               cls += 'border-green-500 bg-green-50 text-green-700 ring-4 ring-green-100 animate-feedback-pop';
             } else if (isWrongPick) {
@@ -155,13 +156,13 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
             onKeyDown={(e) => e.key === 'Enter' && !revealed && handleShortAnswer()}
             placeholder="답을 입력하세요"
             disabled={revealed}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
           />
           {!revealed && (
             <button
               onClick={handleShortAnswer}
               disabled={!shortInput.trim()}
-              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px] disabled:opacity-40"
+              className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px] disabled:opacity-40"
             >
               제출
             </button>
@@ -170,7 +171,7 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
       )}
 
       {awaitingSelfJudge && (
-        <div className="mt-4 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
+        <div className="mt-4 p-4 rounded-xl bg-[var(--accent-50)] border border-[var(--accent-100)]">
           <p className="text-sm text-gray-600 mb-1">
             정답: <strong>{quiz.answer}</strong>
           </p>
@@ -207,7 +208,7 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
               isCorrect ? 'text-green-700' : 'text-amber-700'
             }`}
           >
-            <span className="text-lg inline-block animate-count-up-pop">{getMascotFace(isCorrect ? 'correct' : 'wrong', mateTone)}</span>
+            <span className="text-lg inline-block animate-count-up-pop">{getMascotFace(isCorrect ? 'correct' : 'wrong', mateTone, mascotSkin)}</span>
             {isCorrect ? '정답입니다!' : '다음에 다시 나와요'}
           </p>
           {!isCorrect && (

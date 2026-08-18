@@ -8,7 +8,7 @@ import { getCompletionFace, getMascotFace } from '../utils/mascot';
 import { useCountUp } from '../utils/useCountUp';
 import { nextLevel, LEVEL_LABEL } from '../utils/difficultyAdaptation';
 import type { LevelSuggestion } from '../utils/difficultyAdaptation';
-import { useGoalStore } from '../store';
+import { useGoalStore, useAppStore } from '../store';
 import type { BadgeId, MateTone } from '../types';
 import type { GrowthFeedback } from '../utils/growthFeedback';
 
@@ -34,6 +34,7 @@ export default function SessionCompleteScreen() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const { goals, updateGoal } = useGoalStore();
+  const mascotSkin = useAppStore((s) => s.appState.mascotSkin);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const score = state?.score ?? 0;
@@ -108,7 +109,7 @@ export default function SessionCompleteScreen() {
       key: 'levelup',
       chip: { icon: '🎉', label: '레벨업' },
       full: (
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 mb-4 text-center animate-count-up-pop">
+        <div className="bg-gradient-to-r from-[var(--accent-600)] to-purple-600 rounded-2xl p-5 mb-4 text-center animate-count-up-pop">
           <p className="text-3xl mb-1">🎉</p>
           <p className="text-white font-bold text-lg">레벨 {newLevel} 달성!</p>
         </div>
@@ -118,7 +119,7 @@ export default function SessionCompleteScreen() {
       key: 'milestone',
       chip: { icon: '🏅', label: '마일스톤 달성' },
       full: (
-        <div className="bg-indigo-600 rounded-2xl p-5 mb-4">
+        <div className="bg-[var(--accent-600)] rounded-2xl p-5 mb-4">
           <p className="text-white font-semibold leading-relaxed">
             "{getIdentityStatement(topic)}"
           </p>
@@ -129,15 +130,15 @@ export default function SessionCompleteScreen() {
       key: 'badges',
       chip: { icon: '🎉', label: `뱃지 ${gridBadges.length}개 획득` },
       full: (
-        <div className="bg-indigo-50 rounded-2xl p-4 mb-4 border border-indigo-100">
-          <p className="text-indigo-700 font-semibold text-sm mb-3">🎉 뱃지 획득!</p>
+        <div className="bg-[var(--accent-50)] rounded-2xl p-4 mb-4 border border-[var(--accent-100)]">
+          <p className="text-[var(--accent-700)] font-semibold text-sm mb-3">🎉 뱃지 획득!</p>
           <div className="flex flex-wrap gap-3 justify-center">
             {gridBadges.map((id) => {
               const def = getBadgeDef(id);
               return (
                 <div key={id} className="flex flex-col items-center gap-1">
                   <span className="text-3xl">{def.icon}</span>
-                  <span className="text-xs font-medium text-indigo-600">{def.name}</span>
+                  <span className="text-xs font-medium text-[var(--accent-600)]">{def.name}</span>
                 </div>
               );
             })}
@@ -160,11 +161,11 @@ export default function SessionCompleteScreen() {
   const overflowCards = achievementCards.slice(2);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex items-center justify-center p-4 pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-[var(--accent-50)] to-white flex items-center justify-center p-4 pb-20">
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-50" />
       <div className="max-w-md w-full text-center">
         <div className="text-6xl mb-4 animate-bounce">
-          {getCompletionFace(percent, mateTone)}
+          {getCompletionFace(percent, mateTone, mascotSkin)}
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">오늘 학습 완료!</h1>
@@ -175,7 +176,7 @@ export default function SessionCompleteScreen() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex justify-around">
             <div className="text-center">
-              <p className="text-3xl font-bold text-indigo-600">
+              <p className="text-3xl font-bold text-[var(--accent-600)]">
                 {score}/{total}
               </p>
               <p className="text-gray-500 text-sm mt-1">정답</p>
@@ -201,10 +202,10 @@ export default function SessionCompleteScreen() {
           {growthFeedback && (
             <p
               className={`text-center text-xs mt-2 ${
-                growthFeedback.isPersonalBest ? 'text-amber-600 font-bold' : 'text-indigo-500 font-medium'
+                growthFeedback.isPersonalBest ? 'text-amber-600 font-bold' : 'text-[var(--accent-500)] font-medium'
               }`}
             >
-              {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone)} ` : '📈 '}
+              {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone, mascotSkin)} ` : '📈 '}
               {growthFeedback.message}
               {growthFeedback.isPersonalBest && ' — 자기 최고 기록!'}
             </p>
@@ -269,14 +270,14 @@ export default function SessionCompleteScreen() {
               }
             }}
             disabled={sharing}
-            className="w-full py-3 border-2 border-indigo-200 text-indigo-600 rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
+            className="w-full py-3 border-2 border-[var(--accent-200)] text-[var(--accent-600)] rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-50"
           >
             {sharing ? '생성 중...' : '🙋 친구에게'}
           </button>
         </div>
         <button
           onClick={() => navigate('/')}
-          className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"
+          className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px]"
         >
           홈으로 가기
         </button>

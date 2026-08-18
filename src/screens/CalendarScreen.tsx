@@ -116,9 +116,9 @@ export default function CalendarScreen() {
                   onClick={() => setSelectedDate(dateStr)}
                   className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5 text-xs transition-colors ${
                     isSelected
-                      ? 'bg-indigo-600 text-white font-semibold'
+                      ? 'bg-[var(--accent-600)] text-white font-semibold'
                       : isToday
-                        ? 'bg-indigo-50 text-indigo-600 font-bold'
+                        ? 'bg-[var(--accent-50)] text-[var(--accent-600)] font-bold'
                         : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >

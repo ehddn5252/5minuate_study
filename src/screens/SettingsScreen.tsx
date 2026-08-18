@@ -13,11 +13,28 @@ import {
 } from '../services/academy';
 import type { User } from '@supabase/supabase-js';
 import BottomNav from '../components/BottomNav';
+import { useAppStore } from '../store';
+import { getMascotFace } from '../utils/mascot';
+import type { AccentTheme, MascotSkin } from '../types';
 
 const SUPPORT_EMAIL = 'ehddn5252@gmail.com';
 
+const ACCENT_THEMES: { id: AccentTheme; label: string; swatch: string }[] = [
+  { id: 'indigo', label: '인디고', swatch: '#4f46e5' },
+  { id: 'rose', label: '로즈', swatch: '#e11d48' },
+  { id: 'emerald', label: '에메랄드', swatch: '#059669' },
+  { id: 'amber', label: '앰버', swatch: '#d97706' },
+  { id: 'violet', label: '바이올렛', swatch: '#7c3aed' },
+];
+
+const MASCOT_SKINS: { id: MascotSkin; label: string }[] = [
+  { id: 'classic', label: '스마일' },
+  { id: 'cat', label: '고양이' },
+];
+
 export default function SettingsScreen() {
   const navigate = useNavigate();
+  const { appState, updateAppState } = useAppStore();
   const [user, setUser] = useState<User | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
@@ -121,13 +138,53 @@ export default function SettingsScreen() {
           <h1 className="text-xl font-bold text-gray-900">설정</h1>
         </div>
 
+        {/* 스킨 섹션 — 포인트 컬러 + 마스코트 캐릭터 */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+          <h2 className="font-semibold text-gray-900 mb-3">스킨 꾸미기</h2>
+          <p className="text-xs text-gray-400 mb-2">포인트 컬러</p>
+          <div className="flex gap-2.5 mb-4">
+            {ACCENT_THEMES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => updateAppState({ accentTheme: t.id })}
+                aria-label={t.label}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 ${
+                  appState.accentTheme === t.id ? 'ring-2 ring-offset-2 ring-gray-300' : ''
+                }`}
+                style={{ backgroundColor: t.swatch }}
+              >
+                {appState.accentTheme === t.id && <span className="text-white text-sm">✓</span>}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mb-2">마스코트</p>
+          <div className="flex gap-2.5">
+            {MASCOT_SKINS.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => updateAppState({ mascotSkin: s.id })}
+                className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl border-2 transition-colors ${
+                  appState.mascotSkin === s.id
+                    ? 'border-[var(--accent-500)] bg-[var(--accent-50)]'
+                    : 'border-gray-200'
+                }`}
+              >
+                <span className="text-2xl">{getMascotFace('celebrate', 'plain', s.id)}</span>
+                <span className={`text-xs font-medium ${appState.mascotSkin === s.id ? 'text-[var(--accent-700)]' : 'text-gray-500'}`}>
+                  {s.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* 계정 섹션 */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">계정 & 동기화</h2>
           {user ? (
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[var(--accent-100)] flex items-center justify-center text-[var(--accent-600)] font-bold text-sm flex-shrink-0">
                   {user.email?.[0]?.toUpperCase() ?? 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -139,7 +196,7 @@ export default function SettingsScreen() {
                 <button
                   onClick={handleSync}
                   disabled={syncing}
-                  className="flex-1 py-2.5 border border-indigo-200 text-indigo-600 rounded-xl text-sm font-medium min-h-[44px] disabled:opacity-50"
+                  className="flex-1 py-2.5 border border-[var(--accent-200)] text-[var(--accent-600)] rounded-xl text-sm font-medium min-h-[44px] disabled:opacity-50"
                 >
                   {syncing ? '동기화 중...' : '지금 동기화'}
                 </button>
@@ -151,7 +208,7 @@ export default function SettingsScreen() {
                 </button>
               </div>
               {syncMsg && (
-                <p className="text-xs text-center mt-2 text-indigo-500">{syncMsg}</p>
+                <p className="text-xs text-center mt-2 text-[var(--accent-500)]">{syncMsg}</p>
               )}
             </div>
           ) : (
@@ -161,7 +218,7 @@ export default function SettingsScreen() {
               </p>
               <button
                 onClick={() => signInWithGoogle()}
-                className="w-full flex items-center justify-center gap-3 py-3 border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-700 min-h-[44px] hover:border-indigo-300 transition-colors"
+                className="w-full flex items-center justify-center gap-3 py-3 border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-700 min-h-[44px] hover:border-[var(--accent-300)] transition-colors"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -189,17 +246,17 @@ export default function SettingsScreen() {
                 onKeyDown={(e) => e.key === 'Enter' && handleSaveNickname()}
                 placeholder="닉네임을 입력하세요"
                 maxLength={20}
-                className="flex-1 px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                className="flex-1 px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-sm"
               />
               <button
                 onClick={handleSaveNickname}
                 disabled={!nickname.trim() || nickname.trim() === nicknameSaved || nicknameSaving}
-                className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium disabled:opacity-40"
+                className="px-4 py-2.5 bg-[var(--accent-600)] text-white rounded-xl text-sm font-medium disabled:opacity-40"
               >
                 {nicknameSaving ? '저장 중…' : '저장'}
               </button>
             </div>
-            {nicknameMsg && <p className="text-xs text-indigo-500 mt-2">{nicknameMsg}</p>}
+            {nicknameMsg && <p className="text-xs text-[var(--accent-500)] mt-2">{nicknameMsg}</p>}
             <p className="text-xs text-gray-400 mt-2">학원 반에 참여 중이면 선생님께 보이는 이름도 함께 바뀌어요.</p>
           </div>
         )}
@@ -208,7 +265,7 @@ export default function SettingsScreen() {
           <h2 className="font-semibold text-gray-900 mb-3">학습 데이터</h2>
           <button
             onClick={() => navigate('/wrong-pool')}
-            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
+            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
           >
             <span>오답 목록 보기</span>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,7 +274,7 @@ export default function SettingsScreen() {
           </button>
           <button
             onClick={() => navigate('/my-questions')}
-            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
+            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
           >
             <span>내 문제집 보기</span>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,7 +283,7 @@ export default function SettingsScreen() {
           </button>
           <button
             onClick={() => navigate('/recordings')}
-            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
+            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
           >
             <span>녹음 모음 보기</span>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,14 +310,14 @@ export default function SettingsScreen() {
           ) : (
             <>
               {academyName && (
-                <div className="mb-3 p-3 bg-indigo-50 rounded-xl">
-                  <p className="text-sm text-indigo-700 mb-2">
+                <div className="mb-3 p-3 bg-[var(--accent-50)] rounded-xl">
+                  <p className="text-sm text-[var(--accent-700)] mb-2">
                     🏫 {academyName} 선생님 계정이에요 (지금은 학생 화면 사용 중)
                   </p>
                   <button
                     onClick={() => handleSwitchRole('teacher')}
                     disabled={switchingRole}
-                    className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                    className="w-full py-2 bg-[var(--accent-600)] text-white rounded-lg text-sm font-medium disabled:opacity-50"
                   >
                     {switchingRole ? '전환 중…' : '선생님 모드로 전환'}
                   </button>
@@ -278,7 +335,7 @@ export default function SettingsScreen() {
               )}
               <button
                 onClick={() => navigate('/join-class')}
-                className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
+                className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
               >
                 <span>{joinedClasses.length > 0 ? '+ 다른 반 참여하기' : '반 참여하기'}</span>
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,7 +345,7 @@ export default function SettingsScreen() {
               {!academyName && (
                 <button
                   onClick={() => navigate('/teacher/onboard')}
-                  className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
+                  className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
                 >
                   <span>선생님이신가요? 학원 시작하기</span>
                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,7 +361,7 @@ export default function SettingsScreen() {
           <h2 className="font-semibold text-gray-900 mb-3">고객센터</h2>
           <a
             href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[5분 학습] 문의')}&body=${encodeURIComponent('아래에 문의 내용을 자유롭게 작성해주세요.\n\n')}`}
-            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors"
+            className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
           >
             <span>문의하기</span>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -100,7 +100,7 @@ export default function MixReviewScreen() {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"
+            className="px-6 py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px]"
           >
             홈으로
           </button>
@@ -168,7 +168,7 @@ export default function MixReviewScreen() {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"
+            className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px]"
           >
             홈으로
           </button>
@@ -217,7 +217,7 @@ export default function MixReviewScreen() {
         {answered && (
           <button
             onClick={handleNext}
-            className="w-full mt-4 py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] active:scale-95 transition-transform"
+            className="w-full mt-4 py-4 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-base min-h-[44px] active:scale-95 transition-transform"
           >
             {isLast ? '결과 보기' : '다음 문제'}
           </button>

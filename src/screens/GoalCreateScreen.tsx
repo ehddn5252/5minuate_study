@@ -162,7 +162,7 @@ export default function GoalCreateScreen() {
           </p>
           <button
             onClick={() => navigate('/goals')}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"
+            className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px]"
           >
             목표 목록으로
           </button>
@@ -197,8 +197,8 @@ export default function GoalCreateScreen() {
                   disabled={loading}
                   className={`relative flex flex-col items-center gap-1.5 w-20 py-3 px-2 rounded-2xl border-2 transition-all ${
                     selectedTemplateId === tpl.id
-                      ? 'border-indigo-500 bg-indigo-50'
-                      : 'border-gray-200 bg-white hover:border-indigo-200'
+                      ? 'border-[var(--accent-500)] bg-[var(--accent-50)]'
+                      : 'border-gray-200 bg-white hover:border-[var(--accent-200)]'
                   }`}
                 >
                   {tpl.examScoped && (
@@ -208,7 +208,7 @@ export default function GoalCreateScreen() {
                   )}
                   <span className="text-2xl mt-1">{tpl.icon}</span>
                   <span className={`text-xs font-medium text-center leading-tight ${
-                    selectedTemplateId === tpl.id ? 'text-indigo-700' : 'text-gray-600'
+                    selectedTemplateId === tpl.id ? 'text-[var(--accent-700)]' : 'text-gray-600'
                   }`}>
                     {tpl.name}
                   </span>
@@ -219,7 +219,7 @@ export default function GoalCreateScreen() {
                 {!tpl.examScoped && (
                   <button
                     onClick={() => navigate(`/shorts/${tpl.id}`)}
-                    className="text-xs text-indigo-500 text-center py-0.5 hover:text-indigo-700"
+                    className="text-xs text-[var(--accent-500)] text-center py-0.5 hover:text-[var(--accent-700)]"
                   >
                     ⚡ 쇼츠
                   </button>
@@ -228,7 +228,7 @@ export default function GoalCreateScreen() {
             ))}
           </div>
           {selectedTemplateId && (
-            <p className="text-xs text-indigo-500 mt-2 px-1">
+            <p className="text-xs text-[var(--accent-500)] mt-2 px-1">
               {examScoped
                 ? '✓ 템플릿 적용됨 — 시험 날짜와 범위를 직접 입력해주세요.'
                 : '✓ 템플릿 적용됨 — 주제와 기한이 자동 입력됐어요. 수정 가능합니다.'}
@@ -252,7 +252,7 @@ export default function GoalCreateScreen() {
               value={topic}
               onChange={(e) => { setTopic(e.target.value); setSelectedTemplateId(null); setSelectedCurriculumId(undefined); setPickedTemplateId(undefined); setExamScoped(false); }}
               placeholder="예: 리액트 훅의 개념과 활용"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
               required
               disabled={loading}
             />
@@ -268,7 +268,7 @@ export default function GoalCreateScreen() {
               onChange={(e) => setDeadline(e.target.value)}
               min={minDateStr}
               placeholder={examScoped ? '예: 2026-09-15' : undefined}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
               required
               disabled={loading}
             />
@@ -286,7 +286,7 @@ export default function GoalCreateScreen() {
                 <button
                   type="button"
                   onClick={() => navigate(`/level-test/${selectedTemplateId}`)}
-                  className="text-xs text-indigo-600 font-medium"
+                  className="text-xs text-[var(--accent-600)] font-medium"
                 >
                   🎯 레벨테스트로 확인하기
                 </button>
@@ -301,8 +301,8 @@ export default function GoalCreateScreen() {
                   disabled={loading}
                   className={`flex-1 py-3 rounded-xl border-2 text-sm font-semibold min-h-[44px] transition-colors ${
                     level === opt.id
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-200'
+                      ? 'border-[var(--accent-500)] bg-[var(--accent-50)] text-[var(--accent-700)]'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-[var(--accent-200)]'
                   }`}
                 >
                   {opt.label}
@@ -310,7 +310,7 @@ export default function GoalCreateScreen() {
               ))}
             </div>
             {levelFromTest && (
-              <p className="text-xs text-indigo-500 mt-1.5">✓ 레벨테스트 결과로 자동 설정됐어요.</p>
+              <p className="text-xs text-[var(--accent-500)] mt-1.5">✓ 레벨테스트 결과로 자동 설정됐어요.</p>
             )}
           </div>
 
@@ -327,7 +327,7 @@ export default function GoalCreateScreen() {
                   : '학습에 참고할 내용을 붙여넣거나 입력하세요...'
               }
               rows={5}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base resize-none"
               disabled={loading}
             />
             {examScoped && (
@@ -341,12 +341,12 @@ export default function GoalCreateScreen() {
             </div>
           )}
 
-          <div className="bg-indigo-50 rounded-xl p-4">
-            <p className="text-indigo-700 text-sm">
+          <div className="bg-[var(--accent-50)] rounded-xl p-4">
+            <p className="text-[var(--accent-700)] text-sm">
               AI가 참고 자료 양과 학습 기간에 맞춰 학습 요약과 퀴즈를 자동으로 생성합니다.
               약 10~20초 소요됩니다.
             </p>
-            <p className="text-indigo-500 text-xs mt-1.5">
+            <p className="text-[var(--accent-500)] text-xs mt-1.5">
               💚 하루 5분이면 충분해요.
             </p>
           </div>
@@ -354,7 +354,7 @@ export default function GoalCreateScreen() {
           <button
             type="submit"
             disabled={loading || !topic.trim() || !deadline}
-            className="w-full py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed active:opacity-80 transition-opacity"
+            className="w-full py-4 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-base min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed active:opacity-80 transition-opacity"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

@@ -44,7 +44,7 @@ export default function InstallBanner() {
   };
 
   return (
-    <div className="mx-4 mb-4 p-4 bg-white rounded-2xl border border-indigo-100 shadow-sm flex items-center gap-3">
+    <div className="mx-4 mb-4 p-4 bg-white rounded-2xl border border-[var(--accent-100)] shadow-sm flex items-center gap-3">
       <span className="text-2xl flex-shrink-0">📲</span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-900">홈 화면에 추가하고 더 빠르게 열어보세요</p>
@@ -52,7 +52,7 @@ export default function InstallBanner() {
       </div>
       <button
         onClick={handleInstall}
-        className="flex-shrink-0 px-3 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium min-h-[36px]"
+        className="flex-shrink-0 px-3 py-2 bg-[var(--accent-600)] text-white rounded-xl text-sm font-medium min-h-[36px]"
       >
         설치
       </button>

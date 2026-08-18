@@ -94,7 +94,7 @@ export default function App() {
   const { loadGoals } = useGoalStore();
   const { loadSessions } = useSessionStore();
   const { loadQuizzes } = useQuizStore();
-  const { loadAppState } = useAppStore();
+  const { loadAppState, appState } = useAppStore();
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -171,6 +171,12 @@ export default function App() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 설정 화면에서 스킨을 바꾸거나, 로그인 후 클라우드에서 appState를 새로 불러올 때도
+  // main.tsx의 최초 1회 적용과 별개로 계속 반영되도록 여기서 동기화한다.
+  useEffect(() => {
+    document.documentElement.dataset.theme = appState.accentTheme;
+  }, [appState.accentTheme]);
 
   if (!authChecked) {
     return <div className="min-h-screen bg-gray-50" />;

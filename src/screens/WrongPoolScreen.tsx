@@ -55,7 +55,7 @@ export default function WrongPoolScreen() {
                 </h2>
                 <button
                   onClick={() => navigate(`/retry/${goal.id}`)}
-                  className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full min-h-[28px]"
+                  className="text-xs font-semibold text-[var(--accent-600)] bg-[var(--accent-50)] px-3 py-1.5 rounded-full min-h-[28px]"
                 >
                   🔁 다시 풀기
                 </button>
@@ -68,7 +68,7 @@ export default function WrongPoolScreen() {
                     </span>
                     <p className="text-gray-900 text-sm font-medium leading-snug">{quiz.question}</p>
                   </div>
-                  <p className="text-indigo-600 text-sm mb-1.5 pl-1">
+                  <p className="text-[var(--accent-600)] text-sm mb-1.5 pl-1">
                     정답: <strong>{quiz.answer}</strong>
                   </p>
                   {quiz.explanation && (

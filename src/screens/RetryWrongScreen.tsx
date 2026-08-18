@@ -40,7 +40,7 @@ export default function RetryWrongScreen() {
           <p className="text-gray-500 mb-6">다시 풀 오답이 없어요.</p>
           <button
             onClick={() => navigate('/wrong-pool')}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"
+            className="px-6 py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px]"
           >
             오답 목록으로
           </button>
@@ -107,7 +107,7 @@ export default function RetryWrongScreen() {
           </p>
           <button
             onClick={() => navigate('/wrong-pool')}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px]"
+            className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px]"
           >
             오답 목록으로
           </button>
@@ -156,7 +156,7 @@ export default function RetryWrongScreen() {
         {answered && (
           <button
             onClick={handleNext}
-            className="w-full mt-4 py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] active:scale-95 transition-transform"
+            className="w-full mt-4 py-4 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-base min-h-[44px] active:scale-95 transition-transform"
           >
             {isLast ? '결과 보기' : '다음 문제'}
           </button>

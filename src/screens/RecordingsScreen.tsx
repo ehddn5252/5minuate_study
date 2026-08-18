@@ -102,7 +102,7 @@ export default function RecordingsScreen() {
                         className={`inline-block text-[10px] font-medium px-1.5 py-0.5 rounded-full mb-1 ${
                           recording.kind === 'explanation'
                             ? 'bg-amber-100 text-amber-700'
-                            : 'bg-indigo-100 text-indigo-600'
+                            : 'bg-[var(--accent-100)] text-[var(--accent-600)]'
                         }`}
                       >
                         {recording.kind === 'explanation' ? '오답 설명' : '내 답변'}

@@ -29,7 +29,7 @@ export default function JoinClassScreen() {
         <p className="text-gray-700 text-center font-medium">{joinedName}에 참여했어요!</p>
         <button
           onClick={() => navigate('/assignments')}
-          className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px]"
+          className="px-5 py-2.5 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px]"
         >
           숙제 보러가기
         </button>
@@ -62,13 +62,13 @@ export default function JoinClassScreen() {
             onChange={(e) => setCode(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="예: 7F3K9Q"
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base mb-3"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base mb-3"
           />
           {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
           <button
             onClick={handleSubmit}
             disabled={!code.trim() || loading}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
+            className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
           >
             {loading ? '확인 중…' : '참여하기'}
           </button>

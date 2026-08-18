@@ -80,7 +80,7 @@ export default function LevelTestScreen() {
         <p className="text-gray-500 text-sm">이 템플릿은 아직 레벨테스트를 지원하지 않아요.</p>
         <button
           onClick={() => navigate(-1)}
-          className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px]"
+          className="px-5 py-2.5 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px]"
         >
           뒤로
         </button>
@@ -97,11 +97,11 @@ export default function LevelTestScreen() {
         <p className="text-gray-500 text-sm">{questions.length}문제 중 {score}문제 정답</p>
         <div className="w-full max-w-xs bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <p className="text-xs text-gray-400 mb-1">추천 난이도</p>
-          <p className="text-2xl font-bold text-indigo-600">{LEVEL_LABEL[recommendedLevel]}</p>
+          <p className="text-2xl font-bold text-[var(--accent-600)]">{LEVEL_LABEL[recommendedLevel]}</p>
         </div>
         <button
           onClick={() => handleUseLevel(recommendedLevel)}
-          className="w-full max-w-xs py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] active:scale-95 transition-transform"
+          className="w-full max-w-xs py-4 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-base min-h-[44px] active:scale-95 transition-transform"
         >
           {LEVEL_LABEL[recommendedLevel]}으로 목표 만들기
         </button>
@@ -135,7 +135,7 @@ export default function LevelTestScreen() {
             <p className="text-xs text-gray-400 mb-1">🎯 {template.name} 레벨테스트</p>
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-indigo-500 rounded-full transition-all"
+                className="h-full bg-[var(--accent-500)] rounded-full transition-all"
                 style={{ width: `${((index + (revealed ? 1 : 0)) / questions.length) * 100}%` }}
               />
             </div>
@@ -152,7 +152,7 @@ export default function LevelTestScreen() {
               let cls =
                 'w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] flex items-center justify-between gap-2 ';
               if (!revealed) {
-                cls += 'border-gray-200 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50 active:scale-[0.97]';
+                cls += 'border-gray-200 text-gray-700 hover:border-[var(--accent-300)] hover:bg-[var(--accent-50)] active:scale-[0.97]';
               } else if (isCorrectOption) {
                 cls += 'border-green-500 bg-green-50 text-green-700 ring-4 ring-green-100 animate-feedback-pop';
               } else if (isWrongPick) {
@@ -173,7 +173,7 @@ export default function LevelTestScreen() {
           {revealed && (
             <button
               onClick={handleNext}
-              className="w-full mt-4 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] active:scale-95 transition-transform"
+              className="w-full mt-4 py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] active:scale-95 transition-transform"
             >
               {isLast ? '결과 보기' : '다음 문제'}
             </button>

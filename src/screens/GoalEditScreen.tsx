@@ -20,7 +20,7 @@ export default function GoalEditScreen() {
           <p className="text-gray-500 mb-4">목표를 찾을 수 없습니다.</p>
           <button
             onClick={() => navigate('/goals')}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium min-h-[44px]"
+            className="px-6 py-3 bg-[var(--accent-600)] text-white rounded-xl font-medium min-h-[44px]"
           >
             목표 목록으로
           </button>
@@ -93,7 +93,7 @@ export default function GoalEditScreen() {
                 })()
               }
               onChange={(e) => setDeadline(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
             />
           </div>
 
@@ -116,7 +116,7 @@ export default function GoalEditScreen() {
           <button
             onClick={handleSave}
             disabled={deadline <= today || saved}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold min-h-[44px] disabled:opacity-40"
+            className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px] disabled:opacity-40"
           >
             {saved ? '저장됨!' : '저장'}
           </button>

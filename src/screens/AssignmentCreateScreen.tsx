@@ -177,7 +177,7 @@ export default function AssignmentCreateScreen() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="예: 3과 부정사 정리"
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
             />
           </div>
           <div>
@@ -186,7 +186,7 @@ export default function AssignmentCreateScreen() {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
             />
           </div>
         </div>
@@ -198,7 +198,7 @@ export default function AssignmentCreateScreen() {
               type="button"
               onClick={() => setTargetSpecific((prev) => !prev)}
               className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none ${
-                targetSpecific ? 'bg-indigo-600' : 'bg-gray-200'
+                targetSpecific ? 'bg-[var(--accent-600)]' : 'bg-gray-200'
               }`}
             >
               <span
@@ -231,23 +231,23 @@ export default function AssignmentCreateScreen() {
           )}
         </div>
 
-        <div className="bg-indigo-50 rounded-2xl border border-indigo-100 p-5 mb-4 space-y-3">
-          <h2 className="font-semibold text-indigo-900">✨ AI로 문제 후보 만들기</h2>
-          <p className="text-xs text-indigo-400">주제를 입력하면 AI가 문제 후보를 만들어요. 마음에 드는 것만 골라 담으세요.</p>
+        <div className="bg-[var(--accent-50)] rounded-2xl border border-[var(--accent-100)] p-5 mb-4 space-y-3">
+          <h2 className="font-semibold text-[var(--accent-900)]">✨ AI로 문제 후보 만들기</h2>
+          <p className="text-xs text-[var(--accent-400)]">주제를 입력하면 AI가 문제 후보를 만들어요. 마음에 드는 것만 골라 담으세요.</p>
 
           <input
             type="text"
             value={aiTopic}
             onChange={(e) => setAiTopic(e.target.value)}
             placeholder="주제 (예: 3과 부정사)"
-            className="w-full px-4 py-3 rounded-xl border-2 border-indigo-100 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+            className="w-full px-4 py-3 rounded-xl border-2 border-[var(--accent-100)] bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
           />
           <textarea
             value={aiRawContent}
             onChange={(e) => setAiRawContent(e.target.value)}
             placeholder="참고 자료(선택) — 필기나 교재 내용을 붙여넣으면 더 정확해져요"
             rows={2}
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-indigo-100 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none"
+            className="w-full px-4 py-2.5 rounded-xl border-2 border-[var(--accent-100)] bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-sm resize-none"
           />
 
           <div className="flex gap-2">
@@ -255,7 +255,7 @@ export default function AssignmentCreateScreen() {
               <button
                 key={lv}
                 onClick={() => setAiLevel(lv)}
-                className={`flex-1 py-2 rounded-xl text-sm font-medium min-h-[40px] ${aiLevel === lv ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+                className={`flex-1 py-2 rounded-xl text-sm font-medium min-h-[40px] ${aiLevel === lv ? 'bg-[var(--accent-600)] text-white' : 'bg-gray-100 text-gray-500'}`}
               >
                 {LEVEL_LABEL[lv]}
               </button>
@@ -286,17 +286,17 @@ export default function AssignmentCreateScreen() {
           <button
             onClick={handleGenerateCandidates}
             disabled={!aiTopic.trim() || aiGenerating}
-            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
+            className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
           >
             {aiGenerating ? '문제 만드는 중…' : '문제 후보 만들기'}
           </button>
 
           {aiCandidates.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-indigo-100">
+            <div className="space-y-2 pt-2 border-t border-[var(--accent-100)]">
               {aiCandidates.map((c, i) => (
                 <label
                   key={i}
-                  className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors bg-white ${aiSelected[i] ? 'border-indigo-300' : 'border-gray-200'}`}
+                  className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors bg-white ${aiSelected[i] ? 'border-[var(--accent-300)]' : 'border-gray-200'}`}
                 >
                   <input
                     type="checkbox"
@@ -314,7 +314,7 @@ export default function AssignmentCreateScreen() {
               <button
                 onClick={handleAddSelectedCandidates}
                 disabled={!aiSelected.some(Boolean)}
-                className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
+                className="w-full py-2.5 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
               >
                 선택한 문제 담기 ({aiSelected.filter(Boolean).length}개)
               </button>
@@ -353,13 +353,13 @@ export default function AssignmentCreateScreen() {
           <div className="flex gap-2">
             <button
               onClick={() => setQType('multiple_choice')}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${qType === 'multiple_choice' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${qType === 'multiple_choice' ? 'bg-[var(--accent-600)] text-white' : 'bg-gray-100 text-gray-500'}`}
             >
               객관식
             </button>
             <button
               onClick={() => setQType('short_answer')}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${qType === 'short_answer' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${qType === 'short_answer' ? 'bg-[var(--accent-600)] text-white' : 'bg-gray-100 text-gray-500'}`}
             >
               단답형
             </button>
@@ -370,7 +370,7 @@ export default function AssignmentCreateScreen() {
             onChange={(e) => setQText(e.target.value)}
             placeholder="문제 내용"
             rows={2}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base resize-none"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base resize-none"
           />
 
           {qType === 'multiple_choice' && (
@@ -386,7 +386,7 @@ export default function AssignmentCreateScreen() {
                     setQOptions(next);
                   }}
                   placeholder={`보기 ${i + 1}`}
-                  className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-sm"
                 />
               ))}
             </div>
@@ -397,21 +397,21 @@ export default function AssignmentCreateScreen() {
             value={qAnswer}
             onChange={(e) => setQAnswer(e.target.value)}
             placeholder={qType === 'multiple_choice' ? '정답 (보기 중 하나와 똑같이)' : '정답'}
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+            className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-sm"
           />
           <input
             type="text"
             value={qExplanation}
             onChange={(e) => setQExplanation(e.target.value)}
             placeholder="해설"
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+            className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-sm"
           />
 
           {qError && <p className="text-red-500 text-sm">{qError}</p>}
 
           <button
             onClick={handleAddQuestion}
-            className="w-full py-2.5 border-2 border-dashed border-indigo-200 rounded-xl text-indigo-500 font-medium text-sm min-h-[44px]"
+            className="w-full py-2.5 border-2 border-dashed border-[var(--accent-200)] rounded-xl text-[var(--accent-500)] font-medium text-sm min-h-[44px]"
           >
             이 문제 추가
           </button>
@@ -422,7 +422,7 @@ export default function AssignmentCreateScreen() {
         <button
           onClick={handleSave}
           disabled={!title.trim() || questions.length === 0 || (targetSpecific && targetStudentIds.size === 0) || saving}
-          className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
+          className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px] disabled:opacity-40"
         >
           {saving
             ? '저장 중…'

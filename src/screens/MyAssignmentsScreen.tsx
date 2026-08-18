@@ -71,26 +71,26 @@ export default function MyAssignmentsScreen() {
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setTab('assignments')}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'assignments' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'assignments' ? 'bg-[var(--accent-600)] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
             >
               📋 숙제 {assignments.length > 0 ? `(${assignments.length})` : ''}
             </button>
             <button
               onClick={() => setTab('materials')}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'materials' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'materials' ? 'bg-[var(--accent-600)] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
             >
               📄 수업 자료 {materials.length > 0 ? `(${materials.length})` : ''}
             </button>
             <button
               onClick={() => setTab('announcements')}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'announcements' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'announcements' ? 'bg-[var(--accent-600)] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
             >
               📢 공지 {announcements.length > 0 ? `(${announcements.length})` : ''}
             </button>
             {wrongQuestions.length > 0 && (
               <button
                 onClick={() => setTab('wrong')}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'wrong' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'wrong' ? 'bg-[var(--accent-600)] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
               >
                 📝 오답노트 ({wrongQuestions.length})
               </button>
@@ -105,7 +105,7 @@ export default function MyAssignmentsScreen() {
             <p className="text-gray-400 text-sm mb-4">아직 참여한 반이 없어요.</p>
             <button
               onClick={() => navigate('/join-class')}
-              className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px]"
+              className="px-5 py-2.5 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px]"
             >
               반 참여하기
             </button>
@@ -119,7 +119,7 @@ export default function MyAssignmentsScreen() {
                 <button
                   key={a.id}
                   onClick={() => navigate(`/assignments/${a.id}`)}
-                  className="w-full text-left bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:border-indigo-200 transition-colors"
+                  className="w-full text-left bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:border-[var(--accent-200)] transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
@@ -181,7 +181,7 @@ export default function MyAssignmentsScreen() {
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400">
                       {m.className} · {m.createdAt.split('T')[0]}
-                      {m.fileName && <span className="text-indigo-500"> · 📎 {m.fileName}</span>}
+                      {m.fileName && <span className="text-[var(--accent-500)]"> · 📎 {m.fileName}</span>}
                     </p>
                     <p className="font-semibold text-gray-900 truncate">{m.title}</p>
                   </div>
@@ -201,7 +201,7 @@ export default function MyAssignmentsScreen() {
                       <button
                         onClick={() => handleDownload(m.id, m.filePath!)}
                         disabled={downloadingId === m.id}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-sm font-medium disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent-50)] text-[var(--accent-600)] rounded-xl text-sm font-medium disabled:opacity-50"
                       >
                         📎 {downloadingId === m.id ? '여는 중…' : `${m.fileName} 열기`}
                       </button>

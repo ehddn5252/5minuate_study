@@ -68,7 +68,7 @@ export default function MyQuestionBookScreen() {
                       ✕
                     </button>
                   </div>
-                  <p className="text-indigo-600 text-sm mb-1.5 pl-1">
+                  <p className="text-[var(--accent-600)] text-sm mb-1.5 pl-1">
                     정답: <strong>{quiz.answer}</strong>
                   </p>
                   {quiz.explanation && (

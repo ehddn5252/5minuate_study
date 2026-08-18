@@ -38,7 +38,7 @@ export default function AchievementsScreen() {
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-500 rounded-full transition-all"
+                  className="h-full bg-[var(--accent-500)] rounded-full transition-all"
                   style={{ width: `${(unlockedCount / total) * 100}%` }}
                 />
               </div>
@@ -54,12 +54,12 @@ export default function AchievementsScreen() {
               <div
                 key={def.id}
                 className={`bg-white rounded-2xl shadow-sm border p-4 flex items-center gap-4 transition-all ${
-                  earned ? 'border-indigo-100' : 'border-gray-100 opacity-50'
+                  earned ? 'border-[var(--accent-100)]' : 'border-gray-100 opacity-50'
                 }`}
               >
                 <div
                   className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 ${
-                    earned ? 'bg-indigo-50' : 'bg-gray-100'
+                    earned ? 'bg-[var(--accent-50)]' : 'bg-gray-100'
                   }`}
                 >
                   {earned ? def.icon : '🔒'}
@@ -70,7 +70,7 @@ export default function AchievementsScreen() {
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">{def.desc}</p>
                   {earned && badge && (
-                    <p className="text-xs text-indigo-400 mt-1">
+                    <p className="text-xs text-[var(--accent-400)] mt-1">
                       {new Date(badge.unlockedAt).toLocaleDateString('ko-KR', {
                         year: 'numeric', month: 'long', day: 'numeric',
                       })} 획득
@@ -78,7 +78,7 @@ export default function AchievementsScreen() {
                   )}
                 </div>
                 {earned && (
-                  <span className="text-indigo-500 text-lg flex-shrink-0">✓</span>
+                  <span className="text-[var(--accent-500)] text-lg flex-shrink-0">✓</span>
                 )}
               </div>
             );

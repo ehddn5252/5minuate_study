@@ -58,7 +58,7 @@ export default function LanguageHubScreen() {
                 </p>
                 <button
                   onClick={() => navigate(`/goals/create?templateId=${tpl.id}`)}
-                  className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px]"
+                  className="w-full py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px]"
                 >
                   시작하기
                 </button>
@@ -77,7 +77,7 @@ export default function LanguageHubScreen() {
                 <button
                   key={tpl.id}
                   onClick={() => navigate(`/goals/create?templateId=${tpl.id}`)}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-sm font-medium text-indigo-700"
+                  className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 bg-[var(--accent-50)] border border-[var(--accent-200)] rounded-xl text-sm font-medium text-[var(--accent-700)]"
                 >
                   <span>{tpl.icon}</span>
                   <span>{tpl.name}</span>
@@ -91,7 +91,7 @@ export default function LanguageHubScreen() {
               <button
                 key={q.label}
                 onClick={() => navigate(`/goals/create?topic=${encodeURIComponent(q.topic)}`)}
-                className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+                className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-[var(--accent-300)] hover:text-[var(--accent-600)] transition-colors"
               >
                 {q.label}
               </button>
@@ -100,7 +100,7 @@ export default function LanguageHubScreen() {
 
           <button
             onClick={() => navigate('/goals/create')}
-            className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-medium text-sm min-h-[44px] hover:border-indigo-300 hover:text-indigo-400 transition-colors"
+            className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-medium text-sm min-h-[44px] hover:border-[var(--accent-300)] hover:text-[var(--accent-400)] transition-colors"
           >
             + 새로운 언어 학습 만들기
           </button>
