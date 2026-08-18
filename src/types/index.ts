@@ -4,7 +4,6 @@ export type QuizType = 'multiple_choice' | 'short_answer';
 export type QuizLevel = 'beginner' | 'intermediate' | 'advanced';
 export type MateTone = 'friendly' | 'hype' | 'plain';
 export type AccentTheme = 'indigo' | 'rose' | 'emerald' | 'amber' | 'violet';
-export type MascotSkin = 'classic' | 'cat';
 export type BackgroundTheme = 'default' | 'ivory' | 'mint' | 'lavender' | 'charcoal' | 'navy';
 export type BackgroundPattern = 'none' | 'dots' | 'stars' | 'waves';
 
@@ -118,9 +117,9 @@ export interface AppState {
   // D-3: 실행의도(if-then 계획) — "점심 먹고 나서"처럼 알림에 담을 상황 트리거 문구.
   // 프리셋으로만 설정되며(자유 입력 아님), 비어있으면 기존 감성 문구만 사용한다.
   notificationTrigger: string;
-  // F-41: 스킨 — 앱 전체 포인트 컬러(accentTheme)와 마스코트 캐릭터(mascotSkin)를 사용자가 고를 수 있게.
+  // F-41: 스킨 — 앱 전체 포인트 컬러(accentTheme)를 사용자가 고를 수 있게.
+  // 마스코트 캐릭터는 선택지 없이 public/mascot.png 하나로 고정한다(F-44).
   accentTheme: AccentTheme;
-  mascotSkin: MascotSkin;
   // F-41: 배경 스킨 — 화면 바탕색만 살짝 바꾸는 옵션(라이트 톤 유지, 다크모드 아님).
   bgTheme: BackgroundTheme;
   // F-41: 배경 무늬 — bgTheme(바탕색)과 별개로 화면 여백에 은은한 도트/별/파도 패턴을 깔아주는 옵션.

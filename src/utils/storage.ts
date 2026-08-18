@@ -221,7 +221,6 @@ const DEFAULT_APP_STATE: AppState = {
   celebrationEffectsEnabled: true,
   notificationTrigger: '',
   accentTheme: 'indigo',
-  mascotSkin: 'classic',
   bgTheme: 'default',
   bgPattern: 'none',
 };

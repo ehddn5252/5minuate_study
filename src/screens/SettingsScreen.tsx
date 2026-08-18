@@ -14,8 +14,7 @@ import {
 import type { User } from '@supabase/supabase-js';
 import BottomNav from '../components/BottomNav';
 import { useAppStore } from '../store';
-import { getMascotFace } from '../utils/mascot';
-import type { AccentTheme, MascotSkin, BackgroundTheme } from '../types';
+import type { AccentTheme, BackgroundTheme } from '../types';
 // 배경 무늬(BackgroundPattern) 선택 UI는 잠시 비활성화 상태 — 재활성화 시 이 타입도 다시 import.
 
 const SUPPORT_EMAIL = 'ehddn5252@gmail.com';
@@ -63,11 +62,6 @@ const BG_THEMES: { id: BackgroundTheme; label: string; swatch: string; dark?: bo
 //     backgroundSize: '40px 8px',
 //   },
 // ];
-
-const MASCOT_SKINS: { id: MascotSkin; label: string }[] = [
-  { id: 'classic', label: '스마일' },
-  { id: 'cat', label: '고양이' },
-];
 
 export default function SettingsScreen() {
   const navigate = useNavigate();
@@ -175,7 +169,7 @@ export default function SettingsScreen() {
           <h1 className="text-xl font-bold text-gray-900">설정</h1>
         </div>
 
-        {/* 스킨 섹션 — 포인트 컬러 + 마스코트 캐릭터 */}
+        {/* 스킨 섹션 — 포인트 컬러 + 배경 (마스코트는 선택 없이 public/mascot.png로 고정) */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">스킨 꾸미기</h2>
           <p className="text-xs text-gray-400 mb-2">포인트 컬러</p>
@@ -230,26 +224,6 @@ export default function SettingsScreen() {
             ))}
           </div>
           */}
-
-          <p className="text-xs text-gray-400 mb-2">마스코트</p>
-          <div className="flex gap-2.5">
-            {MASCOT_SKINS.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => updateAppState({ mascotSkin: s.id })}
-                className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl border-2 transition-colors ${
-                  appState.mascotSkin === s.id
-                    ? 'border-[var(--accent-500)] bg-[var(--accent-50)]'
-                    : 'border-gray-200'
-                }`}
-              >
-                <span className="text-2xl">{getMascotFace('celebrate', 'plain', s.id)}</span>
-                <span className={`text-xs font-medium ${appState.mascotSkin === s.id ? 'text-[var(--accent-700)]' : 'text-gray-500'}`}>
-                  {s.label}
-                </span>
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* 계정 섹션 */}

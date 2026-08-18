@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuizStore, useAppStore } from '../store';
+import { useQuizStore } from '../store';
 import { getMascotFace } from '../utils/mascot';
 import { removeFromWrongPool } from '../utils/storage';
 import { reportBankQuestion } from '../services/questionBank';
@@ -19,7 +19,6 @@ type ReportState = 'idle' | 'confirming' | 'sending' | 'done';
 
 export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: QuizCardProps) {
   const { updateQuiz, deleteQuiz } = useQuizStore();
-  const mascotSkin = useAppStore((s) => s.appState.mascotSkin);
   const [selected, setSelected] = useState<string | null>(null);
   const [shortInput, setShortInput] = useState('');
   const [revealed, setRevealed] = useState(false);
@@ -208,7 +207,7 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
               isCorrect ? 'text-green-700' : 'text-amber-700'
             }`}
           >
-            <span className="text-lg inline-block animate-count-up-pop">{getMascotFace(isCorrect ? 'correct' : 'wrong', mateTone, mascotSkin)}</span>
+            <span className="text-lg inline-block animate-count-up-pop">{getMascotFace(isCorrect ? 'correct' : 'wrong', mateTone)}</span>
             {isCorrect ? '정답입니다!' : '다음에 다시 나와요'}
           </p>
           {!isCorrect && (

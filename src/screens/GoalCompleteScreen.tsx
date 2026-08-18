@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useGoalStore, useAppStore } from '../store';
+import { useGoalStore } from '../store';
 import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
 import { getIdentityStatement } from '../utils/identity';
@@ -28,7 +28,6 @@ export default function GoalCompleteScreen() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const { goals } = useGoalStore();
-  const mascotSkin = useAppStore((s) => s.appState.mascotSkin);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const goal = goals.find((g) => g.id === goalId);
@@ -105,7 +104,7 @@ export default function GoalCompleteScreen() {
                 growthFeedback.isPersonalBest ? 'text-amber-600 font-bold' : 'text-[var(--accent-500)] font-medium'
               }`}
             >
-              {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone, mascotSkin)} ` : '📈 '}
+              {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone)} ` : '📈 '}
               {growthFeedback.message}
               {growthFeedback.isPersonalBest && ' — 자기 최고 기록!'}
             </p>

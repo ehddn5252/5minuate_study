@@ -4,11 +4,11 @@ import BottomNav from '../components/BottomNav';
 import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
 import { getIdentityStatement } from '../utils/identity';
-import { getCompletionFace, getMascotFace } from '../utils/mascot';
+import { getMascotFace } from '../utils/mascot';
 import { useCountUp } from '../utils/useCountUp';
 import { nextLevel, LEVEL_LABEL } from '../utils/difficultyAdaptation';
 import type { LevelSuggestion } from '../utils/difficultyAdaptation';
-import { useGoalStore, useAppStore } from '../store';
+import { useGoalStore } from '../store';
 import type { BadgeId, MateTone } from '../types';
 import type { GrowthFeedback } from '../utils/growthFeedback';
 
@@ -34,7 +34,6 @@ export default function SessionCompleteScreen() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const { goals, updateGoal } = useGoalStore();
-  const mascotSkin = useAppStore((s) => s.appState.mascotSkin);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const score = state?.score ?? 0;
@@ -164,9 +163,7 @@ export default function SessionCompleteScreen() {
     <div className="min-h-screen bg-gradient-to-b from-[var(--accent-50)] to-white flex items-center justify-center p-4 pb-20">
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-50" />
       <div className="max-w-md w-full text-center">
-        <div className="text-6xl mb-4 animate-bounce">
-          {getCompletionFace(percent, mateTone, mascotSkin)}
-        </div>
+        <img src="/mascot.png" alt="마스코트" className="w-24 h-24 mx-auto mb-4 animate-bounce" />
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">오늘 학습 완료!</h1>
         <p className="text-gray-500 mb-8">{getMessage()}</p>
@@ -205,7 +202,7 @@ export default function SessionCompleteScreen() {
                 growthFeedback.isPersonalBest ? 'text-amber-600 font-bold' : 'text-[var(--accent-500)] font-medium'
               }`}
             >
-              {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone, mascotSkin)} ` : '📈 '}
+              {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone)} ` : '📈 '}
               {growthFeedback.message}
               {growthFeedback.isPersonalBest && ' — 자기 최고 기록!'}
             </p>
