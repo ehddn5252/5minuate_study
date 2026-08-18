@@ -292,15 +292,18 @@ export default function HomeScreen() {
       <InstallBanner />
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">오늘의 학습</h1>
-            <p className="text-gray-500 text-sm mt-0.5">
-              {new Date().toLocaleDateString('ko-KR', {
-                month: 'long',
-                day: 'numeric',
-                weekday: 'short',
-              })}
-            </p>
+          <div className="flex items-center gap-3">
+            <img src="/mascot.png" alt="마스코트" className="w-11 h-11 flex-shrink-0" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">오늘의 학습</h1>
+              <p className="text-gray-500 text-sm mt-0.5">
+                {new Date().toLocaleDateString('ko-KR', {
+                  month: 'long',
+                  day: 'numeric',
+                  weekday: 'short',
+                })}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-1">
             <button
@@ -343,7 +346,7 @@ export default function HomeScreen() {
 
         {activeGoals.length === 0 ? (
           <div className="text-center py-10">
-            <div className="text-5xl mb-4">📚</div>
+            <img src="/mascot.png" alt="마스코트" className="w-20 h-20 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-gray-900 mb-2">학습 목표가 없어요</h2>
             <p className="text-gray-500 text-sm mb-6">
               새로운 목표를 추가하거나<br />쇼츠로 먼저 체험해보세요!

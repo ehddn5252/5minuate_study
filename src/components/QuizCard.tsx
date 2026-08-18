@@ -207,7 +207,11 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
               isCorrect ? 'text-green-700' : 'text-amber-700'
             }`}
           >
-            <span className="text-lg inline-block animate-count-up-pop">{getMascotFace(isCorrect ? 'correct' : 'wrong', mateTone)}</span>
+            {isCorrect ? (
+              <img src="/mascot.png" alt="마스코트" className="w-6 h-6 inline-block animate-count-up-pop" />
+            ) : (
+              <span className="text-lg inline-block animate-count-up-pop">{getMascotFace('wrong', mateTone)}</span>
+            )}
             {isCorrect ? '정답입니다!' : '다음에 다시 나와요'}
           </p>
           {!isCorrect && (
