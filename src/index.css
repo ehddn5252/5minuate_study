@@ -114,33 +114,36 @@ html[data-bg='navy'] body {
   color: var(--page-fg);
 }
 
-html[data-bg='charcoal'] .text-gray-900:not(.bg-white *),
-html[data-bg='navy'] .text-gray-900:not(.bg-white *) {
+/* input/textarea/select는 클래스와 무관하게 브라우저 기본 흰 배경을 그대로 유지하므로
+   (Tailwind preflight가 text류 입력 요소의 배경까지 투명하게 만들지는 않는다), 이 안의
+   글자색까지 밝게 뒤집으면 흰 배경 위에 흰 글씨가 되어 안 보인다 — 폼 요소는 제외한다. */
+html[data-bg='charcoal'] .text-gray-900:not(.bg-white *):not(input):not(textarea):not(select),
+html[data-bg='navy'] .text-gray-900:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #f9fafb;
 }
 
-html[data-bg='charcoal'] .text-gray-800:not(.bg-white *),
-html[data-bg='navy'] .text-gray-800:not(.bg-white *) {
+html[data-bg='charcoal'] .text-gray-800:not(.bg-white *):not(input):not(textarea):not(select),
+html[data-bg='navy'] .text-gray-800:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #f3f4f6;
 }
 
-html[data-bg='charcoal'] .text-gray-700:not(.bg-white *),
-html[data-bg='navy'] .text-gray-700:not(.bg-white *) {
+html[data-bg='charcoal'] .text-gray-700:not(.bg-white *):not(input):not(textarea):not(select),
+html[data-bg='navy'] .text-gray-700:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #e5e7eb;
 }
 
-html[data-bg='charcoal'] .text-gray-600:not(.bg-white *),
-html[data-bg='navy'] .text-gray-600:not(.bg-white *) {
+html[data-bg='charcoal'] .text-gray-600:not(.bg-white *):not(input):not(textarea):not(select),
+html[data-bg='navy'] .text-gray-600:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #cbd5e1;
 }
 
-html[data-bg='charcoal'] .text-gray-500:not(.bg-white *),
-html[data-bg='navy'] .text-gray-500:not(.bg-white *) {
+html[data-bg='charcoal'] .text-gray-500:not(.bg-white *):not(input):not(textarea):not(select),
+html[data-bg='navy'] .text-gray-500:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #9ca3af;
 }
 
-html[data-bg='charcoal'] .text-gray-400:not(.bg-white *),
-html[data-bg='navy'] .text-gray-400:not(.bg-white *) {
+html[data-bg='charcoal'] .text-gray-400:not(.bg-white *):not(input):not(textarea):not(select),
+html[data-bg='navy'] .text-gray-400:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #6b7280;
 }
 
