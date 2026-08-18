@@ -229,7 +229,7 @@ export default function StudyMaterialsScreen() {
 
   if (!goal) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center">
         <p className="text-gray-500">목표를 찾을 수 없습니다.</p>
       </div>
     );
@@ -242,7 +242,7 @@ export default function StudyMaterialsScreen() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--page-bg)]">
       <div className="max-w-md mx-auto px-4 py-6">
         {/* 헤더 */}
         <div className="flex items-center gap-3 mb-5">

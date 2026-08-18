@@ -92,7 +92,7 @@ export default function MixReviewScreen() {
 
   if (mixList.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="text-5xl mb-4">🔀</div>
           <p className="text-gray-500 mb-6">
@@ -159,7 +159,7 @@ export default function MixReviewScreen() {
   if (finished) {
     const score = answers.filter(Boolean).length;
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="text-6xl mb-4">🔀</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">복습 믹스 완료!</h1>
@@ -178,7 +178,7 @@ export default function MixReviewScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[var(--page-bg)] flex flex-col">
       <div className="max-w-md mx-auto w-full flex flex-col flex-1 px-4 py-6">
         <div className="flex items-center gap-3 mb-4">
           <button

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useGoalStore, useSessionStore, useQuizStore, useAppStore } from '../store';
 import { getTodaySession, saveSession } from '../utils/storage';
 import { generateDailyContent } from '../services/gemini';
@@ -17,6 +17,7 @@ const SPEECH_RATES = [1, 1.25, 1.5];
 export default function LearningScreen() {
   const { goalId } = useParams<{ goalId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { goals } = useGoalStore();
   const { updateSession } = useSessionStore();
   const { addQuizzes } = useQuizStore();
@@ -95,9 +96,14 @@ export default function LearningScreen() {
   useEffect(() => {
     if (!goal) return;
 
+    // HomeScreen의 "다음 학습 계속하기" 버튼을 눌렀을 때만 다음 세션을 새로 시작한다.
+    // 그 외에 이 화면에 도달한 경우(테스트 화면에서 뒤로가기 등)는 오늘 세션이 이미
+    // completed 상태여도 새로 만들지 않는다 — 예전엔 "완료됨=다음 세션 시작"으로 취급해서,
+    // 테스트를 마친 뒤 뒤로가기만 몇 번 눌러도 조용히 다음 날 콘텐츠가 새로 생성돼버렸다.
+    const startNext = (location.state as { startNext?: boolean } | null)?.startNext === true;
+
     let session = getTodaySession(goal.id);
-    // 오늘 세션이 없거나 이미 완료된 경우(다음 학습으로 계속 진행) → 새 세션 시작
-    if (!session || session.status === 'completed') {
+    if (!session || (session.status === 'completed' && startNext)) {
       session = {
         id: generateId(),
         goalId: goal.id,
@@ -249,7 +255,7 @@ export default function LearningScreen() {
 
   if (!goal) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center">
         <p className="text-gray-500">목표를 찾을 수 없습니다.</p>
       </div>
     );
@@ -261,7 +267,7 @@ export default function LearningScreen() {
   // 로딩 화면
   if (generating) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-4">
+      <div className="min-h-screen bg-[var(--page-bg)] flex flex-col items-center justify-center gap-4 px-4">
         <svg className="animate-spin w-10 h-10 text-[var(--accent-500)]" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -278,7 +284,7 @@ export default function LearningScreen() {
   if (error) {
     const isRateLimit = error.includes('한도');
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-6">
+      <div className="min-h-screen bg-[var(--page-bg)] flex flex-col items-center justify-center gap-4 px-6">
         <div className="text-4xl">{isRateLimit ? '⏳' : '⚠️'}</div>
         <p className="text-gray-700 text-center font-medium">
           {isRateLimit ? '오늘 무료 생성 한도를 채웠어요' : '콘텐츠 생성 실패'}
@@ -302,7 +308,7 @@ export default function LearningScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[var(--page-bg)] flex flex-col">
       <div className="max-w-md mx-auto w-full flex flex-col flex-1 px-4 py-6">
         <div className="flex items-center gap-3 mb-4">
           <button

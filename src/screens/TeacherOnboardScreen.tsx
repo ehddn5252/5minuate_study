@@ -23,7 +23,7 @@ export default function TeacherOnboardScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[var(--page-bg)] flex flex-col">
       <div className="max-w-md mx-auto w-full px-4 py-6">
         <button
           onClick={() => navigate(-1)}

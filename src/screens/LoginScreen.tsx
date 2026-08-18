@@ -9,7 +9,7 @@ export default function LoginScreen() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">5분 학습</h1>
         <p className="text-gray-500 text-sm mb-8">

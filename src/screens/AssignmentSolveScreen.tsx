@@ -120,12 +120,12 @@ export default function AssignmentSolveScreen() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-400 text-sm">불러오는 중…</div>;
+    return <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center text-gray-400 text-sm">불러오는 중…</div>;
   }
 
   if (existingSubmission && !finished) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-10">
+      <div className="min-h-screen bg-[var(--page-bg)] pb-10">
         <div className="max-w-md mx-auto px-4 py-6">
           <div className="flex items-center gap-3 mb-4">
             <button
@@ -172,7 +172,7 @@ export default function AssignmentSolveScreen() {
 
   if (finished) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-6">
+      <div className="min-h-screen bg-[var(--page-bg)] flex flex-col items-center justify-center gap-4 px-6">
         <div className="text-4xl">🎉</div>
         <p className="text-gray-700 text-center font-medium">숙제 완료! {result?.score ?? 0} / {result?.total ?? questions.length}</p>
         <button
@@ -187,7 +187,7 @@ export default function AssignmentSolveScreen() {
 
   if (!quiz) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-500 text-sm">
+      <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center text-gray-500 text-sm">
         문제를 찾을 수 없어요.
       </div>
     );
@@ -198,7 +198,7 @@ export default function AssignmentSolveScreen() {
   const showFeedback = quiz.type === 'multiple_choice' ? revealed : selfJudge !== null;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[var(--page-bg)] flex flex-col">
       <div className="max-w-md mx-auto w-full flex-1 px-4 py-6">
         <div className="flex items-center gap-3 mb-4">
           <button

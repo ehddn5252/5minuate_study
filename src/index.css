@@ -70,9 +70,28 @@ html[data-theme='violet'] {
   --accent-900: #4c1d95;
 }
 
+/* F-41: 배경 스킨 — 화면 바탕색만 살짝 바꾸는 옵션. 전부 흰 카드(bg-white)·회색 텍스트와
+   대비가 충분한 아주 옅은 톤이라 라이트 테마 가독성엔 영향이 없다(다크모드 아님). */
+:root {
+  --page-bg: #f9fafb;
+}
+
+html[data-bg='ivory'] {
+  --page-bg: #fdf8f0;
+}
+
+html[data-bg='mint'] {
+  --page-bg: #f1faf7;
+}
+
+html[data-bg='lavender'] {
+  --page-bg: #f6f4fc;
+}
+
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply text-gray-900;
+    background-color: var(--page-bg);
   }
 }
 

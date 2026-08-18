@@ -15,7 +15,7 @@ import type { User } from '@supabase/supabase-js';
 import BottomNav from '../components/BottomNav';
 import { useAppStore } from '../store';
 import { getMascotFace } from '../utils/mascot';
-import type { AccentTheme, MascotSkin } from '../types';
+import type { AccentTheme, MascotSkin, BackgroundTheme } from '../types';
 
 const SUPPORT_EMAIL = 'ehddn5252@gmail.com';
 
@@ -25,6 +25,13 @@ const ACCENT_THEMES: { id: AccentTheme; label: string; swatch: string }[] = [
   { id: 'emerald', label: '에메랄드', swatch: '#059669' },
   { id: 'amber', label: '앰버', swatch: '#d97706' },
   { id: 'violet', label: '바이올렛', swatch: '#7c3aed' },
+];
+
+const BG_THEMES: { id: BackgroundTheme; label: string; swatch: string }[] = [
+  { id: 'default', label: '그레이', swatch: '#f9fafb' },
+  { id: 'ivory', label: '아이보리', swatch: '#fdf8f0' },
+  { id: 'mint', label: '민트', swatch: '#f1faf7' },
+  { id: 'lavender', label: '라벤더', swatch: '#f6f4fc' },
 ];
 
 const MASCOT_SKINS: { id: MascotSkin; label: string }[] = [
@@ -124,7 +131,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen bg-[var(--page-bg)] pb-16">
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
           <button
@@ -154,6 +161,22 @@ export default function SettingsScreen() {
                 style={{ backgroundColor: t.swatch }}
               >
                 {appState.accentTheme === t.id && <span className="text-white text-sm">✓</span>}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mb-2">배경</p>
+          <div className="flex gap-2.5 mb-4">
+            {BG_THEMES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => updateAppState({ bgTheme: t.id })}
+                aria-label={t.label}
+                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-transform active:scale-90 ${
+                  appState.bgTheme === t.id ? 'border-[var(--accent-500)]' : 'border-gray-200'
+                }`}
+                style={{ backgroundColor: t.swatch }}
+              >
+                {appState.bgTheme === t.id && <span className="text-[var(--accent-600)] text-sm">✓</span>}
               </button>
             ))}
           </div>

@@ -5,6 +5,7 @@ export type QuizLevel = 'beginner' | 'intermediate' | 'advanced';
 export type MateTone = 'friendly' | 'hype' | 'plain';
 export type AccentTheme = 'indigo' | 'rose' | 'emerald' | 'amber' | 'violet';
 export type MascotSkin = 'classic' | 'cat';
+export type BackgroundTheme = 'default' | 'ivory' | 'mint' | 'lavender';
 
 export interface Goal {
   id: string;
@@ -119,4 +120,6 @@ export interface AppState {
   // F-41: 스킨 — 앱 전체 포인트 컬러(accentTheme)와 마스코트 캐릭터(mascotSkin)를 사용자가 고를 수 있게.
   accentTheme: AccentTheme;
   mascotSkin: MascotSkin;
+  // F-41: 배경 스킨 — 화면 바탕색만 살짝 바꾸는 옵션(라이트 톤 유지, 다크모드 아님).
+  bgTheme: BackgroundTheme;
 }

@@ -136,7 +136,7 @@ export default function TestScreen() {
 
   if (!goal || testQuizzes.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center">
         <p className="text-gray-500">퀴즈를 불러오는 중...</p>
       </div>
     );
@@ -421,7 +421,7 @@ export default function TestScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[var(--page-bg)] flex flex-col">
       <div className="max-w-md mx-auto w-full flex flex-col flex-1 px-4 py-6">
         <div className="flex items-center gap-3 mb-4">
           <button

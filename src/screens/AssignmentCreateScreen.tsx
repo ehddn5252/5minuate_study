@@ -156,7 +156,7 @@ export default function AssignmentCreateScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-screen bg-[var(--page-bg)] pb-10">
       <div className="max-w-md mx-auto px-4 py-6">
         <button
           onClick={() => navigate(-1)}

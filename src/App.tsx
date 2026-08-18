@@ -176,10 +176,11 @@ export default function App() {
   // main.tsx의 최초 1회 적용과 별개로 계속 반영되도록 여기서 동기화한다.
   useEffect(() => {
     document.documentElement.dataset.theme = appState.accentTheme;
-  }, [appState.accentTheme]);
+    document.documentElement.dataset.bg = appState.bgTheme;
+  }, [appState.accentTheme, appState.bgTheme]);
 
   if (!authChecked) {
-    return <div className="min-h-screen bg-gray-50" />;
+    return <div className="min-h-screen bg-[var(--page-bg)]" />;
   }
 
   // 로그인 전에도 "쇼츠" 미리보기는 열람 가능하게 함 — shared_content/curriculum은
@@ -189,7 +190,7 @@ export default function App() {
     return (
       <BrowserRouter>
         <AnimatedRoutes>
-          <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+          <Suspense fallback={<div className="min-h-screen bg-[var(--page-bg)]" />}>
             <Routes>
               <Route path="/shorts/:templateId" element={<ShortsScreen />} />
               <Route path="/goals/create" element={<CaptureTemplateThenLogin />} />
@@ -202,14 +203,14 @@ export default function App() {
   }
 
   if (!roleChecked) {
-    return <div className="min-h-screen bg-gray-50" />;
+    return <div className="min-h-screen bg-[var(--page-bg)]" />;
   }
 
   return (
     <BrowserRouter>
       <PendingTemplateRedirect />
       <AnimatedRoutes>
-      <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <Suspense fallback={<div className="min-h-screen bg-[var(--page-bg)]" />}>
       <Routes>
         <Route path="/" element={role === 'teacher' ? <TeacherHomeScreen /> : <HomeScreen />} />
         {/* 선생님 계정도 개인 학습 화면을 볼 수 있는 통로 — role은 그대로 두고 화면만 잠깐 전환 */}

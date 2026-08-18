@@ -47,6 +47,9 @@ function GoalCard({ goal }: { goal: Goal }) {
   const navigate = useNavigate();
   const { loadSessions } = useSessionStore();
 
+  const todaySessionForStart = getTodaySession(goal.id);
+  const isDoneForStart = todaySessionForStart?.status === 'completed';
+
   const handleStart = () => {
     let session = getTodaySession(goal.id);
     if (!session) {
@@ -60,11 +63,13 @@ function GoalCard({ goal }: { goal: Goal }) {
       saveSession(session);
       loadSessions();
     }
-    navigate(`/learn/${goal.id}`);
+    // isDone일 때만 "다음 학습 계속하기" 버튼에서 오는 것 — LearningScreen에 명시적으로
+    // 알려줘야 오늘 세션이 이미 완료됐어도 다음 세션을 새로 시작해야 함을 알 수 있다.
+    navigate(`/learn/${goal.id}`, isDoneForStart ? { state: { startNext: true } } : undefined);
   };
 
-  const todaySession = getTodaySession(goal.id);
-  const isDone = todaySession?.status === 'completed';
+  const todaySession = todaySessionForStart;
+  const isDone = isDoneForStart;
   // F-23: 퀴즈 도중 중단한 세션이 있으면 "이어하기" 상태로 우선 안내
   const answeredCount = todaySession?.quizAnswers?.length ?? 0;
   const totalQuizCount = todaySession?.testQuizIds?.length ?? 0;
@@ -281,7 +286,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen bg-[var(--page-bg)] pb-16">
       <UrgentBanner goals={activeGoals} onStart={handleBannerStart} />
       <AssignmentBanner />
       <InstallBanner />

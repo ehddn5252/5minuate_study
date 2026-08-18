@@ -222,6 +222,7 @@ const DEFAULT_APP_STATE: AppState = {
   notificationTrigger: '',
   accentTheme: 'indigo',
   mascotSkin: 'classic',
+  bgTheme: 'default',
 };
 
 export function getAppState(): AppState {

@@ -59,7 +59,7 @@ export default function CalendarScreen() {
   const selectedStudiedGoals = goals.filter((g) => selectedStudiedGoalIds.has(g.id));
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen bg-[var(--page-bg)] pb-16">
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
           <button

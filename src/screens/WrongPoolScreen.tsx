@@ -24,7 +24,7 @@ export default function WrongPoolScreen() {
     .filter((s) => s.wrongQuizzes.length > 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen bg-[var(--page-bg)] pb-16">
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
           <button

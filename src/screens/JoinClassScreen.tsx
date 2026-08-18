@@ -24,7 +24,7 @@ export default function JoinClassScreen() {
 
   if (joinedName) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-6">
+      <div className="min-h-screen bg-[var(--page-bg)] flex flex-col items-center justify-center gap-4 px-6">
         <div className="text-4xl">🎉</div>
         <p className="text-gray-700 text-center font-medium">{joinedName}에 참여했어요!</p>
         <button
@@ -41,7 +41,7 @@ export default function JoinClassScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[var(--page-bg)] flex flex-col">
       <div className="max-w-md mx-auto w-full px-4 py-6">
         <button
           onClick={() => navigate(-1)}

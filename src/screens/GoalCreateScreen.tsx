@@ -151,7 +151,7 @@ export default function GoalCreateScreen() {
 
   if (activeGoalCount >= MAX_ACTIVE_GOALS) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="text-5xl mb-4">🗂️</div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">진행 중인 목표가 가득 찼어요</h1>
@@ -172,7 +172,7 @@ export default function GoalCreateScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--page-bg)]">
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
           <button
