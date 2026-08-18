@@ -42,6 +42,86 @@ export async function fetchFromBank(
   }
 }
 
+export interface LevelTestQuestion {
+  id: string;
+  difficulty: QuizLevel;
+  question: string;
+  options: string[];
+  answer: string;
+}
+
+const LEVEL_TEST_PER_DIFFICULTY = 2;
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// 레벨테스트용 문제 조회 — question_bank Day1의 객관식 문제를 난이도별로 몇 개씩 뽑아 섞는다.
+// 새 콘텐츠를 따로 만들지 않고 이미 저술해둔 사전 제작 문제집을 재사용한다.
+// 3난이도 모두 데이터가 충분한 커리큘럼(현재는 english_grammar/english_vocab/english_writing)에서만 동작한다.
+export async function fetchLevelTestQuestions(curriculumId: string): Promise<LevelTestQuestion[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from('question_bank')
+      .select('id, difficulty, question, options, answer')
+      .eq('curriculum_id', curriculumId)
+      .eq('day_num', 1)
+      .eq('type', 'multiple_choice');
+
+    if (error || !data) return null;
+
+    const byDifficulty: Record<QuizLevel, typeof data> = { beginner: [], intermediate: [], advanced: [] };
+    for (const row of data) {
+      const d = row.difficulty as QuizLevel;
+      if (byDifficulty[d]) byDifficulty[d].push(row);
+    }
+
+    const picked: LevelTestQuestion[] = [];
+    for (const level of ['beginner', 'intermediate', 'advanced'] as const) {
+      const pool = byDifficulty[level];
+      if (pool.length < LEVEL_TEST_PER_DIFFICULTY) return null;
+      for (const row of shuffle(pool).slice(0, LEVEL_TEST_PER_DIFFICULTY)) {
+        picked.push({
+          id: row.id,
+          difficulty: level,
+          question: row.question,
+          options: (row.options as string[] | null) ?? [],
+          answer: row.answer,
+        });
+      }
+    }
+    // 난이도 순서대로 나오면 눈치채기 쉬우니 전체를 섞는다
+    return shuffle(picked);
+  } catch {
+    return null;
+  }
+}
+
+// 난이도별 정답률로 추천 레벨을 정한다 — 문항이 2개뿐이라 정교한 채점보다는
+// "고급을 절반 이상 맞히면 고급, 초급도 다 틀리면 초급, 나머지는 중급" 정도의 단순 규칙.
+export function computeRecommendedLevel(results: { difficulty: QuizLevel; correct: boolean }[]): QuizLevel {
+  const scoreByLevel: Record<QuizLevel, { correct: number; total: number }> = {
+    beginner: { correct: 0, total: 0 },
+    intermediate: { correct: 0, total: 0 },
+    advanced: { correct: 0, total: 0 },
+  };
+  for (const r of results) {
+    scoreByLevel[r.difficulty].total++;
+    if (r.correct) scoreByLevel[r.difficulty].correct++;
+  }
+
+  const advanced = scoreByLevel.advanced;
+  const beginner = scoreByLevel.beginner;
+  if (advanced.total > 0 && advanced.correct / advanced.total >= 0.5) return 'advanced';
+  if (beginner.total > 0 && beginner.correct / beginner.total === 0) return 'beginner';
+  return 'intermediate';
+}
+
 // 사용자가 question_bank 문제를 "잘못됐다"고 신고하면 즉시 지우지 않고 검토 목록에 쌓아둔다 —
 // 직접 저술/검토한 콘텐츠라 한 사람 판단만으로 바로 지우기엔 리스크가 있어서다.
 export async function reportBankQuestion(questionBankId: string, note?: string): Promise<{ error?: string }> {

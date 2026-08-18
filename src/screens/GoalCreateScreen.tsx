@@ -40,7 +40,12 @@ export default function GoalCreateScreen() {
     return d.toISOString().split('T')[0];
   });
   const [rawContent, setRawContent] = useState('');
-  const [level, setLevel] = useState<QuizLevel>('intermediate');
+  const [level, setLevel] = useState<QuizLevel>(() => {
+    const lvl = searchParams.get('level');
+    return lvl === 'beginner' || lvl === 'intermediate' || lvl === 'advanced' ? lvl : 'intermediate';
+  });
+  // 레벨테스트 결과로 넘어온 경우 안내 문구를 보여주기 위함 — 사용자가 직접 난이도를 바꾸면 사라짐
+  const [levelFromTest, setLevelFromTest] = useState(() => searchParams.get('level') !== null);
   // 실무 연계 강조 토글과 말투 선택 UI는 제거됨 — 항상 기본값으로 생성(피드백 반영, 2026-07-22)
   const practicalMode = false;
   const mateTone: MateTone = 'plain';
@@ -273,15 +278,26 @@ export default function GoalCreateScreen() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              난이도
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                난이도
+              </label>
+              {selectedCurriculumId && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/level-test/${selectedTemplateId}`)}
+                  className="text-xs text-indigo-600 font-medium"
+                >
+                  🎯 레벨테스트로 확인하기
+                </button>
+              )}
+            </div>
             <div className="flex gap-2">
               {LEVEL_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
                   type="button"
-                  onClick={() => setLevel(opt.id)}
+                  onClick={() => { setLevel(opt.id); setLevelFromTest(false); }}
                   disabled={loading}
                   className={`flex-1 py-3 rounded-xl border-2 text-sm font-semibold min-h-[44px] transition-colors ${
                     level === opt.id
@@ -293,6 +309,9 @@ export default function GoalCreateScreen() {
                 </button>
               ))}
             </div>
+            {levelFromTest && (
+              <p className="text-xs text-indigo-500 mt-1.5">✓ 레벨테스트 결과로 자동 설정됐어요.</p>
+            )}
           </div>
 
           <div>

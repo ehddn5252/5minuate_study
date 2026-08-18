@@ -83,6 +83,11 @@ function getAudioContext(): AudioContext | null {
   const AudioCtor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AudioCtor) return null;
   if (!audioCtx) audioCtx = new AudioCtor();
+  // Safari 등 일부 브라우저는 사용자 제스처 안에서 생성해도 'suspended' 상태로 시작할 때가
+  // 있어, 그대로 두면 오실레이터를 예약해도 소리가 전혀 안 난다. 매번 호출 시점에 확인해서 깨운다.
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
   return audioCtx;
 }
 
