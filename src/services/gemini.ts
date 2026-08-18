@@ -33,6 +33,13 @@ const PRACTICAL_MODE_INSTRUCTION =
 const NO_VISUAL_FORMATTING_INSTRUCTION =
   '문제나 선택지에서 "밑줄 친", "굵게 표시된", "색칠된" 등 실제로 표시되지 않는 시각적 서식에 의존하는 표현은 쓰지 마세요. 특정 단어나 구절을 가리켜야 할 때는 그 표현을 문제 텍스트 안에 따옴표로 직접 인용해서 명확히 하세요(예: "밑줄 친 부사가 나타내는 것은?" (X) → "다음 문장에서 \'quickly\'가 나타내는 것은?" (O)).';
 
+// "다음 중 ~가 아닌 것은?"류 문제에서 정답만 겉모습(철자·형태 패턴)이 달라 내용을 몰라도
+// 눈으로 보기만 하고 찍을 수 있는 경우가 자주 생긴다(예: 접미사 -tion 문제인데 보기 4개 중
+// 3개만 실제로 -tion으로 끝나고 나머지 1개는 아예 다른 형태라 지식 없이도 소거가 가능한 경우).
+// 오답 선택지도 정답과 겉보기 패턴(어미·길이·형식)을 맞춰서, 실제 개념을 알아야만 구별되게 한다.
+const NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION =
+  '"다음 중 ~이 아닌 것은?"처럼 예외를 고르는 문제에서, 오답(예시에 해당하는 선택지)들과 정답(예외)이 철자·어미·형태 등 겉모습만으로 구별되지 않게 하세요. 예를 들어 접미사 "-tion"이 붙어 명사가 되는 경우가 아닌 것을 고르는 문제라면, 정답 선택지도 "-tion"으로 끝나되 실제로는 그 접미사 규칙이 적용되지 않는 단어를 써야 합니다(예: 나머지 3개가 "creation, action, information"처럼 동사+"-tion" 구조인데 정답은 "nation"처럼 겉보기엔 "-tion"으로 끝나지만 "nat-"이라는 독립된 어근이 없어 접미사 결합으로 볼 수 없는 단어). 겉모양만 보고 소거할 수 있는 선택지 구성은 금지합니다.';
+
 // F-27: AI 케미 학습메이트 — 말투 프리셋. 'plain'은 기존과 동일한 중립 톤(기본값, 회귀 없음)이라 지시문을 추가하지 않는다.
 const TONE_INSTRUCTION: Record<MateTone, string> = {
   friendly: '설명 말투는 다정한 친구처럼 편안하고 다정하게 써주세요. 존댓말은 유지하되 따뜻하고 친근한 어조로 작성하세요.',
@@ -145,6 +152,7 @@ ${TONE_INSTRUCTION[mateTone]}
 
 퀴즈는 정확히 ${quizCount}개를 생성하세요. multiple_choice는 ${mcCount}개, short_answer는 ${saCount}개.
 ${NO_VISUAL_FORMATTING_INSTRUCTION}
+${NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION}
 JSON만 응답하고 다른 텍스트는 포함하지 마세요.
 `.trim();
 
@@ -243,6 +251,7 @@ ${TONE_INSTRUCTION[mateTone]}
 
 퀴즈는 정확히 8개. multiple_choice 6개, short_answer 2개. 오늘 배운 내용 기반으로 출제.
 ${NO_VISUAL_FORMATTING_INSTRUCTION}
+${NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION}
 JSON만 응답하세요.
 `.trim();
 
