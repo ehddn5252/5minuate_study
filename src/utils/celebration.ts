@@ -110,6 +110,49 @@ export function playCelebrationChime(): void {
   });
 }
 
+// 문제 하나를 답할 때마다의 즉각 효과음 — playCelebrationChime(세션/목표 완료 전용)과는
+// 별개로 매 문제 정답/오답에 짧고 가벼운 소리를 준다. "오답은 부드럽게" 원칙에 맞춰
+// 오답 사운드도 buzzer 같은 harsh한 톤 없이 낮고 짧은 하강음으로만 처리한다.
+export function playAnswerSound(correct: boolean): void {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  if (correct) {
+    // 밝고 깔끔한 두 음(G5 → C6)
+    const notes = [784.0, 1046.5];
+    const noteDuration = 0.09;
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const startAt = ctx.currentTime + i * noteDuration * 0.9;
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(0.18, startAt + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + noteDuration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(startAt);
+      osc.stop(startAt + noteDuration);
+    });
+  } else {
+    // 부드러운 하강음(G4 → Eb4) — 벌점처럼 느껴지지 않게 짧고 조용하게
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    const startAt = ctx.currentTime;
+    osc.frequency.setValueAtTime(392.0, startAt);
+    osc.frequency.exponentialRampToValueAtTime(311.1, startAt + 0.15);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(0.12, startAt + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.18);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startAt);
+    osc.stop(startAt + 0.18);
+  }
+}
+
 // iOS Safari 등 navigator.vibrate 미지원 브라우저에서는 조용히 무시
 export function triggerCelebrationHaptic(): void {
   if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { listAssignmentQuestions, submitAssignment, getMySubmission, type MySubmission } from '../services/academy';
+import { playAnswerSound } from '../utils/celebration';
 import type { SharedQuiz } from '../types';
 
 export default function AssignmentSolveScreen() {
@@ -104,6 +105,7 @@ export default function AssignmentSolveScreen() {
     if (revealed) return;
     setSelected(option);
     setRevealed(true);
+    if (quiz) playAnswerSound(option === quiz.answer);
   };
 
   const handleShortSubmit = () => {
@@ -114,6 +116,7 @@ export default function AssignmentSolveScreen() {
   const handleSelfJudge = (correct: boolean) => {
     if (selfJudge !== null) return;
     setSelfJudge(correct);
+    playAnswerSound(correct);
   };
 
   if (loading) {
@@ -297,7 +300,7 @@ export default function AssignmentSolveScreen() {
           {showFeedback && (
             <button
               onClick={() => (inRetryPhase ? goNextRetry() : goNext())}
-              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] mt-4"
+              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-sm min-h-[44px] mt-4 active:scale-95 transition-transform"
             >
               {inRetryPhase
                 ? retryQueue.length === 0

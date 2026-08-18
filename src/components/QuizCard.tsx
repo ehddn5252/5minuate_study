@@ -3,6 +3,7 @@ import { useQuizStore } from '../store';
 import { getMascotFace } from '../utils/mascot';
 import { removeFromWrongPool } from '../utils/storage';
 import { reportBankQuestion } from '../services/questionBank';
+import { playAnswerSound } from '../utils/celebration';
 import VoiceRecorder from './VoiceRecorder';
 import type { MateTone, Quiz } from '../types';
 
@@ -29,7 +30,9 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
     if (revealed) return;
     setSelected(option);
     setRevealed(true);
-    onAnswer(option === quiz.answer);
+    const correct = option === quiz.answer;
+    playAnswerSound(correct);
+    onAnswer(correct);
   };
 
   const handleShortAnswer = () => {
@@ -40,6 +43,7 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
   const handleSelfJudge = (correct: boolean) => {
     if (selfJudge !== null) return;
     setSelfJudge(correct);
+    playAnswerSound(correct);
     onAnswer(correct);
   };
 
@@ -109,14 +113,18 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
       {quiz.type === 'multiple_choice' && quiz.options ? (
         <div className="space-y-3">
           {quiz.options.map((option) => {
+            const isCorrectOption = option === quiz.answer;
+            const isWrongPick = option === selected && !isCorrectOption;
+            // 듀오링고식 "정답은 확 튀고, 오답은 흔들리는" 즉각 반응 — 패널뿐 아니라
+            // 실제로 누른 버튼 자체에도 애니메이션을 줘야 손끝에서 바로 느껴진다.
             let cls =
-              'w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-colors min-h-[44px] ';
+              'w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all min-h-[44px] flex items-center justify-between gap-2 ';
             if (!revealed) {
-              cls += 'border-gray-200 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50';
-            } else if (option === quiz.answer) {
-              cls += 'border-green-500 bg-green-50 text-green-700';
-            } else if (option === selected) {
-              cls += 'border-red-400 bg-red-50 text-red-700';
+              cls += 'border-gray-200 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50 active:scale-[0.97]';
+            } else if (isCorrectOption) {
+              cls += 'border-green-500 bg-green-50 text-green-700 ring-4 ring-green-100 animate-feedback-pop';
+            } else if (isWrongPick) {
+              cls += 'border-red-400 bg-red-50 text-red-700 animate-feedback-shake';
             } else {
               cls += 'border-gray-200 text-gray-400';
             }
@@ -127,7 +135,13 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
                 className={cls}
                 disabled={revealed}
               >
-                {option}
+                <span>{option}</span>
+                {revealed && isCorrectOption && (
+                  <span className="flex-shrink-0 text-green-600 animate-count-up-pop" aria-hidden="true">✓</span>
+                )}
+                {revealed && isWrongPick && (
+                  <span className="flex-shrink-0 text-red-500 animate-count-up-pop" aria-hidden="true">✕</span>
+                )}
               </button>
             );
           })}
@@ -165,13 +179,13 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
           <div className="flex gap-2">
             <button
               onClick={() => handleSelfJudge(true)}
-              className="flex-1 py-2.5 rounded-xl bg-green-500 text-white font-medium text-sm min-h-[44px] active:opacity-80 transition-opacity"
+              className="flex-1 py-2.5 rounded-xl bg-green-500 text-white font-medium text-sm min-h-[44px] active:scale-95 transition-transform"
             >
               ⭕ 맞았어요
             </button>
             <button
               onClick={() => handleSelfJudge(false)}
-              className="flex-1 py-2.5 rounded-xl bg-red-400 text-white font-medium text-sm min-h-[44px] active:opacity-80 transition-opacity"
+              className="flex-1 py-2.5 rounded-xl bg-red-400 text-white font-medium text-sm min-h-[44px] active:scale-95 transition-transform"
             >
               ❌ 틀렸어요
             </button>
@@ -193,7 +207,7 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
               isCorrect ? 'text-green-700' : 'text-amber-700'
             }`}
           >
-            <span className="text-lg">{getMascotFace(isCorrect ? 'correct' : 'wrong', mateTone)}</span>
+            <span className="text-lg inline-block animate-count-up-pop">{getMascotFace(isCorrect ? 'correct' : 'wrong', mateTone)}</span>
             {isCorrect ? '정답입니다!' : '다음에 다시 나와요'}
           </p>
           {!isCorrect && (

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getCurriculum } from '../data/curriculum';
 import { fetchFromPool, buildCacheKey } from '../services/contentPool';
 import { TEMPLATES } from '../data/templates';
+import { playAnswerSound } from '../utils/celebration';
 
 // ── 타입 ──────────────────────────────────────────────────────────────────
 
@@ -282,6 +283,8 @@ export default function ShortsScreen() {
 
   const handleAnswer = (cardIndex: number, option: string) => {
     if (answers[cardIndex] !== undefined) return;
+    const card = cards[cardIndex];
+    if (card?.type === 'quiz') playAnswerSound(option === card.answer);
     setAnswers((prev) => ({ ...prev, [cardIndex]: option }));
   };
 

@@ -504,7 +504,7 @@ export default function TestScreen() {
         {answered && (
           <button
             onClick={handleNext}
-            className="w-full mt-4 py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
+            className="w-full mt-4 py-4 bg-indigo-600 text-white rounded-xl font-semibold text-base min-h-[44px] active:scale-95 transition-transform"
           >
             {inRetryPhase
               ? retryQueue.length === 0
