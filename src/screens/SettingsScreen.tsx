@@ -16,6 +16,7 @@ import BottomNav from '../components/BottomNav';
 import { useAppStore } from '../store';
 import { getMascotFace } from '../utils/mascot';
 import type { AccentTheme, MascotSkin, BackgroundTheme } from '../types';
+// 배경 무늬(BackgroundPattern) 선택 UI는 잠시 비활성화 상태 — 재활성화 시 이 타입도 다시 import.
 
 const SUPPORT_EMAIL = 'ehddn5252@gmail.com';
 
@@ -27,12 +28,41 @@ const ACCENT_THEMES: { id: AccentTheme; label: string; swatch: string }[] = [
   { id: 'violet', label: '바이올렛', swatch: '#7c3aed' },
 ];
 
-const BG_THEMES: { id: BackgroundTheme; label: string; swatch: string }[] = [
+const BG_THEMES: { id: BackgroundTheme; label: string; swatch: string; dark?: boolean }[] = [
   { id: 'default', label: '그레이', swatch: '#f9fafb' },
   { id: 'ivory', label: '아이보리', swatch: '#fdf8f0' },
   { id: 'mint', label: '민트', swatch: '#f1faf7' },
   { id: 'lavender', label: '라벤더', swatch: '#f6f4fc' },
+  { id: 'charcoal', label: '차콜', swatch: '#1f2937', dark: true },
+  { id: 'navy', label: '네이비', swatch: '#0f172a', dark: true },
 ];
+
+// 배경 무늬 선택 UI 비활성화 — index.css의 관련 규칙과 App/main.tsx 연동은 그대로 두고
+// 이 화면의 노출만 잠시 꺼둔다. 재활성화 시 아래 주석을 해제.
+// index.css의 html[data-bg-pattern='...'] body 규칙과 동일한 값을 써서 미리보기가 실제와 일치하게 한다.
+// const BG_PATTERNS: { id: BackgroundPattern; label: string; backgroundImage: string; backgroundSize: string }[] = [
+//   { id: 'none', label: '없음', backgroundImage: 'none', backgroundSize: 'auto' },
+//   {
+//     id: 'dots',
+//     label: '도트',
+//     backgroundImage: 'radial-gradient(rgba(0,0,0,0.12) 1.4px, transparent 1.4px)',
+//     backgroundSize: '9px 9px',
+//   },
+//   {
+//     id: 'stars',
+//     label: '별',
+//     backgroundImage:
+//       "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='rgba(0,0,0,0.16)'%3E%3Ccircle cx='10' cy='15' r='1.5'/%3E%3Ccircle cx='45' cy='8' r='1'/%3E%3Ccircle cx='65' cy='30' r='1.8'/%3E%3Ccircle cx='25' cy='50' r='1.2'/%3E%3Ccircle cx='55' cy='60' r='1.5'/%3E%3Ccircle cx='75' cy='72' r='1'/%3E%3Ccircle cx='5' cy='68' r='1.3'/%3E%3C/g%3E%3C/svg%3E\")",
+//     backgroundSize: '28px 28px',
+//   },
+//   {
+//     id: 'waves',
+//     label: '파도',
+//     backgroundImage:
+//       "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='24' viewBox='0 0 120 24'%3E%3Cpath d='M0 12 Q30 0 60 12 T120 12' fill='none' stroke='rgba(0,0,0,0.16)' stroke-width='3'/%3E%3C/svg%3E\")",
+//     backgroundSize: '40px 8px',
+//   },
+// ];
 
 const MASCOT_SKINS: { id: MascotSkin; label: string }[] = [
   { id: 'classic', label: '스마일' },
@@ -176,10 +206,31 @@ export default function SettingsScreen() {
                 }`}
                 style={{ backgroundColor: t.swatch }}
               >
-                {appState.bgTheme === t.id && <span className="text-[var(--accent-600)] text-sm">✓</span>}
+                {appState.bgTheme === t.id && (
+                  <span className={`text-sm ${t.dark ? 'text-white' : 'text-[var(--accent-600)]'}`}>✓</span>
+                )}
               </button>
             ))}
           </div>
+          {/* 배경 무늬 선택 UI 비활성화 — 재활성화 시 위 BG_PATTERNS 주석과 함께 해제.
+          <p className="text-xs text-gray-400 mb-2">배경 무늬</p>
+          <div className="flex gap-2.5 mb-4">
+            {BG_PATTERNS.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => updateAppState({ bgPattern: p.id })}
+                aria-label={p.label}
+                className={`w-10 h-10 rounded-full border-2 bg-gray-50 flex items-center justify-center transition-transform active:scale-90 ${
+                  appState.bgPattern === p.id ? 'border-[var(--accent-500)]' : 'border-gray-200'
+                }`}
+                style={{ backgroundImage: p.backgroundImage, backgroundSize: p.backgroundSize }}
+              >
+                {appState.bgPattern === p.id && <span className="text-[var(--accent-600)] text-sm">✓</span>}
+              </button>
+            ))}
+          </div>
+          */}
+
           <p className="text-xs text-gray-400 mb-2">마스코트</p>
           <div className="flex gap-2.5">
             {MASCOT_SKINS.map((s) => (

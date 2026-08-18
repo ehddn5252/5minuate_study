@@ -223,6 +223,7 @@ const DEFAULT_APP_STATE: AppState = {
   accentTheme: 'indigo',
   mascotSkin: 'classic',
   bgTheme: 'default',
+  bgPattern: 'none',
 };
 
 export function getAppState(): AppState {

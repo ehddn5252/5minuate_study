@@ -5,7 +5,8 @@ export type QuizLevel = 'beginner' | 'intermediate' | 'advanced';
 export type MateTone = 'friendly' | 'hype' | 'plain';
 export type AccentTheme = 'indigo' | 'rose' | 'emerald' | 'amber' | 'violet';
 export type MascotSkin = 'classic' | 'cat';
-export type BackgroundTheme = 'default' | 'ivory' | 'mint' | 'lavender';
+export type BackgroundTheme = 'default' | 'ivory' | 'mint' | 'lavender' | 'charcoal' | 'navy';
+export type BackgroundPattern = 'none' | 'dots' | 'stars' | 'waves';
 
 export interface Goal {
   id: string;
@@ -122,4 +123,6 @@ export interface AppState {
   mascotSkin: MascotSkin;
   // F-41: 배경 스킨 — 화면 바탕색만 살짝 바꾸는 옵션(라이트 톤 유지, 다크모드 아님).
   bgTheme: BackgroundTheme;
+  // F-41: 배경 무늬 — bgTheme(바탕색)과 별개로 화면 여백에 은은한 도트/별/파도 패턴을 깔아주는 옵션.
+  bgPattern: BackgroundPattern;
 }

@@ -177,7 +177,8 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = appState.accentTheme;
     document.documentElement.dataset.bg = appState.bgTheme;
-  }, [appState.accentTheme, appState.bgTheme]);
+    document.documentElement.dataset.bgPattern = appState.bgPattern;
+  }, [appState.accentTheme, appState.bgTheme, appState.bgPattern]);
 
   if (!authChecked) {
     return <div className="min-h-screen bg-[var(--page-bg)]" />;

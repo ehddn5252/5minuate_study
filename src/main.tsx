@@ -9,6 +9,7 @@ import { getAppState } from './utils/storage'
 const savedAppState = getAppState()
 document.documentElement.dataset.theme = savedAppState.accentTheme
 document.documentElement.dataset.bg = savedAppState.bgTheme
+document.documentElement.dataset.bgPattern = savedAppState.bgPattern
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
