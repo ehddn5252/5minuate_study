@@ -4,6 +4,7 @@ import { getCurriculum } from '../data/curriculum';
 import { fetchFromPool, buildCacheKey } from '../services/contentPool';
 import { TEMPLATES } from '../data/templates';
 import { playAnswerSound } from '../utils/celebration';
+import { shuffle } from '../utils/shuffle';
 
 // ── 타입 ──────────────────────────────────────────────────────────────────
 
@@ -55,7 +56,7 @@ async function buildCards(templateId: string): Promise<ShortsCard[]> {
           type: 'quiz',
           day: day.day,
           question: mcQuiz.question,
-          options: mcQuiz.options,
+          options: shuffle(mcQuiz.options),
           answer: mcQuiz.answer,
           explanation: mcQuiz.explanation,
         });
@@ -73,7 +74,7 @@ async function buildCards(templateId: string): Promise<ShortsCard[]> {
             type: 'quiz',
             day: d,
             question: q.question,
-            options: q.options!,
+            options: shuffle(q.options!),
             answer: q.answer,
             explanation: q.explanation,
           });

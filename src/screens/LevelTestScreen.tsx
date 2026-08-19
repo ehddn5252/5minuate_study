@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { TEMPLATES } from '../data/templates';
 import { fetchLevelTestQuestions, computeRecommendedLevel, type LevelTestQuestion } from '../services/questionBank';
 import { playAnswerSound } from '../utils/celebration';
+import { shuffle } from '../utils/shuffle';
 import type { QuizLevel } from '../types';
 
 const LEVEL_LABEL: Record<QuizLevel, string> = {
@@ -45,6 +46,12 @@ export default function LevelTestScreen() {
   const currentQuiz = questions[index];
   const isLast = index === questions.length - 1;
   const recommendedLevel = finished ? computeRecommendedLevel(results) : null;
+  // 정답이 항상 같은 자리(주로 첫 번째)에 오지 않도록, 문제가 바뀔 때만 한 번 섞는다.
+  const displayOptions = useMemo(
+    () => (currentQuiz ? shuffle(currentQuiz.options) : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentQuiz?.id]
+  );
 
   const handleAnswer = (option: string) => {
     if (revealed || !currentQuiz) return;
@@ -146,7 +153,7 @@ export default function LevelTestScreen() {
           <p className="text-gray-900 text-base font-medium leading-relaxed mb-4">{currentQuiz.question}</p>
 
           <div className="space-y-3">
-            {currentQuiz.options.map((option) => {
+            {(displayOptions ?? currentQuiz.options).map((option) => {
               const isCorrectOption = option === currentQuiz.answer;
               const isWrongPick = option === selected && !isCorrectOption;
               let cls =

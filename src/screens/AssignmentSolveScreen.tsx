@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { listAssignmentQuestions, submitAssignment, getMySubmission, type MySubmission } from '../services/academy';
 import { playAnswerSound } from '../utils/celebration';
+import { shuffle } from '../utils/shuffle';
 import type { SharedQuiz } from '../types';
 
 export default function AssignmentSolveScreen() {
@@ -38,6 +39,13 @@ export default function AssignmentSolveScreen() {
   }, [assignmentId]);
 
   const quiz = inRetryPhase ? currentRetryQuiz : questions[index];
+  // 정답이 항상 같은 자리(주로 첫 번째)에 오지 않도록, 문제가 바뀔 때만 한 번 섞는다.
+  // SharedQuiz엔 id가 없어 question 텍스트를 키로 쓴다.
+  const displayOptions = useMemo(
+    () => (quiz?.options ? shuffle(quiz.options) : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [quiz?.question]
+  );
 
   const resetQuestionState = () => {
     setSelected(null);
@@ -220,9 +228,9 @@ export default function AssignmentSolveScreen() {
           </span>
           <p className="text-gray-900 text-base font-medium leading-relaxed mt-2 mb-4">{quiz.question}</p>
 
-          {quiz.type === 'multiple_choice' && quiz.options ? (
+          {quiz.type === 'multiple_choice' && displayOptions ? (
             <div className="space-y-3">
-              {quiz.options.map((option) => {
+              {displayOptions.map((option) => {
                 let cls = 'w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-colors min-h-[44px] ';
                 if (!revealed) {
                   cls += 'border-gray-200 text-gray-700 hover:border-[var(--accent-300)] hover:bg-[var(--accent-50)]';

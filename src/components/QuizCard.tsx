@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuizStore } from '../store';
 import { getMascotFace } from '../utils/mascot';
 import { removeFromWrongPool } from '../utils/storage';
 import { reportBankQuestion } from '../services/questionBank';
 import { playAnswerSound } from '../utils/celebration';
+import { shuffle } from '../utils/shuffle';
 import VoiceRecorder from './VoiceRecorder';
 import type { MateTone, Quiz } from '../types';
 
@@ -25,6 +26,12 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
   const [selfJudge, setSelfJudge] = useState<boolean | null>(null);
   const [reportState, setReportState] = useState<ReportState>('idle');
   const [reportMessage, setReportMessage] = useState('');
+  // 정답이 항상 같은 자리(주로 첫 번째)에 오지 않도록, 문제가 바뀔 때만 한 번 섞는다.
+  const displayOptions = useMemo(
+    () => (quiz.options ? shuffle(quiz.options) : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [quiz.id]
+  );
 
   const handleMultipleChoice = (option: string) => {
     if (revealed) return;
@@ -110,9 +117,9 @@ export default function QuizCard({ quiz, index, total, onAnswer, mateTone }: Qui
         <VoiceRecorder quizId={quiz.id} questionText={quiz.question} />
       </div>
 
-      {quiz.type === 'multiple_choice' && quiz.options ? (
+      {quiz.type === 'multiple_choice' && displayOptions ? (
         <div className="space-y-3">
-          {quiz.options.map((option) => {
+          {displayOptions.map((option) => {
             const isCorrectOption = option === quiz.answer;
             const isWrongPick = option === selected && !isCorrectOption;
             // 듀오링고식 "정답은 확 튀고, 오답은 흔들리는" 즉각 반응 — 패널뿐 아니라
