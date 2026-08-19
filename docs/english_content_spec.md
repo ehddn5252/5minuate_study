@@ -3,12 +3,12 @@
 `english_grammar` / `english_vocab` / `english_writing` 세 커리큘럼의 `question_bank` 시드 데이터를
 작성할 때 따르는 규칙. 새 Day를 채울 때마다 이 문서 기준으로 작성하고, 규칙이 바뀌면 이 문서부터 갱신한다.
 
-## 0. 현재 진행 상황 (2026-08-19 기준)
+## 0. 현재 진행 상황 (2026-08-20 기준)
 
 | 커리큘럼 | 총 Day | 시드 완료 | 남은 Day |
 |---|---|---|---|
 | `english_grammar` | 30 | 1~10 | 11~30 |
-| `english_vocab` | 30 | 1~5 | 6~30 |
+| `english_vocab` | 30 | 1~10 | 11~30 |
 | `english_writing` | 30 | 1~15 | 16~30 |
 
 각 커리큘럼의 Day별 주제(topic)는 `src/data/curriculum.ts`에 이미 30일치가 다 정의돼 있다 —
