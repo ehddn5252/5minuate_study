@@ -8,7 +8,7 @@
 | 커리큘럼 | 총 Day | 시드 완료 | 남은 Day |
 |---|---|---|---|
 | `english_grammar` | 30 | 1~10 | 11~30 |
-| `english_vocab` | 30 | 1~10 | 11~30 |
+| `english_vocab` | 30 | 1~15 | 16~30 |
 | `english_writing` | 30 | 1~15 | 16~30 |
 
 각 커리큘럼의 Day별 주제(topic)는 `src/data/curriculum.ts`에 이미 30일치가 다 정의돼 있다 —
