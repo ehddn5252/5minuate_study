@@ -7,7 +7,7 @@
 
 | 커리큘럼 | 총 Day | 시드 완료 | 남은 Day |
 |---|---|---|---|
-| `english_grammar` | 30 | 1~10 | 11~30 |
+| `english_grammar` | 30 | 1~15 | 16~30 |
 | `english_vocab` | 30 | 1~15 | 16~30 |
 | `english_writing` | 30 | 1~15 | 16~30 |
 
@@ -22,14 +22,21 @@
 
 ## 2. 하루 분량 구조 (모든 커리큘럼 공통)
 
-Day 하나당 **24문제** = beginner 8 + intermediate 8 + advanced 8.
-각 난이도 안에서 **multiple_choice 4개 + short_answer 4개** (2:1이 아니라 1:1인 점 주의 — 실시간 AI 생성 프롬프트의 2:1 비율과는 다르다. 사전 제작 시드는 답을 직접 타이핑해보는 기회를 늘리려고 절반을 단답형으로 둔다).
+Day 하나당 **24문제** = beginner 8 + intermediate 8 + advanced 8. MC/SA 비율은 커리큘럼마다 다르다(3장 참고) — 하나로 통일돼 있지 않으니 새 Day를 쓸 때 같은 커리큘럼의 기존 Day 비율을 반드시 먼저 확인한다.
 
 ## 3. 커리큘럼별 문제 패턴
 
-세 커리큘럼은 성격이 달라서 "beginner는 커리큘럼 예문을 그대로 문제로 바꾸고, intermediate/advanced는 새로 쓴다"는 원칙은 같지만 문제 유형 자체가 다르다.
+세 커리큘럼은 성격이 달라서 "beginner는 커리큘럼 원문을 그대로 문제로 바꾸고, intermediate/advanced는 새로 쓴다"는 원칙은 같지만 문제 유형과 MC/SA 비율 자체가 다르다.
 
-### 3-1. `english_grammar`, `english_writing` (문장 번역/작문형)
+### 3-1. `english_grammar` (문법 분석형, MC 6 : SA 2)
+
+`curriculum.ts`의 해당 Day `content`는 번역 예문이 아니라 **문법 규칙 설명**이다(규칙 여러 개, 각 규칙에 영어 예문 1개씩). 문제는 그 예문을 제시하고 문법적 분석(문장 형식/품사/시제/용법/역할)을 묻거나, "다음 중 어법상 옳은/틀린 것은?" 같은 판별형으로 낸다 — 한국어→영어 번역이 아니다.
+
+- **beginner (8문제 = MC 6 + SA 2)**: 커리큘럼의 각 규칙과 예문을 그대로 가져와, "이 문장은 어떤 시제/형식/역할인가?" 식으로 직접 묻는다. 오답은 같은 Day에 나오는 다른 문법 카테고리 이름들.
+- **intermediate (8문제 = MC 6 + SA 2)**: 같은 규칙을 새 예문에 적용하거나, 문장 변형(능동↔수동, 긍정↔부정, 다른 표현으로 바꿔쓰기)을 시킨다.
+- **advanced (8문제 = MC 6 + SA 2)**: 어법 판별("다음 중 어법상 틀린 것은?"), 의미 뉘앙스 구별(예: `must have p.p.` vs `should have p.p.`), 복잡한 문장의 분석을 다룬다. 실제 예: `002_english_grammar_day01-05.sql` 참고.
+
+### 3-2. `english_writing` (문장 번역/작문형, MC 4 : SA 4)
 
 `curriculum.ts`의 해당 Day `content`에는 예문 8개가 `• 한국어 문장 → English sentence.` 형식으로 들어있다.
 
@@ -37,7 +44,7 @@ Day 하나당 **24문제** = beginner 8 + intermediate 8 + advanced 8.
 - **intermediate (8문제)**: 같은 문법 포인트를 다루는 새 문장 8개(4 MC + 4 SA). 일상 대화 수준, beginner보다 어휘·구조를 한 단계 올림.
 - **advanced (8문제)**: 같은 문법 포인트를 비즈니스/학술 레지스터 문장으로. 회사·정책·연구·협상 같은 소재를 자주 쓴다(기존 시드 데이터 톤과 통일).
 
-### 3-2. `english_vocab` (단어형)
+### 3-3. `english_vocab` (단어형, MC 6 : SA 2)
 
 `curriculum.ts`의 해당 Day `content`에는 단어 10개가 `• word (품사) 뜻 — "example sentence"` 형식으로 들어있다.
 
@@ -67,7 +74,7 @@ Day 하나당 **24문제** = beginner 8 + intermediate 8 + advanced 8.
 - [ ] 각 MC 문제의 `options`가 4개, 전부 서로 다름(`Set` 크기 4)
 - [ ] `answer`가 `options` 안에 정확히 존재
 - [ ] 같은 Day 안에 완전히 동일한 `question` 문자열 중복 없음
-- [ ] `difficulty`별 개수가 8/8/8, 그 안에서 MC/SA가 4/4인지
+- [ ] `difficulty`별 개수가 8/8/8, 그 안에서 MC/SA 비율이 해당 커리큘럼 기존 Day와 같은지(grammar/vocab는 6/2, writing은 4/4)
 - [ ] JSON → SQL 변환 후 SQL 파일을 눈으로 한 번 훑어 이스케이프가 깨지지 않았는지 확인(특히 `don't`, `isn't`처럼 아포스트로피가 들어간 영어 문장)
 
 ## 7. 배포 절차
