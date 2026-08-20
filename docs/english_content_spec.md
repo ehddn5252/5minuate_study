@@ -9,7 +9,7 @@
 |---|---|---|---|
 | `english_grammar` | 30 | 1~15 | 16~30 |
 | `english_vocab` | 30 | 1~15 | 16~30 |
-| `english_writing` | 30 | 1~15 | 16~30 |
+| `english_writing` | 30 | 1~20 | 21~30 |
 
 각 커리큘럼의 Day별 주제(topic)는 `src/data/curriculum.ts`에 이미 30일치가 다 정의돼 있다 —
 콘텐츠를 새로 기획할 필요 없이, 정해진 topic에 맞춰 문제만 채우면 된다.
