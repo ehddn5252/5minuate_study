@@ -7,7 +7,7 @@
 
 | 커리큘럼 | 총 Day | 시드 완료 | 남은 Day |
 |---|---|---|---|
-| `english_grammar` | 30 | 1~15 | 16~30 |
+| `english_grammar` | 30 | 1~20 | 21~30 |
 | `english_vocab` | 30 | 1~20 | 21~30 |
 | `english_writing` | 30 | 1~20 | 21~30 |
 
