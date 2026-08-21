@@ -250,6 +250,43 @@ export async function listStudentAssignments(classId: string, studentId: string)
   });
 }
 
+// F-58: 학생 명단을 펼치기 전부터 "이 학생이 미제출 숙제가 몇 건인지" 한눈에 보여주기 위한 집계.
+// 학생 수만큼 쿼리하지 않도록(N+1 방지) 반 전체의 마감 지난 숙제·제출 기록을 각각 한 번씩만 조회해
+// 클라이언트에서 합친다. 대상이 특정 학생으로 좁혀진 숙제(target_student_ids)도 정확히 반영한다.
+export async function listClassOverdueCounts(
+  classId: string,
+  studentIds: string[]
+): Promise<Record<string, number>> {
+  if (studentIds.length === 0) return {};
+  const today = new Date().toISOString().split('T')[0];
+
+  const { data: assignments } = await supabase
+    .from('assignments')
+    .select('id, target_student_ids')
+    .eq('class_id', classId)
+    .lt('due_date', today);
+  const overdueAssignments = assignments ?? [];
+  if (overdueAssignments.length === 0) return {};
+
+  const { data: submissions } = await supabase
+    .from('assignment_submissions')
+    .select('assignment_id, student_id')
+    .in('assignment_id', overdueAssignments.map((a) => a.id))
+    .not('completed_at', 'is', null);
+  const completedSet = new Set((submissions ?? []).map((s) => `${s.assignment_id}:${s.student_id}`));
+
+  const counts: Record<string, number> = {};
+  studentIds.forEach((studentId) => {
+    counts[studentId] = overdueAssignments.reduce((count, a) => {
+      const targetIds = a.target_student_ids as string[] | null;
+      const applicable = !targetIds || targetIds.includes(studentId);
+      const done = completedSet.has(`${a.id}:${studentId}`);
+      return applicable && !done ? count + 1 : count;
+    }, 0);
+  });
+  return counts;
+}
+
 export async function removeStudentFromClass(classId: string, studentId: string): Promise<{ error?: string }> {
   const { error } = await supabase
     .from('class_members')

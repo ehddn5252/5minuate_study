@@ -14,6 +14,7 @@ import {
   uploadClassMaterialFile,
   getClassMaterialFileUrl,
   listClassRoster,
+  listClassOverdueCounts,
   removeStudentFromClass,
   listClassAnnouncements,
   createAnnouncement,
@@ -81,6 +82,7 @@ export default function ClassDetailScreen() {
   const [expandedStudentDetailId, setExpandedStudentDetailId] = useState<string | null>(null);
   const [studentDetail, setStudentDetail] = useState<StudentAssignmentDetailRow[]>([]);
   const [studentDetailLoading, setStudentDetailLoading] = useState(false);
+  const [overdueCounts, setOverdueCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!classId) return;
@@ -101,6 +103,8 @@ export default function ClassDetailScreen() {
       setOtherClasses(myClasses.filter((c) => c.id !== classId));
       setAnnouncements(announcementList);
       setLoading(false);
+      // 명단을 펼치기 전에도 미제출 학생이 보이도록 별도로 집계(펼침 여부와 무관하게 미리 로드)
+      listClassOverdueCounts(classId, rosterList.map((r) => r.studentId)).then(setOverdueCounts);
     })();
   }, [classId]);
 
@@ -360,6 +364,11 @@ export default function ClassDetailScreen() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                         <span className="truncate">{r.studentName}</span>
+                        {(overdueCounts[r.studentId] ?? 0) > 0 && (
+                          <span className="flex-shrink-0 text-[10px] font-medium text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
+                            ⚠️ 미제출 {overdueCounts[r.studentId]}건
+                          </span>
+                        )}
                       </button>
                       {confirmRemoveId === r.studentId ? (
                         <span className="flex items-center gap-2 flex-shrink-0">
