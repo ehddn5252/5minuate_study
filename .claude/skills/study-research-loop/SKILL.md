@@ -14,7 +14,7 @@ description: 5분 학습(5minuate_study) 프로젝트를 위해 인터넷에서 
    - Duolingo·말해보카 등 이미 이 코드베이스가 오마주하고 있는 앱들의 구체적 UX 패턴(커밋 로그에 "듀오링고/말해보카 오마주"로 언급된 것들) 중 아직 없는 것
    - PWA/모바일 웹 학습 앱의 접근성·성능·오프라인 지원 관련 모범 사례
 2. **기획 초안 (Planner)**: 찾은 아이디어 중 이 프로젝트의 비전·성공기준과 정렬되는 것 하나를 골라 `docs/planning_document.md`의 관련 섹션에 짧게 반영한다. `study-planner` 스킬의 "먼저 확인할 것"(문서가 v1.0에 멈춰 있고 "5분 내 완결"은 폐기된 원칙) 경고를 그대로 따른다.
-3. **기능 정의 (FO)**: Planner의 초안을 받아 `study-fo` 스킬대로 `docs/feature_definition.md`에 새 F-ID를 추가한다. 새 F-ID 번호는 `grep -rn "// F-[0-9]" src/`로 코드에 이미 쓰인 최신 번호 다음으로 매긴다.
+3. **기능 정의 (FO)**: Planner의 초안을 받아 `study-fo` 스킬대로 `docs/feature_definition.md`에 새 F-ID를 추가한다. `study-fo` 스킬의 F-ID 번호 확인 절차(코드 주석 + 문서 양쪽 확인)를 그대로 따른다 — 코드 주석 grep만 믿으면 번호가 겹칠 수 있다(사이클 1에서 실제로 겹칠 뻔함, F-47은 이미 "목표 삭제" 기능에 쓰여 있었음).
 4. **논의 (Planner ↔ FO)**: FO가 작성한 F-ID가 Planner의 원래 의도·비전과 어긋나지 않는지, 혹은 기술적으로 이 스택(PWA+Supabase+Gemini+Cloudflare Workers, 무료 티어)에서 실현 가능한지 짧게 재검토한다. 어긋나면 F-ID를 조정한다. 이 저장소엔 사람이 실시간으로 없으므로 이 "논의"는 스스로 두 관점을 번갈아 점검하는 자기검증이다.
 5. **구현 (Developer)**: `study-developer` 스킬대로 진행한다. 필요하면 `docs/architecture_decision.md`를 갱신하고, 코드 또는 콘텐츠(예: `docs/english_content_spec.md` 기준 시드 데이터)를 작성한다.
 6. **검증**: `npx tsc --noEmit`, `npm run build` 통과 필수. UI 변경이면 가능한 범위에서 실제로 렌더링해 확인한다.
@@ -34,4 +34,4 @@ description: 5분 학습(5minuate_study) 프로젝트를 위해 인터넷에서 
 
 ## 지금까지 이 루프가 반영한 것 (기록)
 
-(아직 이 스킬로 실행된 사이클이 없다. 사이클마다 여기에 "무엇을 검색했고 → 무엇을 채택했고 → 어떤 F-ID/커밋으로 이어졌는지" 한 줄씩 추가한다.)
+- **사이클 1 (2026-08-20):** "retrieval practice / spaced repetition app design" 검색 → 정답을 보기 전 먼저 답을 산출하는 게 재인식(객관식)보다 기억에 낫다는 결과를 얻었으나, 이미 F-45(정답 전 음성 녹음)로 커버돼 있어 채택하지 않음. 대신 프로젝트 자체 커밋 로그/문서를 훑다가 "스트릭 프리즈"가 여러 기획 초안 문서(`feature_definition_engagement.md` 등)에서 이미 설계됐지만 실제 코드에는 전혀 없다는 걸 발견해 이걸 채택. F-49로 문서화하고 `types/index.ts`, `GoalCreateScreen.tsx`, `TestScreen.tsx`, `SessionCompleteScreen.tsx`에 구현 → 커밋.

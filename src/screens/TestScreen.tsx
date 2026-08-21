@@ -316,11 +316,18 @@ export default function TestScreen() {
       const hadYesterdaySession = allSessions.some(
         (s) => s.goalId === goal.id && s.date === yesterdayStr && s.status === 'completed'
       );
+      // F-49: 스트릭 프리즈 — 어제를 걸러서 원래는 스트릭이 끊길 상황이지만, 지켜줄 스트릭이
+      // 있고(streak > 0) 프리즈가 남아있으면 한 번은 끊기지 않게 보호한다.
+      const usedFreeze =
+        !alreadyCompletedToday && !hadYesterdaySession && goal.streak > 0 && (goal.streakFreezeRemaining ?? 0) > 0;
       const newStreak = alreadyCompletedToday
         ? goal.streak
-        : hadYesterdaySession
+        : hadYesterdaySession || usedFreeze
           ? goal.streak + 1
           : 1;
+      const newStreakFreezeRemaining = usedFreeze
+        ? (goal.streakFreezeRemaining ?? 0) - 1
+        : (goal.streakFreezeRemaining ?? 0);
       const newCompletedSessions = goal.completedSessions + 1;
       const isGoalComplete = goal.totalSessions > 0 && newCompletedSessions >= goal.totalSessions;
 
@@ -335,6 +342,7 @@ export default function TestScreen() {
         completedSessions: newCompletedSessions,
         streak: newStreak,
         bestStreak: Math.max(goal.bestStreak, newStreak),
+        streakFreezeRemaining: newStreakFreezeRemaining,
         xp: newXp,
         xpLevel: newLevel,
         ...(isGoalComplete ? { status: 'completed' as const, completedAt: new Date().toISOString() } : {}),
@@ -374,6 +382,7 @@ export default function TestScreen() {
         state: {
           score, total, streak: newStreak, completedSessions: newCompletedSessions, newBadges,
           topic: goal.topic, growthFeedback, mateTone: goal.mateTone, xpGained, newXp, newLevel, didLevelUp,
+          usedFreeze,
         },
       });
     } else {
@@ -381,7 +390,7 @@ export default function TestScreen() {
         state: {
           score, total, streak: newStreak, newBadges, topic: goal.topic, growthFeedback,
           mateTone: goal.mateTone, xpGained, newXp, newLevel, didLevelUp, surpriseReward,
-          goalId: goal.id, levelSuggestion,
+          goalId: goal.id, levelSuggestion, usedFreeze,
         },
       });
     }

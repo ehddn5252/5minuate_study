@@ -33,6 +33,9 @@ export interface Goal {
   examScoped?: boolean;
   xp?: number;
   xpLevel?: number;
+  // F-49: 스트릭 프리즈 — 하루를 건너뛰어도 1회는 스트릭이 끊기지 않게 보호해주는 개수.
+  // 목표 생성 시 1개 지급, 소진되면 다시 채워지지 않는다(재충전은 향후 사이클 과제).
+  streakFreezeRemaining?: number;
 }
 
 export interface Session {

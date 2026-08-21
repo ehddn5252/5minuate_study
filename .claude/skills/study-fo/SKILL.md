@@ -11,7 +11,7 @@ description: 5분 학습(5minuate_study) 프로젝트의 FO(Feature Owner) 역�
 
 `docs/feature_definition.md`는 F-01~F-10까지만 정의돼 있지만, 실제 코드 주석은 F-38, F-41, F-44 같은 훨씬 뒤 번호까지 이미 쓰고 있다(예: `src/types/index.ts`, `src/index.css`의 `// F-41: 스킨 ...` 주석들). 이 문서가 다음 기능의 번호를 매기는 유일한 근거가 아니라는 뜻이다.
 
-1. 새 F-ID를 매기기 전에 `grep -rn "// F-[0-9]" src/`로 코드에 이미 쓰인 최신 번호를 확인하고, 그보다 큰 번호로 이어서 매긴다.
+1. 새 F-ID를 매기기 전에 최신 번호를 확인한다 — **코드 주석만으로는 부족하다.** `docs/feature_definition.md`엔 "사후 문서화된 기능" 섹션처럼 코드엔 F-주석이 없지만 문서에만 번호가 매겨진 기능도 있다(2026-08-20 시점 F-47/F-48이 그런 경우 — `grep -rn "// F-[0-9]" src/`로는 안 잡힘). 반드시 `grep -rn "// F-[0-9]" src/`와 `grep -rn "^### F-[0-9]" docs/feature_definition.md` 둘 다 확인해 더 큰 쪽 다음 번호로 매긴다.
 2. `docs/feature_definition.md` 자체를 최신 상태로 통째로 맞추는 건 이 스킬 한 번의 일이 아니다 — 이번에 다루는 기능만 새 F-ID로 추가하고, 문서 전체가 뒤처져 있다는 사실은 사용자에게 짧게 언급한다.
 
 ## 역할 골격

@@ -27,6 +27,7 @@ interface LocationState {
   surpriseReward?: string;
   goalId?: string;
   levelSuggestion?: LevelSuggestion | null;
+  usedFreeze?: boolean;
 }
 
 export default function SessionCompleteScreen() {
@@ -47,6 +48,7 @@ export default function SessionCompleteScreen() {
   const newLevel = state?.newLevel ?? 1;
   const didLevelUp = state?.didLevelUp ?? false;
   const surpriseReward = state?.surpriseReward;
+  const usedFreeze = state?.usedFreeze ?? false;
   const levelSuggestion = state?.levelSuggestion;
   const suggestionGoal = goals.find((g) => g.id === state?.goalId);
   const [suggestionHandled, setSuggestionHandled] = useState(false);
@@ -142,6 +144,17 @@ export default function SessionCompleteScreen() {
               );
             })}
           </div>
+        </div>
+      ),
+    },
+    usedFreeze && {
+      key: 'freeze',
+      chip: { icon: '🧊', label: '스트릭 프리즈 사용' },
+      full: (
+        <div className="bg-sky-50 rounded-2xl p-4 mb-4 border border-sky-100">
+          <p className="text-sky-700 text-sm font-medium">
+            🧊 어제 하루를 쉬었지만 프리즈 덕분에 스트릭이 끊기지 않았어요!
+          </p>
         </div>
       ),
     },

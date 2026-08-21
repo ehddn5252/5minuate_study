@@ -123,6 +123,7 @@ export default function GoalCreateScreen() {
         completedSessions: 0,
         streak: 0,
         bestStreak: 0,
+        streakFreezeRemaining: 1,
         notificationTime: '09:00',
         notificationEnabled: false,
         rawContent: rawContent || undefined,
