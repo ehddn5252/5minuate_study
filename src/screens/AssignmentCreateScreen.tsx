@@ -172,8 +172,9 @@ export default function AssignmentCreateScreen() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 space-y-3">
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">제목</label>
+            <label htmlFor="assignment-title" className="text-sm font-medium text-gray-700 mb-2 block">제목</label>
             <input
+              id="assignment-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -182,8 +183,9 @@ export default function AssignmentCreateScreen() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">마감일</label>
+            <label htmlFor="assignment-due-date" className="text-sm font-medium text-gray-700 mb-2 block">마감일</label>
             <input
+              id="assignment-due-date"
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}

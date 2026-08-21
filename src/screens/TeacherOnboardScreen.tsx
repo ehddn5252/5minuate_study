@@ -39,8 +39,9 @@ export default function TeacherOnboardScreen() {
         <p className="text-gray-400 text-sm mb-6">학원에서 받은 초대 코드를 입력하면 반을 만들고 숙제를 관리할 수 있어요.</p>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <label className="text-sm font-medium text-gray-700 mb-2 block">학원 초대 코드</label>
+          <label htmlFor="academy-invite-code" className="text-sm font-medium text-gray-700 mb-2 block">학원 초대 코드</label>
           <input
+            id="academy-invite-code"
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}

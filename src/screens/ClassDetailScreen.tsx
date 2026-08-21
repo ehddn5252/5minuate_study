@@ -792,10 +792,11 @@ export default function ClassDetailScreen() {
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-sm resize-none"
             />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="material-file" className="block text-sm font-medium text-gray-700 mb-1.5">
                 파일 첨부 <span className="text-gray-400 font-normal">(선택, 10MB 이하)</span>
               </label>
               <input
+                id="material-file"
                 type="file"
                 onChange={(e) => setMaterialFile(e.target.files?.[0] ?? null)}
                 className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-[var(--accent-50)] file:text-[var(--accent-600)] file:text-sm file:font-medium"

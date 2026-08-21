@@ -106,8 +106,9 @@ export default function TeacherHomeScreen() {
 
         {creating ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">반 이름</label>
+            <label htmlFor="class-name" className="text-sm font-medium text-gray-700 mb-2 block">반 이름</label>
             <input
+              id="class-name"
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}

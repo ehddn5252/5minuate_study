@@ -82,8 +82,9 @@ export default function GoalEditScreen() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">기한</label>
+            <label htmlFor="goal-edit-deadline" className="block text-sm font-medium text-gray-700 mb-1">기한</label>
             <input
+              id="goal-edit-deadline"
               type="date"
               value={deadline}
               min={

@@ -246,10 +246,11 @@ export default function GoalCreateScreen() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="goal-topic" className="block text-sm font-medium text-gray-700 mb-2">
               학습 주제 <span className="text-red-400">*</span>
             </label>
             <input
+              id="goal-topic"
               type="text"
               value={topic}
               onChange={(e) => { setTopic(e.target.value); setSelectedTemplateId(null); setSelectedCurriculumId(undefined); setPickedTemplateId(undefined); setExamScoped(false); }}
@@ -261,10 +262,11 @@ export default function GoalCreateScreen() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="goal-deadline" className="block text-sm font-medium text-gray-700 mb-2">
               {examScoped ? '시험 날짜' : '목표 달성 기한'} <span className="text-red-400">*</span>
             </label>
             <input
+              id="goal-deadline"
               type="date"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
@@ -317,10 +319,11 @@ export default function GoalCreateScreen() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="goal-raw-content" className="block text-sm font-medium text-gray-700 mb-2">
               {examScoped ? '시험 범위' : '참고 자료'} <span className="text-gray-400 font-normal">(선택)</span>
             </label>
             <textarea
+              id="goal-raw-content"
               value={rawContent}
               onChange={(e) => setRawContent(e.target.value)}
               placeholder={
