@@ -918,6 +918,37 @@
 
 ---
 
+### F-59: iOS Safari용 홈 화면 추가 안내
+
+**한 줄 설명:** 기존 설치 배너(`InstallBanner.tsx`)는 `beforeinstallprompt` 이벤트에만 의존해 아이폰(iOS Safari) 사용자에게는 영원히 뜨지 않았다 — iOS Safari에서만 "공유 버튼 → 홈 화면에 추가"를 안내하는 문구형 배너를 추가로 보여준다.
+
+**사용자 입력**
+- 별도 입력 없음 — iOS Safari로 접속했을 때 자동으로 판별.
+
+**시스템 처리**
+1. `isIOSSafari()`를 새로 추가 — User-Agent로 iPhone/iPod을 확인하고, iPad의 데스크톱 모드(iPadOS 13+ 기본값이라 UA가 Mac으로 위장됨)도 `platform === 'MacIntel' && maxTouchPoints > 1` 조합으로 함께 감지한다. `CriOS`/`FxiOS`/`EdgiOS`/`OPiOS`(iOS의 Chrome/Firefox/Edge/Opera — 전부 내부는 WebKit이지만 공유 시트에서 "홈 화면에 추가"를 눌러도 독립 실행 PWA가 아니라 그냥 즐겨찾기가 됨)는 제외한다.
+2. `beforeinstallprompt`가 한 번도 안 온(즉 `deferredEvent`가 없는) 상태에서 `isIOSSafari()`가 참이면, 기존과 같은 톤의 배너를 보여주되 "설치" 버튼 대신 "하단 공유 버튼(⬆️) → '홈 화면에 추가'를 눌러주세요" 안내 문구만 보여준다(iOS는 프로그램적으로 설치를 트리거할 방법이 없다).
+3. 기존 Android/Chrome 흐름(`deferredEvent` 있음 → "설치" 버튼)은 전혀 건드리지 않는다 — 완전히 별개 분기.
+4. 닫기(`✕`)를 누르면 기존과 같은 `localStorage` 키(`installBannerDismissed`)에 저장돼 다음부턴 안 보인다.
+
+**사용자 출력**
+- 아이폰으로 접속한 사용자는 홈 화면 화면에서 처음 진입 시 "홈 화면에 추가하고 더 빠르게 열어보세요 — 하단 공유 버튼(⬆️) → '홈 화면에 추가'를 눌러주세요" 배너를 본다. 안드로이드/데스크톱 사용자는 기존과 동일(원터치 설치 버튼).
+
+**동작 규칙**
+- iOS Safari는 애플이 `beforeinstallprompt`를 의도적으로 미구현한 상태라(2026년 기준에도 여전) 이 우회는 임시방편이 아니라 사실상 유일한 방법이다.
+- User-Agent 문자열 감지는 브라우저가 UA를 위장하면 깨질 수 있는 본질적 한계가 있다 — 다만 실패해도 "배너가 안 뜨는" 정도로 그치고(기존과 동일한 상태), 잘못된 안내를 보여주는 방향의 실패는 아니다.
+
+**검증 조건**
+- [x] `npx tsc --noEmit`과 `npm run build` 통과.
+- [x] `isIOSSafari()` 판별 로직을 iPhone Safari/iPhone Chrome(CriOS)/iPad 데스크톱 모드/안드로이드 Chrome/데스크톱 Mac Safari/데스크톱 Windows Chrome 6가지 대표 User-Agent로 단위 테스트해 전부 기대대로 분기됨을 확인.
+- [x] Playwright로 실제 컴파일된 CSS를 사용해 iOS 배너 렌더링 확인.
+- [ ] 실제 아이폰 기기(Safari)로의 확인은 이 환경에 없어 사람이 실기기로 최종 확인 필요.
+
+**판단 보류 (다음 사이클 후보)**
+- Android/Chrome 배너와 문구 톤을 맞췄지만, iOS 배너는 사용자가 직접 여러 단계를 거쳐야 해서 전환율이 원터치 설치보다 낮다는 게 업계 통설 — 문구를 더 다듬을 여지는 다음 사이클 후보.
+
+---
+
 ## 자기검증 결과
 
 | 점검 항목 | 결과 |
