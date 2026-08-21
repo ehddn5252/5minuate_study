@@ -212,6 +212,8 @@ export interface StudentAssignmentDetailRow {
   completed: boolean;
   score?: number;
   total?: number;
+  submissionId?: string;
+  teacherComment?: string;
 }
 
 // 학생 명단에서 특정 학생을 눌렀을 때 "이 학생이 이 반에서 어떤 숙제를 했는지/안 했는지"를
@@ -232,7 +234,7 @@ export async function listStudentAssignments(classId: string, studentId: string)
 
   const { data: submissions } = await supabase
     .from('assignment_submissions')
-    .select('assignment_id, completed_at, score, total')
+    .select('id, assignment_id, completed_at, score, total, teacher_comment')
     .eq('student_id', studentId)
     .in('assignment_id', applicable.map((a) => a.id));
   const subMap = new Map((submissions ?? []).map((s) => [s.assignment_id, s]));
@@ -246,8 +248,21 @@ export async function listStudentAssignments(classId: string, studentId: string)
       completed: !!s?.completed_at,
       score: s?.score ?? undefined,
       total: s?.total ?? undefined,
+      submissionId: s?.id,
+      teacherComment: s?.teacher_comment ?? undefined,
     };
   });
+}
+
+// F-62: 위 조회에서 함께 딸려오는 teacher_comment는 읽기 전용 — 실제 저장은 RPC로만 허용한다
+// (015 마이그레이션의 set_submission_comment, score/answers 컬럼까지 열리는 걸 막기 위함).
+export async function setSubmissionComment(submissionId: string, comment: string): Promise<{ error?: string }> {
+  const { error } = await supabase.rpc('set_submission_comment', {
+    p_submission_id: submissionId,
+    p_comment: comment.trim() === '' ? null : comment.trim(),
+  });
+  if (error) return { error: '코멘트 저장에 실패했어요.' };
+  return {};
 }
 
 // F-58/F-60: 학생 명단을 펼치기 전부터 "이 학생이 미제출 숙제가 몇 건인지" 한눈에 보여주기 위한
@@ -587,6 +602,7 @@ export interface StudentAssignmentRow {
   completed: boolean;
   score?: number;
   total?: number;
+  teacherComment?: string;
 }
 
 export async function listMyAssignments(): Promise<StudentAssignmentRow[]> {
@@ -605,7 +621,7 @@ export async function listMyAssignments(): Promise<StudentAssignmentRow[]> {
 
   const { data: submissions } = await supabase
     .from('assignment_submissions')
-    .select('assignment_id, completed_at, score, total')
+    .select('assignment_id, completed_at, score, total, teacher_comment')
     .eq('student_id', user.id);
   const subMap = new Map((submissions ?? []).map((s) => [s.assignment_id, s]));
 
@@ -619,6 +635,7 @@ export async function listMyAssignments(): Promise<StudentAssignmentRow[]> {
       completed: !!s?.completed_at,
       score: s?.score ?? undefined,
       total: s?.total ?? undefined,
+      teacherComment: s?.teacher_comment ?? undefined,
     };
   });
 }

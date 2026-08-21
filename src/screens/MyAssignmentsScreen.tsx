@@ -140,6 +140,12 @@ export default function MyAssignmentsScreen() {
                       <span className="text-amber-500 text-sm font-medium flex-shrink-0 ml-3">풀기</span>
                     )}
                   </div>
+                  {/* F-62: 선생님이 남긴 코멘트 — 채점 결과 옆에 바로 보여 따로 찾아볼 필요 없게 */}
+                  {a.teacherComment && (
+                    <p className="text-xs text-[var(--accent-600)] bg-[var(--accent-50)] rounded-lg px-2.5 py-1.5 mt-2">
+                      💬 {a.teacherComment}
+                    </p>
+                  )}
                 </button>
               ))}
             </div>

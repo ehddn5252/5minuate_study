@@ -21,6 +21,7 @@ import {
   createAnnouncement,
   deleteAnnouncement,
   listStudentAssignments,
+  setSubmissionComment,
   type TeacherClassRow,
   type AssignmentRow,
   type ChecklistRow,
@@ -84,6 +85,10 @@ export default function ClassDetailScreen() {
   const [studentDetail, setStudentDetail] = useState<StudentAssignmentDetailRow[]>([]);
   const [studentDetailLoading, setStudentDetailLoading] = useState(false);
   const [dueSummary, setDueSummary] = useState<Record<string, StudentDueSummary>>({});
+  // F-62: 제출물 코멘트 — 한 번에 한 건만 편집(editingCommentId로 어느 제출물인지 표시)
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [commentDraft, setCommentDraft] = useState('');
+  const [commentSaving, setCommentSaving] = useState(false);
 
   useEffect(() => {
     if (!classId) return;
@@ -139,6 +144,22 @@ export default function ClassDetailScreen() {
     setStudentDetailLoading(true);
     setStudentDetail(await listStudentAssignments(classId, studentId));
     setStudentDetailLoading(false);
+  };
+
+  const handleStartComment = (d: StudentAssignmentDetailRow) => {
+    setEditingCommentId(d.submissionId ?? null);
+    setCommentDraft(d.teacherComment ?? '');
+  };
+
+  const handleSaveComment = async (submissionId: string) => {
+    setCommentSaving(true);
+    const result = await setSubmissionComment(submissionId, commentDraft);
+    setCommentSaving(false);
+    if (result.error) return;
+    setStudentDetail((prev) =>
+      prev.map((d) => (d.submissionId === submissionId ? { ...d, teacherComment: commentDraft.trim() || undefined } : d))
+    );
+    setEditingCommentId(null);
   };
 
   const handleRemoveStudent = async (studentId: string) => {
@@ -410,18 +431,66 @@ export default function ClassDetailScreen() {
                         ) : (
                           <ul className="space-y-1">
                             {studentDetail.map((d) => (
-                              <li key={d.id} className="flex items-center justify-between gap-2 text-xs">
-                                <span className="text-gray-600 truncate">{d.title}</span>
-                                {d.completed ? (
-                                  <span className="flex-shrink-0 text-green-600 font-medium">
-                                    ✅ {typeof d.score === 'number' ? `${d.score}/${d.total}` : '완료'}
-                                  </span>
-                                ) : (
-                                  <span
-                                    className={`flex-shrink-0 font-medium ${isOverdue(d.dueDate) ? 'text-red-500' : 'text-gray-400'}`}
-                                  >
-                                    ❌ {isOverdue(d.dueDate) ? '미완료 (마감 지남)' : '미완료'}
-                                  </span>
+                              <li key={d.id} className="text-xs">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-gray-600 truncate">{d.title}</span>
+                                  {d.completed ? (
+                                    <span className="flex-shrink-0 text-green-600 font-medium">
+                                      ✅ {typeof d.score === 'number' ? `${d.score}/${d.total}` : '완료'}
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className={`flex-shrink-0 font-medium ${isOverdue(d.dueDate) ? 'text-red-500' : 'text-gray-400'}`}
+                                    >
+                                      ❌ {isOverdue(d.dueDate) ? '미완료 (마감 지남)' : '미완료'}
+                                    </span>
+                                  )}
+                                </div>
+                                {/* F-62: 제출 완료한 숙제에만 코멘트를 남길 수 있다 — 미제출 건은 코멘트 대상이 없음 */}
+                                {d.completed && d.submissionId && (
+                                  <div className="mt-1 pl-0.5">
+                                    {editingCommentId === d.submissionId ? (
+                                      <div className="flex items-start gap-1.5">
+                                        <textarea
+                                          value={commentDraft}
+                                          onChange={(e) => setCommentDraft(e.target.value)}
+                                          rows={2}
+                                          placeholder="예: 3번 문제 개념 다시 짚어주세요"
+                                          className="flex-1 px-2 py-1 rounded-lg border border-gray-200 text-gray-700 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-[var(--accent-500)]"
+                                          autoFocus
+                                        />
+                                        <div className="flex flex-col gap-1 flex-shrink-0">
+                                          <button
+                                            onClick={() => handleSaveComment(d.submissionId!)}
+                                            disabled={commentSaving}
+                                            className="px-2 py-1 bg-[var(--accent-600)] text-white rounded-lg text-[11px] font-medium disabled:opacity-50"
+                                          >
+                                            저장
+                                          </button>
+                                          <button
+                                            onClick={() => setEditingCommentId(null)}
+                                            className="px-2 py-1 text-gray-400 text-[11px]"
+                                          >
+                                            취소
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : d.teacherComment ? (
+                                      <button
+                                        onClick={() => handleStartComment(d)}
+                                        className="text-left text-[11px] text-gray-500 bg-gray-50 rounded-lg px-2 py-1 w-full hover:bg-gray-100"
+                                      >
+                                        💬 {d.teacherComment}
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleStartComment(d)}
+                                        className="text-[11px] text-gray-300 hover:text-[var(--accent-500)]"
+                                      >
+                                        + 코멘트 남기기
+                                      </button>
+                                    )}
+                                  </div>
                                 )}
                               </li>
                             ))}
