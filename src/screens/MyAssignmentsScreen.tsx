@@ -11,6 +11,7 @@ import {
   type StudentAnnouncementRow,
   type WrongAssignmentQuestion,
 } from '../services/academy';
+import { getLastSeenAnnouncementAt, setLastSeenAnnouncementAt } from '../utils/storage';
 import BottomNav from '../components/BottomNav';
 
 function isOverdue(dueDate: string): boolean {
@@ -27,12 +28,23 @@ export default function MyAssignmentsScreen() {
   const [openMaterialId, setOpenMaterialId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [unseenAnnouncementCount, setUnseenAnnouncementCount] = useState(0);
 
   const handleDownload = async (materialId: string, filePath: string) => {
     setDownloadingId(materialId);
     const url = await getClassMaterialFileUrl(filePath);
     setDownloadingId(null);
     if (url) window.open(url, '_blank');
+  };
+
+  // F-65: 공지 몇 건이 "새로" 온 건지 표시 — 이 기능이 막 생긴 시점에 기존 공지를 전부 안 읽음으로
+  // 잡으면 갑자기 큰 숫자가 떠서 놀라니, 저장된 마지막 확인 시각이 아예 없으면(첫 계산) 지금
+  // 있는 공지들의 최신 시각으로 채워 넣고 0건으로 시작한다 — 그 이후에 올라오는 공지만 "새 것".
+  const handleOpenAnnouncements = () => {
+    setTab('announcements');
+    const latest = announcements[0]?.createdAt;
+    if (latest) setLastSeenAnnouncementAt(latest);
+    setUnseenAnnouncementCount(0);
   };
 
   useEffect(() => {
@@ -43,6 +55,14 @@ export default function MyAssignmentsScreen() {
         setAnnouncements(n);
         setWrongQuestions(w);
         setLoading(false);
+
+        const lastSeen = getLastSeenAnnouncementAt();
+        if (lastSeen === null) {
+          if (n[0]?.createdAt) setLastSeenAnnouncementAt(n[0].createdAt);
+          setUnseenAnnouncementCount(0);
+        } else {
+          setUnseenAnnouncementCount(n.filter((a) => a.createdAt > lastSeen).length);
+        }
       }
     );
   }, []);
@@ -83,10 +103,15 @@ export default function MyAssignmentsScreen() {
               📄 수업 자료 {materials.length > 0 ? `(${materials.length})` : ''}
             </button>
             <button
-              onClick={() => setTab('announcements')}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'announcements' ? 'bg-[var(--accent-600)] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
+              onClick={handleOpenAnnouncements}
+              className={`relative flex-1 py-2.5 rounded-xl text-sm font-medium min-h-[44px] ${tab === 'announcements' ? 'bg-[var(--accent-600)] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
             >
               📢 공지 {announcements.length > 0 ? `(${announcements.length})` : ''}
+              {tab !== 'announcements' && unseenAnnouncementCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
+                  {unseenAnnouncementCount}
+                </span>
+              )}
             </button>
             {wrongQuestions.length > 0 && (
               <button

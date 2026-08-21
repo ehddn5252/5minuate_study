@@ -259,3 +259,16 @@ export function saveAppState(state: AppState): void {
 export function updateAppState(partial: Partial<AppState>): void {
   saveAppState({ ...getAppState(), ...partial });
 }
+
+// F-65: 학원 공지를 안 읽었는지 표시하기 위한 "마지막으로 확인한 시각". 저장된 값이 아예 없으면
+// (기능이 막 추가된 시점, 또는 진짜 첫 로그인) 지금까지의 공지를 전부 "안 읽음"으로 잡지 않도록
+// 호출부에서 처음엔 이 값을 최신 공지 시각으로 채워 넣는다(getUnseenAnnouncementCount 참고).
+const LAST_SEEN_ANNOUNCEMENT_KEY = 'lastSeenAnnouncementAt';
+
+export function getLastSeenAnnouncementAt(): string | null {
+  return localStorage.getItem(LAST_SEEN_ANNOUNCEMENT_KEY);
+}
+
+export function setLastSeenAnnouncementAt(iso: string): void {
+  localStorage.setItem(LAST_SEEN_ANNOUNCEMENT_KEY, iso);
+}
