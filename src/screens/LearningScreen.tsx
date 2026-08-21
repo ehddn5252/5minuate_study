@@ -14,6 +14,33 @@ import type { Quiz } from '../types';
 
 const SPEECH_RATES = [1, 1.25, 1.5];
 
+// F-67: 신호화(signaling) 원칙 — 요약 각 항목에서 AI가 표시한 핵심어(**핵심어**)를 굵게 렌더링해
+// 스캔하듯 읽어도 중요한 부분이 눈에 먼저 들어오게 한다. 마크다운 전체를 지원하는 게 아니라
+// **로 감싼 굵게 표시 하나만 딱 처리한다(과하게 범용화하지 않음).
+function renderWithBold(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} className="font-bold text-[var(--accent-700)]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
+function stripBoldMarkers(text: string): string {
+  return text.replace(/\*\*([^*]+)\*\*/g, '$1');
+}
+
+// 불릿 접두사(•, ·, -, *)를 떼어내되, **핵심어**가 항목 맨 앞에 올 때 앞쪽 * 하나만
+// 불릿으로 오인해 잘못 떼어내지 않도록 다음이 또 *가 아닐 때만 단독 *를 불릿으로 인정한다.
+function stripBulletPrefix(text: string): string {
+  return text.replace(/^(?:[•·-]|\*(?!\*))\s*/, '').trim();
+}
+
 export default function LearningScreen() {
   const { goalId } = useParams<{ goalId: string }>();
   const navigate = useNavigate();
@@ -67,7 +94,7 @@ export default function LearningScreen() {
       setIsPlaying(true);
       return;
     }
-    const texts = summary.split('\n').map((l) => l.replace(/^[•·\-*]\s*/, '').trim()).filter(Boolean);
+    const texts = summary.split('\n').map((l) => stripBoldMarkers(stripBulletPrefix(l))).filter(Boolean);
     speakQueue(texts, SPEECH_RATES[rateIdx], () => setIsPlaying(false));
     setIsPlaying(true);
   };
@@ -76,7 +103,7 @@ export default function LearningScreen() {
     const nextIdx = (rateIdx + 1) % SPEECH_RATES.length;
     setRateIdx(nextIdx);
     if (isPlaying) {
-      const texts = summary.split('\n').map((l) => l.replace(/^[•·\-*]\s*/, '').trim()).filter(Boolean);
+      const texts = summary.split('\n').map((l) => stripBoldMarkers(stripBulletPrefix(l))).filter(Boolean);
       speakQueue(texts, SPEECH_RATES[nextIdx], () => setIsPlaying(false));
     }
   };
@@ -391,14 +418,14 @@ export default function LearningScreen() {
           </div>
           <ul className="space-y-4">
             {bullets.map((line, i) => {
-              const text = line.replace(/^[•·\-*]\s*/, '').trim();
+              const text = stripBulletPrefix(line);
               if (!text) return null;
               return (
                 <li key={i} className="flex items-start gap-3">
                   <span className="flex-shrink-0 w-6 h-6 bg-[var(--accent-100)] text-[var(--accent-600)] rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
                     {i + 1}
                   </span>
-                  <p className="text-gray-800 text-base leading-relaxed">{text}</p>
+                  <p className="text-gray-800 text-base leading-relaxed">{renderWithBold(text)}</p>
                 </li>
               );
             })}
