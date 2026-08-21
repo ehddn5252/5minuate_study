@@ -176,6 +176,60 @@ export async function getTeacherTodaySummary(): Promise<TeacherTodaySummary> {
   return { dueTodayCount: assignments.length, incompleteCount };
 }
 
+export interface TeacherOverdueSummary {
+  overdueAssignmentCount: number;
+  studentsWithOverdueCount: number;
+}
+
+// F-71: getTeacherTodaySummary는 "오늘 마감"만 본다 — 반을 여러 개 운영하는 교사가
+// "지금까지 밀린 모든 숙제"를 한눈에 보려면 반 하나하나를 들어가봐야 했다. 이 함수는
+// 반 개수와 무관하게 쿼리 3번(숙제·명단·제출기록)으로 전체를 집계한다(N+1 방지, F-58/F-60/F-66과
+// 동일한 설계 원칙). target_student_ids로 대상이 좁혀진 숙제도 정확히 반영한다.
+export async function getTeacherOverdueSummary(): Promise<TeacherOverdueSummary> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { overdueAssignmentCount: 0, studentsWithOverdueCount: 0 };
+
+  const today = new Date().toISOString().split('T')[0];
+  const { data: assignments } = await supabase
+    .from('assignments')
+    .select('id, class_id, target_student_ids')
+    .eq('teacher_id', user.id)
+    .lt('due_date', today);
+
+  if (!assignments || assignments.length === 0) return { overdueAssignmentCount: 0, studentsWithOverdueCount: 0 };
+
+  const classIds = [...new Set(assignments.map((a) => a.class_id))];
+  const { data: members } = await supabase
+    .from('class_members')
+    .select('class_id, student_id')
+    .in('class_id', classIds);
+
+  const { data: submissions } = await supabase
+    .from('assignment_submissions')
+    .select('assignment_id, student_id')
+    .in('assignment_id', assignments.map((a) => a.id))
+    .not('completed_at', 'is', null);
+  const completedSet = new Set((submissions ?? []).map((s) => `${s.assignment_id}:${s.student_id}`));
+
+  const studentsWithOverdue = new Set<string>();
+  let overdueAssignmentCount = 0;
+  assignments.forEach((a) => {
+    const targetIds = a.target_student_ids as string[] | null;
+    const classMembers = (members ?? []).filter((m) => m.class_id === a.class_id);
+    const scoped = targetIds ? classMembers.filter((m) => targetIds.includes(m.student_id)) : classMembers;
+    let hasIncomplete = false;
+    scoped.forEach((m) => {
+      if (!completedSet.has(`${a.id}:${m.student_id}`)) {
+        hasIncomplete = true;
+        studentsWithOverdue.add(m.student_id);
+      }
+    });
+    if (hasIncomplete) overdueAssignmentCount++;
+  });
+
+  return { overdueAssignmentCount, studentsWithOverdueCount: studentsWithOverdue.size };
+}
+
 export async function getClassInfo(classId: string): Promise<TeacherClassRow | null> {
   const { data } = await supabase
     .from('classes')

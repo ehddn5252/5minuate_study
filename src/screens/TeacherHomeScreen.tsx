@@ -4,8 +4,10 @@ import {
   listMyClasses,
   createClass,
   getTeacherTodaySummary,
+  getTeacherOverdueSummary,
   type TeacherClassRow,
   type TeacherTodaySummary,
+  type TeacherOverdueSummary,
 } from '../services/academy';
 import { signOut } from '../services/supabase';
 import BottomNav from '../components/BottomNav';
@@ -18,12 +20,18 @@ export default function TeacherHomeScreen() {
   const [newName, setNewName] = useState('');
   const [error, setError] = useState('');
   const [summary, setSummary] = useState<TeacherTodaySummary | null>(null);
+  const [overdueSummary, setOverdueSummary] = useState<TeacherOverdueSummary | null>(null);
 
   const refresh = async () => {
     setLoading(true);
-    const [classList, todaySummary] = await Promise.all([listMyClasses(), getTeacherTodaySummary()]);
+    const [classList, todaySummary, overdue] = await Promise.all([
+      listMyClasses(),
+      getTeacherTodaySummary(),
+      getTeacherOverdueSummary(),
+    ]);
     setClasses(classList);
     setSummary(todaySummary);
+    setOverdueSummary(overdue);
     setLoading(false);
   };
 
@@ -66,6 +74,15 @@ export default function TeacherHomeScreen() {
             </button>
           </div>
         </div>
+
+        {!loading && overdueSummary && overdueSummary.overdueAssignmentCount > 0 && (
+          <div className="rounded-2xl p-4 mb-4 border bg-red-50 border-red-100">
+            <p className="text-sm text-red-700">
+              ⚠️ 마감 지난 미제출 숙제 {overdueSummary.overdueAssignmentCount}개 ·
+              미제출 학생 <strong>{overdueSummary.studentsWithOverdueCount}명</strong>
+            </p>
+          </div>
+        )}
 
         {!loading && summary && summary.dueTodayCount > 0 && (
           <div
