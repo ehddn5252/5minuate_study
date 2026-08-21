@@ -40,7 +40,8 @@ export default function GoalCreateScreen() {
     d.setDate(d.getDate() + tpl.recommendedDays);
     return d.toISOString().split('T')[0];
   });
-  const [rawContent, setRawContent] = useState('');
+  // F-76: Web Share Target으로 다른 앱에서 텍스트/링크를 공유해 들어오면 참고 자료로 프리필한다
+  const [rawContent, setRawContent] = useState(() => searchParams.get('content') ?? '');
   const [level, setLevel] = useState<QuizLevel>(() => {
     const lvl = searchParams.get('level');
     return lvl === 'beginner' || lvl === 'intermediate' || lvl === 'advanced' ? lvl : 'intermediate';

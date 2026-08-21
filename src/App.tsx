@@ -43,26 +43,42 @@ const LAST_USER_KEY = 'lastAuthUserId';
 // 브라우저 풀 리로드라 현재 경로가 그대로 보존되지 않음), 로그인 전에 쇼츠에서 고른
 // templateId를 여기 잠깐 담아뒀다가 로그인 완료 후 목표 만들기 화면으로 이어서 보낸다.
 const PENDING_TEMPLATE_KEY = 'pendingTemplateId';
+// F-76: Web Share Target(다른 앱 "공유" 메뉴 → 이 앱)도 항상 /goals/create로 들어오므로
+// templateId와 같은 이유로 로그인 전이면 잃어버린다 — 같은 패턴으로 topic/content도 보존한다.
+const PENDING_TOPIC_KEY = 'pendingTopic';
+const PENDING_CONTENT_KEY = 'pendingContent';
 
-// 로그인 안 된 상태에서 /goals/create?templateId=X로 오면(쇼츠 → "목표 만들고 제대로
-// 공부하기") templateId를 저장해두고 로그인 화면을 보여준다.
+// 로그인 안 된 상태에서 /goals/create?templateId=X(쇼츠 → "목표 만들고 제대로 공부하기")나
+// ?topic=X&content=Y(다른 앱에서 공유)로 오면 값을 저장해두고 로그인 화면을 보여준다.
 function CaptureTemplateThenLogin() {
   const [searchParams] = useSearchParams();
   useEffect(() => {
     const templateId = searchParams.get('templateId');
+    const topic = searchParams.get('topic');
+    const content = searchParams.get('content');
     if (templateId) localStorage.setItem(PENDING_TEMPLATE_KEY, templateId);
+    if (topic) localStorage.setItem(PENDING_TOPIC_KEY, topic);
+    if (content) localStorage.setItem(PENDING_CONTENT_KEY, content);
   }, [searchParams]);
   return <LoginScreen />;
 }
 
-// 로그인 완료 후 한 번, 저장해둔 templateId가 있으면 목표 만들기 화면으로 이어서 보낸다.
+// 로그인 완료 후 한 번, 저장해둔 templateId/topic/content가 있으면 목표 만들기 화면으로 이어서 보낸다.
 function PendingTemplateRedirect() {
   const navigate = useNavigate();
   useEffect(() => {
-    const pending = localStorage.getItem(PENDING_TEMPLATE_KEY);
-    if (pending) {
+    const pendingTemplate = localStorage.getItem(PENDING_TEMPLATE_KEY);
+    const pendingTopic = localStorage.getItem(PENDING_TOPIC_KEY);
+    const pendingContent = localStorage.getItem(PENDING_CONTENT_KEY);
+    if (pendingTemplate || pendingTopic || pendingContent) {
       localStorage.removeItem(PENDING_TEMPLATE_KEY);
-      navigate(`/goals/create?templateId=${pending}`, { replace: true });
+      localStorage.removeItem(PENDING_TOPIC_KEY);
+      localStorage.removeItem(PENDING_CONTENT_KEY);
+      const params = new URLSearchParams();
+      if (pendingTemplate) params.set('templateId', pendingTemplate);
+      if (pendingTopic) params.set('topic', pendingTopic);
+      if (pendingContent) params.set('content', pendingContent);
+      navigate(`/goals/create?${params.toString()}`, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -69,7 +69,19 @@ export default defineConfig({
             url: '/wrong-pool',
             description: '틀렸던 문제 다시 풀기'
           }
-        ]
+        ],
+        // F-76: 다른 앱(브라우저, 뉴스 앱 등)에서 "공유" 메뉴로 이 앱을 골라 텍스트/링크를
+        // 바로 넘길 수 있게 한다. 공유된 제목은 목표 주제로, 본문/링크는 참고 자료로 이어진다.
+        // GET 방식이라 서버 없이 클라이언트 라우팅(App.tsx)만으로 처리 가능 — 무료 티어 제약 안에 있음.
+        share_target: {
+          action: '/goals/create',
+          method: 'GET',
+          params: {
+            title: 'topic',
+            text: 'content',
+            url: 'content'
+          }
+        }
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
