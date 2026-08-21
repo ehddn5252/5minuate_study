@@ -1,4 +1,4 @@
-import type { Goal, Session, Quiz, WrongPool, AppState, Badge, BadgeId } from '../types';
+import type { Goal, Session, Quiz, WrongPool, AppState, Badge, BadgeId, BackgroundTheme } from '../types';
 
 const KEYS = {
   GOALS: 'goals',
@@ -225,12 +225,27 @@ const DEFAULT_APP_STATE: AppState = {
   bgPattern: 'none',
 };
 
+// F-56: 저장된 상태가 전혀 없는(진짜 첫 실행) 경우에 한해 OS의 다크 모드 설정을 반영한
+// 배경 스킨('차콜')을 기본값으로 준다. 한 번이라도 설정을 저장한 사용자에게는 절대 적용되지
+// 않는다 — Settings에서 직접 고른 값(설령 '그레이'를 명시적으로 골랐어도)을 덮어쓰지 않기 위함.
+function getPreferredBgTheme(): BackgroundTheme {
+  try {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'charcoal';
+    }
+  } catch {
+    // matchMedia 미지원 환경 — 기본값 유지
+  }
+  return DEFAULT_APP_STATE.bgTheme;
+}
+
 export function getAppState(): AppState {
   try {
     const raw = localStorage.getItem(KEYS.APP_STATE);
-    return raw
-      ? { ...DEFAULT_APP_STATE, ...(JSON.parse(raw) as Partial<AppState>) }
-      : DEFAULT_APP_STATE;
+    if (raw) {
+      return { ...DEFAULT_APP_STATE, ...(JSON.parse(raw) as Partial<AppState>) };
+    }
+    return { ...DEFAULT_APP_STATE, bgTheme: getPreferredBgTheme() };
   } catch {
     return DEFAULT_APP_STATE;
   }
