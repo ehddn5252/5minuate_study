@@ -10,6 +10,7 @@ import {
   type TeacherOverdueSummary,
 } from '../services/academy';
 import { signOut } from '../services/supabase';
+import { setAppBadgeCount, clearAppBadge } from '../utils/badging';
 import BottomNav from '../components/BottomNav';
 
 export default function TeacherHomeScreen() {
@@ -33,6 +34,7 @@ export default function TeacherHomeScreen() {
     setSummary(todaySummary);
     setOverdueSummary(overdue);
     setLoading(false);
+    setAppBadgeCount(overdue.overdueAssignmentCount);
   };
 
   useEffect(() => {
@@ -53,6 +55,7 @@ export default function TeacherHomeScreen() {
   };
 
   const handleSignOut = async () => {
+    clearAppBadge();
     await signOut();
     window.location.href = '/';
   };

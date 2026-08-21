@@ -1308,6 +1308,36 @@
 
 ---
 
+### F-72: 앱을 열지 않아도 보이는 마감 지남 배지 (PWA Badging API)
+
+**한 줄 설명:** F-71이 계산해둔 "마감 지난 미제출 숙제 개수"를 선생님 홈을 직접 열어야만 보던 것에서 한 단계 더 밀어, 홈 화면/작업표시줄에 설치된 앱 아이콘 위에 숫자 배지로 표시한다 — 앱을 열지 않아도 "확인할 게 있다"는 신호를 준다.
+
+**사용자 입력**
+- 별도 입력 없음 — 선생님 홈이 새로고침될 때(로그인 직후, `refresh()` 호출 시점) 자동으로 갱신된다.
+
+**시스템 처리**
+1. `src/utils/badging.ts`에 `setAppBadgeCount(count)`/`clearAppBadge()`를 추가 — 둘 다 `'setAppBadge' in navigator`/`'clearAppBadge' in navigator`로 지원 여부를 먼저 확인하고, 미지원 환경(특히 Android Chrome)에서는 조용히 아무 일도 하지 않는다. 프로미스 거부도 `.catch(() => {})`로 삼켜 에러를 던지지 않는다.
+2. `TeacherHomeScreen.tsx`의 `refresh()`가 F-71에서 이미 조회하던 `getTeacherOverdueSummary()` 결과(`overdue.overdueAssignmentCount`)를 그대로 재사용해 `setAppBadgeCount(...)`를 호출한다 — 새로운 쿼리를 전혀 추가하지 않는다.
+3. `handleSignOut()`에서 로그아웃 시 `clearAppBadge()`를 먼저 호출해, 다음 사람이 같은 기기를 쓸 때 이전 계정의 배지 숫자가 남아있지 않도록 한다.
+
+**사용자 출력**
+- 데스크톱 Chrome/Edge에 설치된 PWA, iOS 16.4+에서 홈 화면에 추가된 PWA의 앱 아이콘 위에 마감 지난 숙제 개수가 작은 숫자 배지로 뜬다. 밀린 숙제가 0개면 배지가 사라진다.
+
+**동작 규칙**
+- Badging API는 **Android Chrome에서는 지원되지 않는다** — 이 경우 배지가 그냥 안 뜰 뿐 어떤 에러도 없고 기존 배너(F-71)는 정상 동작한다. 즉 이 기능은 순수 부가 기능이며 미지원 환경에서 다른 기능에 영향을 주지 않는다.
+- 새 쿼리를 추가하지 않고 F-71이 이미 계산한 값을 재사용한다(무료 티어 쿼리 예산 안 늘림).
+
+**검증 조건**
+- [x] `npx tsc --noEmit` 통과 — TypeScript DOM 라이브러리에 Badging API 타입이 이미 포함돼 있어 별도 타입 보강 불필요.
+- [x] `npm run build`, `npm run lint`(기존 11건 지적에서 늘지 않음) 통과.
+- [x] Playwright(헤드리스 Chromium)로 `navigator.setAppBadge(3)` → `navigator.setAppBadge(0)`/`clearAppBadge?.()` → `navigator.clearAppBadge()` 세 호출 모두 페이지 에러 없이 통과함을 확인(헤드리스 Chromium 자체가 Badging API를 지원해 실제 API 호출까지 성공적으로 수행됨을 확인).
+- [ ] 실제 OS 아이콘에 배지 숫자가 뜨는지는 이 환경에서 설치형 PWA를 직접 띄워 육안으로 확인할 수 없다 — 사람이 실제로 데스크톱 Chrome/Edge나 iOS에 설치한 뒤 확인 필요. Android Chrome에서는 배지가 뜨지 않는 게 정상 동작임을 참고할 것.
+
+**판단 보류 (다음 사이클 후보)**
+- 지금은 선생님 홈에만 적용했다. 학생 쪽(예: 오늘 마감 숙제 개수)에도 같은 패턴을 적용할지는 다음 사이클 후보.
+
+---
+
 ## 자기검증 결과
 
 | 점검 항목 | 결과 |
