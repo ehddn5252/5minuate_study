@@ -76,6 +76,7 @@ export default function BottomNav({ variant = 'student' }: BottomNavProps) {
           <button
             key={tab.path}
             onClick={() => navigate(tab.path)}
+            aria-current={active ? 'page' : undefined}
             className={`flex flex-col items-center justify-center flex-1 min-h-[44px] gap-0.5 transition-colors ${
               active ? 'text-[var(--accent-600)]' : 'text-gray-400 hover:text-gray-600'
             }`}
