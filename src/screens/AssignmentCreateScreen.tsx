@@ -240,12 +240,14 @@ export default function AssignmentCreateScreen() {
 
           <input
             type="text"
+            aria-label="AI 문제 생성 주제"
             value={aiTopic}
             onChange={(e) => setAiTopic(e.target.value)}
             placeholder="주제 (예: 3과 부정사)"
             className="w-full px-4 py-3 rounded-xl border-2 border-[var(--accent-100)] bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
           />
           <textarea
+            aria-label="AI 문제 생성 참고 자료"
             value={aiRawContent}
             onChange={(e) => setAiRawContent(e.target.value)}
             placeholder="참고 자료(선택) — 필기나 교재 내용을 붙여넣으면 더 정확해져요"
@@ -369,6 +371,7 @@ export default function AssignmentCreateScreen() {
           </div>
 
           <textarea
+            aria-label="문제 내용"
             value={qText}
             onChange={(e) => setQText(e.target.value)}
             placeholder="문제 내용"
@@ -382,6 +385,7 @@ export default function AssignmentCreateScreen() {
                 <input
                   key={i}
                   type="text"
+                  aria-label={`보기 ${i + 1}`}
                   value={opt}
                   onChange={(e) => {
                     const next = [...qOptions];
@@ -397,6 +401,7 @@ export default function AssignmentCreateScreen() {
 
           <input
             type="text"
+            aria-label="정답"
             value={qAnswer}
             onChange={(e) => setQAnswer(e.target.value)}
             placeholder={qType === 'multiple_choice' ? '정답 (보기 중 하나와 똑같이)' : '정답'}
@@ -404,6 +409,7 @@ export default function AssignmentCreateScreen() {
           />
           <input
             type="text"
+            aria-label="해설"
             value={qExplanation}
             onChange={(e) => setQExplanation(e.target.value)}
             placeholder="해설"

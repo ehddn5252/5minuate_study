@@ -59,6 +59,7 @@ export default function JoinClassScreen() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
           <input
             type="text"
+            aria-label="반 참여 코드"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}

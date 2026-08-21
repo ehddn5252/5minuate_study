@@ -187,6 +187,7 @@ function MemoTab({
         학습 자료, 참고 링크, 핵심 내용을 자유롭게 메모하세요.
       </p>
       <textarea
+        aria-label="메모"
         value={memo}
         onChange={(e) => setMemo(e.target.value)}
         placeholder={`예시:\n• systemd는 Linux의 init 시스템\n• systemctl start/stop/enable 명령어\n• 유닛 파일: /etc/systemd/system/`}

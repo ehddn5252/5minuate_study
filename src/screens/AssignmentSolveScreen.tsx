@@ -254,6 +254,7 @@ export default function AssignmentSolveScreen() {
             <div className="space-y-3">
               <input
                 type="text"
+                aria-label="답안"
                 value={shortInput}
                 onChange={(e) => setShortInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleShortSubmit()}

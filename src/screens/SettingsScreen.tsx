@@ -290,6 +290,7 @@ export default function SettingsScreen() {
             <div className="flex gap-2">
               <input
                 type="text"
+                aria-label="닉네임"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSaveNickname()}

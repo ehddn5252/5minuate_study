@@ -311,6 +311,7 @@ export default function ClassDetailScreen() {
         {showAnnouncementForm && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3 space-y-2">
             <textarea
+              aria-label="공지 내용"
               value={announcementContent}
               onChange={(e) => setAnnouncementContent(e.target.value)}
               placeholder="예: 내일 수업은 휴강이에요."
@@ -456,6 +457,7 @@ export default function ClassDetailScreen() {
                                     {editingCommentId === d.submissionId ? (
                                       <div className="flex items-start gap-1.5">
                                         <textarea
+                                          aria-label="숙제 코멘트"
                                           value={commentDraft}
                                           onChange={(e) => setCommentDraft(e.target.value)}
                                           rows={2}
@@ -779,12 +781,14 @@ export default function ClassDetailScreen() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 space-y-3">
             <input
               type="text"
+              aria-label="수업 자료 제목"
               value={materialTitle}
               onChange={(e) => setMaterialTitle(e.target.value)}
               placeholder="제목 (예: 3과 필기 정리)"
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base"
             />
             <textarea
+              aria-label="수업 자료 내용"
               value={materialContent}
               onChange={(e) => setMaterialContent(e.target.value)}
               placeholder="학생들에게 전달할 내용을 입력하세요 (파일만 올릴 거면 비워둬도 돼요)"
