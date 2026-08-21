@@ -17,6 +17,9 @@ export default function RecordingsScreen() {
   const [recordings, setRecordings] = useState<VoiceRecording[]>([]);
   const [audioUrls, setAudioUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  // F-75: 삭제는 되돌릴 수 없는데 기존엔 ✕ 한 번으로 바로 지워졌다 — 목표/숙제 삭제(GoalListScreen,
+  // ClassDetailScreen)와 같은 "한 번 더 확인" 패턴으로 통일한다.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,6 +48,7 @@ export default function RecordingsScreen() {
   const handleDelete = async (id: string) => {
     await deleteRecording(id);
     setRecordings((prev) => prev.filter((r) => r.id !== id));
+    setConfirmingId(null);
   };
 
   // F-46: 목표 하나 = 챕터 하나로 취급해 그룹핑한다. 목표(또는 문제)가 삭제된 녹음은
@@ -110,16 +114,35 @@ export default function RecordingsScreen() {
                       </span>
                       <p className="text-gray-900 text-sm font-medium leading-snug">{question}</p>
                     </div>
-                    <button
-                      onClick={() => handleDelete(recording.id)}
-                      className="flex-shrink-0 text-gray-300 hover:text-red-400 text-lg leading-none min-h-[28px] min-w-[28px] flex items-center justify-center"
-                      aria-label="녹음 삭제"
-                    >
-                      ✕
-                    </button>
+                    {confirmingId !== recording.id && (
+                      <button
+                        onClick={() => setConfirmingId(recording.id)}
+                        className="flex-shrink-0 text-gray-300 hover:text-red-400 text-lg leading-none min-h-[28px] min-w-[28px] flex items-center justify-center"
+                        aria-label="녹음 삭제"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
-                  {audioUrls[recording.id] && (
-                    <audio src={audioUrls[recording.id]} controls className="w-full h-8" />
+                  {confirmingId === recording.id ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setConfirmingId(null)}
+                        className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm min-h-[36px]"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={() => handleDelete(recording.id)}
+                        className="flex-1 py-2 bg-red-500 text-white rounded-xl text-sm font-medium min-h-[36px]"
+                      >
+                        삭제 확인
+                      </button>
+                    </div>
+                  ) : (
+                    audioUrls[recording.id] && (
+                      <audio src={audioUrls[recording.id]} controls className="w-full h-8" />
+                    )
                   )}
                 </div>
               ))}
