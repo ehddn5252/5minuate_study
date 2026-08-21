@@ -147,7 +147,7 @@ export default function VoiceRecorder({ quizId, kind = 'answer', label, question
             </button>
           </>
         )}
-        {error && <span className="text-xs text-red-500">{error}</span>}
+        {error && <span role="alert" className="text-xs text-red-500">{error}</span>}
       </div>
 
       {audioUrl && !isRecording && questionText && !feedback && (
@@ -160,7 +160,7 @@ export default function VoiceRecorder({ quizId, kind = 'answer', label, question
           {feedbackLoading ? '듣는 중…' : '🤖 AI 피드백 받기'}
         </button>
       )}
-      {feedbackError && <span className="text-xs text-red-500">{feedbackError}</span>}
+      {feedbackError && <span role="alert" className="text-xs text-red-500">{feedbackError}</span>}
       {feedback && (
         <div className="p-3 rounded-xl bg-[var(--accent-50)] border border-[var(--accent-100)]">
           <p className="text-xs font-semibold text-[var(--accent-600)] mb-1">🤖 AI 피드백</p>

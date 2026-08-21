@@ -809,7 +809,7 @@ export default function ClassDetailScreen() {
                 </p>
               )}
             </div>
-            {materialError && <p className="text-red-500 text-sm">{materialError}</p>}
+            {materialError && <p role="alert" className="text-red-500 text-sm">{materialError}</p>}
             <button
               onClick={handleCreateMaterial}
               disabled={!materialTitle.trim() || (!materialContent.trim() && !materialFile) || materialSaving}

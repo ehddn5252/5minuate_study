@@ -338,7 +338,7 @@ export default function GoalCreateScreen() {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 rounded-xl text-red-600 text-sm">
+            <div role="alert" className="p-4 bg-red-50 rounded-xl text-red-600 text-sm">
               {error}
             </div>
           )}

@@ -282,7 +282,7 @@ export default function AssignmentCreateScreen() {
             </div>
           </div>
 
-          {aiError && <p className="text-red-500 text-sm">{aiError}</p>}
+          {aiError && <p role="alert" className="text-red-500 text-sm">{aiError}</p>}
 
           <button
             onClick={handleGenerateCandidates}
@@ -408,7 +408,7 @@ export default function AssignmentCreateScreen() {
             className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-sm"
           />
 
-          {qError && <p className="text-red-500 text-sm">{qError}</p>}
+          {qError && <p role="alert" className="text-red-500 text-sm">{qError}</p>}
 
           <button
             onClick={handleAddQuestion}
@@ -418,7 +418,7 @@ export default function AssignmentCreateScreen() {
           </button>
         </div>
 
-        {saveError && <p className="text-red-500 text-sm mb-3">{saveError}</p>}
+        {saveError && <p role="alert" className="text-red-500 text-sm mb-3">{saveError}</p>}
 
         <button
           onClick={handleSave}

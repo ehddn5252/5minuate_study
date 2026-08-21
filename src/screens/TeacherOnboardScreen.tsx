@@ -48,7 +48,7 @@ export default function TeacherOnboardScreen() {
             placeholder="예: ACADEMY1"
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent text-base mb-3"
           />
-          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+          {error && <p role="alert" className="text-red-500 text-sm mb-3">{error}</p>}
           <button
             onClick={handleSubmit}
             disabled={!code.trim() || loading}

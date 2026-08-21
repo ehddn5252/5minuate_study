@@ -311,7 +311,7 @@ export default function LearningScreen() {
   if (error) {
     const isRateLimit = error.includes('한도');
     return (
-      <div className="min-h-screen bg-[var(--page-bg)] flex flex-col items-center justify-center gap-4 px-6">
+      <div role="alert" className="min-h-screen bg-[var(--page-bg)] flex flex-col items-center justify-center gap-4 px-6">
         <div className="text-4xl">{isRateLimit ? '⏳' : '⚠️'}</div>
         <p className="text-gray-700 text-center font-medium">
           {isRateLimit ? '오늘 무료 생성 한도를 채웠어요' : '콘텐츠 생성 실패'}
