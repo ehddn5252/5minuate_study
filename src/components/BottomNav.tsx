@@ -78,11 +78,11 @@ export default function BottomNav({ variant = 'student' }: BottomNavProps) {
             onClick={() => navigate(tab.path)}
             aria-current={active ? 'page' : undefined}
             className={`flex flex-col items-center justify-center flex-1 min-h-[44px] gap-0.5 transition-colors ${
-              active ? 'text-[var(--accent-600)]' : 'text-gray-400 hover:text-gray-600'
+              active ? 'text-[var(--accent-600)]' : 'text-gray-500 hover:text-gray-600'
             }`}
           >
             {tab.icon}
-            <span className={`text-xs font-medium ${active ? 'text-[var(--accent-600)]' : 'text-gray-400'}`}>
+            <span className={`text-xs font-medium ${active ? 'text-[var(--accent-600)]' : 'text-gray-500'}`}>
               {tab.label}
             </span>
           </button>
