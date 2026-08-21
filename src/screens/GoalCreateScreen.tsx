@@ -5,6 +5,7 @@ import { generateGoalContent } from '../services/gemini';
 import { generateId } from '../utils/id';
 import { TEMPLATES } from '../data/templates';
 import { computeAutoQuizCount } from '../utils/quizCount';
+import LoadingTips from '../components/LoadingTips';
 import type { Goal, QuizLevel, MateTone } from '../types';
 
 const LEVEL_OPTIONS: { id: QuizLevel; label: string }[] = [
@@ -351,9 +352,13 @@ export default function GoalCreateScreen() {
               AI가 참고 자료 양과 학습 기간에 맞춰 학습 요약과 퀴즈를 자동으로 생성합니다.
               약 10~20초 소요됩니다.
             </p>
-            <p className="text-[var(--accent-500)] text-xs mt-1.5">
-              💚 하루 5분이면 충분해요.
-            </p>
+            {loading ? (
+              <LoadingTips />
+            ) : (
+              <p className="text-[var(--accent-500)] text-xs mt-1.5">
+                💚 하루 5분이면 충분해요.
+              </p>
+            )}
           </div>
 
           <button
