@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { createAssignment, listClassRoster, type DraftQuestion, type RosterRow } from '../services/academy';
 import { sanitizeQuiz } from '../utils/quizValidation';
 import { generateGoalContent } from '../services/gemini';
+import LoadingTips from '../components/LoadingTips';
 import type { QuizLevel, QuizType } from '../types';
 
 function todayStr(): string {
@@ -295,6 +296,7 @@ export default function AssignmentCreateScreen() {
           >
             {aiGenerating ? '문제 만드는 중…' : '문제 후보 만들기'}
           </button>
+          {aiGenerating && <LoadingTips />}
 
           {aiCandidates.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-[var(--accent-100)]">
