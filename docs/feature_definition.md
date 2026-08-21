@@ -656,6 +656,31 @@
 - `GoalCompleteScreen.tsx`(목표 전체 완료)에도 동일 카드를 추가할지.
 - 스트릭 표시 UI(홈 화면 등)에 남은 프리즈 개수를 상시 노출할지.
 
+### F-50: 동작 줄이기(prefers-reduced-motion) 대응
+
+**한 줄 설명:** OS/브라우저에서 "동작 줄이기"를 켠 사용자에게는 장식성 애니메이션을 자동으로 끈다.
+
+**사용자 입력**
+- 별도 앱 내 설정 없음 — OS/브라우저의 접근성 설정(`prefers-reduced-motion: reduce`)을 그대로 따른다.
+
+**시스템 처리**
+1. CSS 미디어 쿼리 `@media (prefers-reduced-motion: reduce)`로 해당 설정 여부를 감지한다.
+2. 감지되면 장식성 애니메이션 클래스(`animate-feedback-pop`, `animate-feedback-shake`, `animate-count-up-pop`, `animate-page-enter`, `animate-bounce`)를 전부 무효화한다(`animation: none`).
+3. 기능적 의미가 있는 모션(로딩 스피너 `animate-spin`, 녹음 중 표시 `animate-pulse`)은 예외로 두고 그대로 유지한다.
+
+**사용자 출력**
+- 별도 UI 없음 — 정답 팝/오답 흔들림/카운트업/페이지 전환/마스코트 바운스가 조용히 사라지고, 나머지 기능은 동일하게 동작한다.
+
+**동작 규칙**
+- 순수 CSS로 구현하며 새 의존성이나 런타임 분기 없음.
+- 로딩 스피너·녹음 중 표시처럼 상태를 전달하는 모션은 끄지 않는다.
+- 버튼 눌림 스케일(`active:scale-*`) 같은 짧고 사용자 주도적인 마이크로 인터랙션은 이번 스코프에서 제외한다(WCAG의 reduced-motion 우려 대상은 주로 자동 재생·큰 폭 모션).
+
+**검증 조건**
+- [ ] `prefers-reduced-motion: reduce` 환경에서 `animate-bounce` 요소의 `animationName`이 `none`이 된다.
+- [ ] 같은 환경에서 `animate-spin` 요소는 애니메이션이 그대로 유지된다.
+- [ ] 설정을 켜지 않은 기본 환경에서는 기존 애니메이션이 전부 그대로 재생된다.
+
 ---
 
 ## 자기검증 결과

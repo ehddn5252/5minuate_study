@@ -35,3 +35,4 @@ description: 5분 학습(5minuate_study) 프로젝트를 위해 인터넷에서 
 ## 지금까지 이 루프가 반영한 것 (기록)
 
 - **사이클 1 (2026-08-20):** "retrieval practice / spaced repetition app design" 검색 → 정답을 보기 전 먼저 답을 산출하는 게 재인식(객관식)보다 기억에 낫다는 결과를 얻었으나, 이미 F-45(정답 전 음성 녹음)로 커버돼 있어 채택하지 않음. 대신 프로젝트 자체 커밋 로그/문서를 훑다가 "스트릭 프리즈"가 여러 기획 초안 문서(`feature_definition_engagement.md` 등)에서 이미 설계됐지만 실제 코드에는 전혀 없다는 걸 발견해 이걸 채택. F-49로 문서화하고 `types/index.ts`, `GoalCreateScreen.tsx`, `TestScreen.tsx`, `SessionCompleteScreen.tsx`에 구현 → 커밋.
+- **사이클 2 (2026-08-20):** "Duolingo gamification mechanics" 검색 → 리더보드/하트(생명력) 시스템이 나왔지만 리더보드는 F-37 주석에 이미 비목표로 명시돼 있고, 하트 시스템은 "포기를 구조적으로 막는다"는 이 앱의 원칙과 정면으로 충돌해(오답 시 진행을 막는 벌칙 장치) 기각. 검색 방향을 PWA 접근성으로 전환 → `prefers-reduced-motion`(동작 줄이기 접근성 설정) 미대응을 발견 — `animate-*` 클래스가 10개 파일에서 쓰이는데 어디도 이 설정을 확인하지 않고 있었음. 순수 CSS로 F-50 구현(`src/index.css`) — 로딩 스피너/녹음중 표시는 기능적 모션이라 예외 처리. Playwright의 `reducedMotion: 'reduce'` 컨텍스트로 실제 동작 검증 후 배포.

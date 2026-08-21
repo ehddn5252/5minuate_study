@@ -197,3 +197,17 @@ html[data-bg='navy'][data-bg-pattern='waves'] body {
     min-width: 44px;
   }
 }
+
+/* F-50: prefers-reduced-motion 대응 — 전정기관 장애 등으로 모션에 민감한 사용자를 위해
+   OS/브라우저에서 "동작 줄이기"를 켠 경우 장식성 애니메이션(정답 팝, 오답 흔들림, 카운트업,
+   페이지 전환, 마스코트 바운스)을 없앤다. 로딩 스피너(animate-spin)와 녹음 중 표시(animate-pulse)는
+   상태를 알려주는 기능적 모션이라 접근성 가이드상 예외로 두고 그대로 유지한다. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-feedback-pop,
+  .animate-feedback-shake,
+  .animate-count-up-pop,
+  .animate-page-enter,
+  .animate-bounce {
+    animation: none !important;
+  }
+}
