@@ -458,6 +458,41 @@ export async function listClassAssignments(classId: string): Promise<AssignmentR
   }));
 }
 
+// F-66: 숙제 목록을 펼치기 전에도 "몇 명이 제출했는지" 한눈에 보이게 하기 위한 집계.
+// listAssignmentChecklist(숙제 하나 펼쳤을 때 쓰는 함수)와 같은 계산을, 반 전체 숙제에 대해
+// 한 번에(쿼리 3번, 숙제·학생 수와 무관) 해서 N+1을 피한다 — F-58/F-60과 같은 설계 원칙.
+export async function listClassAssignmentCompletionCounts(
+  classId: string
+): Promise<Record<string, { completed: number; total: number }>> {
+  const { data: assignments } = await supabase
+    .from('assignments')
+    .select('id, target_student_ids')
+    .eq('class_id', classId);
+  if (!assignments || assignments.length === 0) return {};
+
+  const { data: members } = await supabase
+    .from('class_members')
+    .select('student_id')
+    .eq('class_id', classId);
+  const allStudentIds = (members ?? []).map((m) => m.student_id);
+
+  const { data: submissions } = await supabase
+    .from('assignment_submissions')
+    .select('assignment_id, student_id')
+    .in('assignment_id', assignments.map((a) => a.id))
+    .not('completed_at', 'is', null);
+  const completedSet = new Set((submissions ?? []).map((s) => `${s.assignment_id}:${s.student_id}`));
+
+  const result: Record<string, { completed: number; total: number }> = {};
+  assignments.forEach((a) => {
+    const targetIds = a.target_student_ids as string[] | null;
+    const scoped = targetIds ? allStudentIds.filter((id) => targetIds.includes(id)) : allStudentIds;
+    const completed = scoped.filter((id) => completedSet.has(`${a.id}:${id}`)).length;
+    result[a.id] = { completed, total: scoped.length };
+  });
+  return result;
+}
+
 // assignment_questions/assignment_submissions는 assignments 삭제 시 on delete cascade로 함께 지워진다
 export async function deleteAssignment(assignmentId: string): Promise<{ error?: string }> {
   const { error } = await supabase.from('assignments').delete().eq('id', assignmentId);

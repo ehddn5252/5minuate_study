@@ -15,6 +15,7 @@ import {
   getClassMaterialFileUrl,
   listClassRoster,
   listClassDueSummary,
+  listClassAssignmentCompletionCounts,
   type StudentDueSummary,
   removeStudentFromClass,
   listClassAnnouncements,
@@ -85,6 +86,7 @@ export default function ClassDetailScreen() {
   const [studentDetail, setStudentDetail] = useState<StudentAssignmentDetailRow[]>([]);
   const [studentDetailLoading, setStudentDetailLoading] = useState(false);
   const [dueSummary, setDueSummary] = useState<Record<string, StudentDueSummary>>({});
+  const [assignmentCompletion, setAssignmentCompletion] = useState<Record<string, { completed: number; total: number }>>({});
   // F-62: 제출물 코멘트 — 한 번에 한 건만 편집(editingCommentId로 어느 제출물인지 표시)
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
@@ -111,6 +113,8 @@ export default function ClassDetailScreen() {
       setLoading(false);
       // 명단을 펼치기 전에도 미제출 학생이 보이도록 별도로 집계(펼침 여부와 무관하게 미리 로드)
       listClassDueSummary(classId, rosterList.map((r) => r.studentId)).then(setDueSummary);
+      // 숙제 목록을 펼치기 전에도 제출 현황이 보이도록 별도로 집계
+      listClassAssignmentCompletionCounts(classId).then(setAssignmentCompletion);
     })();
   }, [classId]);
 
@@ -529,6 +533,17 @@ export default function ClassDetailScreen() {
                         {typeof a.targetCount === 'number' && (
                           <span className="text-[var(--accent-500)] bg-[var(--accent-50)] px-1.5 py-0.5 rounded">
                             👤 학생 {a.targetCount}명 대상
+                          </span>
+                        )}
+                        {assignmentCompletion[a.id] && assignmentCompletion[a.id].total > 0 && (
+                          <span
+                            className={`px-1.5 py-0.5 rounded ${
+                              assignmentCompletion[a.id].completed === assignmentCompletion[a.id].total
+                                ? 'text-green-600 bg-green-50'
+                                : 'text-gray-500 bg-gray-100'
+                            }`}
+                          >
+                            ✅ 제출 {assignmentCompletion[a.id].completed}/{assignmentCompletion[a.id].total}
                           </span>
                         )}
                       </p>
