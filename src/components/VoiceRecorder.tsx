@@ -136,7 +136,6 @@ export default function VoiceRecorder({ quizId, kind = 'answer', label, question
         )}
         {audioUrl && !isRecording && (
           <>
-            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <audio src={audioUrl} controls className="h-8 max-w-[160px]" />
             <button
               type="button"

@@ -119,7 +119,6 @@ export default function RecordingsScreen() {
                     </button>
                   </div>
                   {audioUrls[recording.id] && (
-                    // eslint-disable-next-line jsx-a11y/media-has-caption
                     <audio src={audioUrls[recording.id]} controls className="w-full h-8" />
                   )}
                 </div>
