@@ -250,41 +250,56 @@ export async function listStudentAssignments(classId: string, studentId: string)
   });
 }
 
-// F-58: 학생 명단을 펼치기 전부터 "이 학생이 미제출 숙제가 몇 건인지" 한눈에 보여주기 위한 집계.
-// 학생 수만큼 쿼리하지 않도록(N+1 방지) 반 전체의 마감 지난 숙제·제출 기록을 각각 한 번씩만 조회해
-// 클라이언트에서 합친다. 대상이 특정 학생으로 좁혀진 숙제(target_student_ids)도 정확히 반영한다.
-export async function listClassOverdueCounts(
+// F-58/F-60: 학생 명단을 펼치기 전부터 "이 학생이 미제출 숙제가 몇 건인지" 한눈에 보여주기 위한
+// 집계. 학생 수만큼 쿼리하지 않도록(N+1 방지) 반 전체의 마감 임박(오늘 포함) 숙제·제출 기록을
+// 각각 한 번씩만 조회해 클라이언트에서 합친다. 대상이 특정 학생으로 좁혀진 숙제(target_student_ids)도
+// 정확히 반영한다.
+// F-60: "이미 마감 지남(overdue)"과 "오늘이 마감(dueToday, 아직 안 늦음)"을 한데 묶지 않고 분리한다 —
+// 리서치 결과 이 둘을 뭉뚱그리면 "진짜 위험한" 미제출과 "아직 정상 범위인" 미제출을 교사가 구분하지
+// 못해 경고 피로(alert fatigue)로 무시하게 된다는 게 확인됐다.
+export interface StudentDueSummary {
+  overdue: number;
+  dueToday: number;
+}
+
+export async function listClassDueSummary(
   classId: string,
   studentIds: string[]
-): Promise<Record<string, number>> {
-  if (studentIds.length === 0) return {};
+): Promise<Record<string, StudentDueSummary>> {
+  const empty: Record<string, StudentDueSummary> = {};
+  if (studentIds.length === 0) return empty;
   const today = new Date().toISOString().split('T')[0];
 
   const { data: assignments } = await supabase
     .from('assignments')
-    .select('id, target_student_ids')
+    .select('id, due_date, target_student_ids')
     .eq('class_id', classId)
-    .lt('due_date', today);
-  const overdueAssignments = assignments ?? [];
-  if (overdueAssignments.length === 0) return {};
+    .lte('due_date', today);
+  const relevantAssignments = assignments ?? [];
+  if (relevantAssignments.length === 0) return empty;
 
   const { data: submissions } = await supabase
     .from('assignment_submissions')
     .select('assignment_id, student_id')
-    .in('assignment_id', overdueAssignments.map((a) => a.id))
+    .in('assignment_id', relevantAssignments.map((a) => a.id))
     .not('completed_at', 'is', null);
   const completedSet = new Set((submissions ?? []).map((s) => `${s.assignment_id}:${s.student_id}`));
 
-  const counts: Record<string, number> = {};
+  const summary: Record<string, StudentDueSummary> = {};
   studentIds.forEach((studentId) => {
-    counts[studentId] = overdueAssignments.reduce((count, a) => {
+    let overdue = 0;
+    let dueToday = 0;
+    relevantAssignments.forEach((a) => {
       const targetIds = a.target_student_ids as string[] | null;
       const applicable = !targetIds || targetIds.includes(studentId);
       const done = completedSet.has(`${a.id}:${studentId}`);
-      return applicable && !done ? count + 1 : count;
-    }, 0);
+      if (!applicable || done) return;
+      if (a.due_date < today) overdue++;
+      else dueToday++;
+    });
+    summary[studentId] = { overdue, dueToday };
   });
-  return counts;
+  return summary;
 }
 
 export async function removeStudentFromClass(classId: string, studentId: string): Promise<{ error?: string }> {

@@ -14,7 +14,8 @@ import {
   uploadClassMaterialFile,
   getClassMaterialFileUrl,
   listClassRoster,
-  listClassOverdueCounts,
+  listClassDueSummary,
+  type StudentDueSummary,
   removeStudentFromClass,
   listClassAnnouncements,
   createAnnouncement,
@@ -82,7 +83,7 @@ export default function ClassDetailScreen() {
   const [expandedStudentDetailId, setExpandedStudentDetailId] = useState<string | null>(null);
   const [studentDetail, setStudentDetail] = useState<StudentAssignmentDetailRow[]>([]);
   const [studentDetailLoading, setStudentDetailLoading] = useState(false);
-  const [overdueCounts, setOverdueCounts] = useState<Record<string, number>>({});
+  const [dueSummary, setDueSummary] = useState<Record<string, StudentDueSummary>>({});
 
   useEffect(() => {
     if (!classId) return;
@@ -104,7 +105,7 @@ export default function ClassDetailScreen() {
       setAnnouncements(announcementList);
       setLoading(false);
       // 명단을 펼치기 전에도 미제출 학생이 보이도록 별도로 집계(펼침 여부와 무관하게 미리 로드)
-      listClassOverdueCounts(classId, rosterList.map((r) => r.studentId)).then(setOverdueCounts);
+      listClassDueSummary(classId, rosterList.map((r) => r.studentId)).then(setDueSummary);
     })();
   }, [classId]);
 
@@ -364,9 +365,14 @@ export default function ClassDetailScreen() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                         <span className="truncate">{r.studentName}</span>
-                        {(overdueCounts[r.studentId] ?? 0) > 0 && (
+                        {(dueSummary[r.studentId]?.overdue ?? 0) > 0 && (
                           <span className="flex-shrink-0 text-[10px] font-medium text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
-                            ⚠️ 미제출 {overdueCounts[r.studentId]}건
+                            ⚠️ 미제출 {dueSummary[r.studentId].overdue}건
+                          </span>
+                        )}
+                        {(dueSummary[r.studentId]?.dueToday ?? 0) > 0 && (
+                          <span className="flex-shrink-0 text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">
+                            🕒 오늘 마감 {dueSummary[r.studentId].dueToday}건
                           </span>
                         )}
                       </button>
