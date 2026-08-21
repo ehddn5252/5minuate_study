@@ -40,7 +40,15 @@ export default function MyQuestionBookScreen() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-xl font-bold text-gray-900">내 문제집</h1>
+          <h1 className="text-xl font-bold text-gray-900 flex-1">내 문제집</h1>
+          {sections.length > 0 && (
+            <button
+              onClick={() => navigate('/bookmark-review')}
+              className="flex-shrink-0 px-3 py-2 bg-[var(--accent-600)] text-white rounded-xl text-sm font-medium min-h-[40px]"
+            >
+              복습 시작
+            </button>
+          )}
         </div>
 
         {sections.length === 0 ? (

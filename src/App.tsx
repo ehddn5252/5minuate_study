@@ -20,6 +20,7 @@ const GoalCompleteScreen = lazy(() => import('./screens/GoalCompleteScreen'));
 const WrongPoolScreen = lazy(() => import('./screens/WrongPoolScreen'));
 const RetryWrongScreen = lazy(() => import('./screens/RetryWrongScreen'));
 const MyQuestionBookScreen = lazy(() => import('./screens/MyQuestionBookScreen'));
+const BookmarkReviewScreen = lazy(() => import('./screens/BookmarkReviewScreen'));
 const CalendarScreen = lazy(() => import('./screens/CalendarScreen'));
 const LanguageHubScreen = lazy(() => import('./screens/LanguageHubScreen'));
 const MixReviewScreen = lazy(() => import('./screens/MixReviewScreen'));
@@ -236,6 +237,7 @@ export default function App() {
         <Route path="/wrong-pool" element={<WrongPoolScreen />} />
         <Route path="/retry/:goalId" element={<RetryWrongScreen />} />
         <Route path="/my-questions" element={<MyQuestionBookScreen />} />
+        <Route path="/bookmark-review" element={<BookmarkReviewScreen />} />
         <Route path="/calendar" element={<CalendarScreen />} />
         <Route path="/language" element={<LanguageHubScreen />} />
         <Route path="/mix-review" element={<MixReviewScreen />} />
