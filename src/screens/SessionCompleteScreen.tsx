@@ -28,6 +28,7 @@ interface LocationState {
   goalId?: string;
   levelSuggestion?: LevelSuggestion | null;
   usedFreeze?: boolean;
+  maxNextReviewAt?: string;
 }
 
 export default function SessionCompleteScreen() {
@@ -49,6 +50,14 @@ export default function SessionCompleteScreen() {
   const didLevelUp = state?.didLevelUp ?? false;
   const surpriseReward = state?.surpriseReward;
   const usedFreeze = state?.usedFreeze ?? false;
+  // F-61: 오늘 맞힌 문제 중 가장 멀리 밀린 복습 간격을 "다음 만남"으로 안내 — 간격 반복
+  // 스케줄러가 실제로 사용자를 위해 뭘 했는지 투명하게 보여줘 신뢰를 쌓는다(업계 통용 패턴).
+  // maxNextReviewAt은 정답일 때만 채워지므로(오답은 항상 내일로 리셋) 최소 3일 이상만 들어온다.
+  const daysUntilNextReview = state?.maxNextReviewAt
+    ? Math.round(
+        (new Date(state.maxNextReviewAt).getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000
+      )
+    : undefined;
   const levelSuggestion = state?.levelSuggestion;
   const suggestionGoal = goals.find((g) => g.id === state?.goalId);
   const [suggestionHandled, setSuggestionHandled] = useState(false);
@@ -218,6 +227,15 @@ export default function SessionCompleteScreen() {
               {growthFeedback.isPersonalBest ? `🏅 ${getMascotFace('celebrate', mateTone)} ` : '📈 '}
               {growthFeedback.message}
               {growthFeedback.isPersonalBest && ' — 자기 최고 기록!'}
+            </p>
+          )}
+          {daysUntilNextReview !== undefined && daysUntilNextReview > 0 && (
+            <p
+              className={`text-center text-xs text-gray-400 mt-2 ${
+                xpGained > 0 || growthFeedback ? '' : 'pt-3 border-t border-gray-100'
+              }`}
+            >
+              🗓️ 가장 오래 기억한 문제는 {daysUntilNextReview}일 뒤에 다시 만나요
             </p>
           )}
         </div>

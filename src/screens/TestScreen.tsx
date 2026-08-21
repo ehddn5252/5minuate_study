@@ -40,6 +40,9 @@ export default function TestScreen() {
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [answered, setAnswered] = useState(false);
   const initialized = useRef(false);
+  // F-61: 이번 세션에서 정답 처리로 간격이 가장 멀리 늘어난 nextReviewAt을 추적 —
+  // 오답은 항상 다음날로 리셋돼(신호 가치가 낮음) 여기 포함하지 않는다.
+  const maxNextReviewAtRef = useRef<string | undefined>(undefined);
 
   // 틀린 문제는 세션 마지막에 다시 물어봐 맞힐 때까지 큐 뒤로 계속 보냄 — 점수/XP(answers)에는
   // 영향 없이 순수 복습용 추가 라운드. 같은 문제가 재출제될 때 QuizCard가 리렌더되도록 cardSeq로 key를 강제로 바꾼다.
@@ -217,6 +220,9 @@ export default function TestScreen() {
         nextReviewAt,
       });
       removeFromWrongPool(goal.id, quiz.id);
+      if (!maxNextReviewAtRef.current || nextReviewAt > maxNextReviewAtRef.current) {
+        maxNextReviewAtRef.current = nextReviewAt;
+      }
     }
   };
 
@@ -391,6 +397,7 @@ export default function TestScreen() {
           score, total, streak: newStreak, newBadges, topic: goal.topic, growthFeedback,
           mateTone: goal.mateTone, xpGained, newXp, newLevel, didLevelUp, surpriseReward,
           goalId: goal.id, levelSuggestion, usedFreeze,
+          maxNextReviewAt: maxNextReviewAtRef.current,
         },
       });
     }
