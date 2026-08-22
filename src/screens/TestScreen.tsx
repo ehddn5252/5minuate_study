@@ -140,6 +140,9 @@ export default function TestScreen() {
   if (!goal || testQuizzes.length === 0) {
     return (
       <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center">
+        {/* F-78: 문항이 로딩되는 동안 첫 커밋되는 화면이라, RouteAnnouncer(F-77)가 이
+            시점에 이미 <h1>을 찾으려 시도한다 — 로딩 중에도 미리 붙여둬야 실제로 잡힌다. */}
+        {goal && <h1 className="sr-only">{goal.topic} 테스트</h1>}
         <p className="text-gray-500">퀴즈를 불러오는 중...</p>
       </div>
     );
@@ -438,6 +441,10 @@ export default function TestScreen() {
 
   return (
     <div className="min-h-screen bg-[var(--page-bg)] flex flex-col">
+      {/* F-78: 시각적으로는 숨기되(sr-only) RouteAnnouncer(F-77)가 읽을 수 있게 —
+          문제 풀이 화면은 화면 자체가 문항에 집중하도록 의도적으로 <h1>을 안 썼지만,
+          그 때문에 스크린 리더 사용자만 화면 전환 알림을 못 받는 건 아니어야 한다. */}
+      <h1 className="sr-only">{goal.topic} 테스트</h1>
       <div className="max-w-md mx-auto w-full flex flex-col flex-1 px-4 py-6">
         <div className="flex items-center gap-3 mb-4">
           <button

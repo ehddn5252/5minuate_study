@@ -8,15 +8,31 @@ import { useLocation } from 'react-router-dom';
 export default function RouteAnnouncer() {
   const location = useLocation();
   const liveRegionRef = useRef<HTMLDivElement>(null);
+  const lastAnnouncedRef = useRef('');
 
   useEffect(() => {
-    const heading = document.querySelector('h1');
-    const label = heading?.textContent?.trim();
-    if (!label) return;
-    document.title = `${label} · 5분 학습`;
-    if (liveRegionRef.current) {
-      liveRegionRef.current.textContent = label;
-    }
+    // F-78: 이 앱의 화면 대부분이 React.lazy + Suspense로 지연 로드된다 — 라우트가 바뀐
+    // 직후 첫 커밋엔 fallback(빈 화면)만 있고, 실제 화면의 <h1>은 코드 청크가 로드된
+    // 몇 백ms 뒤에야 나타난다. pathname 변경 시점에만 한 번 찾으면 이 지연 커밋을 놓쳐서
+    // 실제로는 거의 항상 알림이 비어있었다(직접 렌더링해 확인). MutationObserver로 DOM에
+    // <h1>이 실제로 나타나는 순간을 직접 감지해야 한다.
+    lastAnnouncedRef.current = '';
+
+    const announce = () => {
+      const heading = document.querySelector('h1');
+      const label = heading?.textContent?.trim();
+      if (!label || label === lastAnnouncedRef.current) return;
+      lastAnnouncedRef.current = label;
+      document.title = `${label} · 5분 학습`;
+      if (liveRegionRef.current) {
+        liveRegionRef.current.textContent = label;
+      }
+    };
+
+    announce();
+    const observer = new MutationObserver(announce);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
   }, [location.pathname]);
 
   return (

@@ -291,11 +291,16 @@ export default function ShortsScreen() {
 
   const quizCards = cards.filter((c): c is QuizCard => c.type === 'quiz');
   const correctCount = quizCards.filter((c) => answers[cards.indexOf(c)] === c.answer).length;
+  // F-78: RouteAnnouncer(F-77)가 읽을 시각적으로 숨긴 제목 — templateId는 useParams로
+  // 즉시 확정되므로 로딩 중에도 미리 계산해 세 return 분기 모두에 동일하게 붙인다.
+  const template = TEMPLATES.find((t) => t.id === templateId);
+  const srTitle = `${template?.name ?? '학습 콘텐츠'} 미리보기`;
 
   // 로딩
   if (loading) {
     return (
       <div className="h-screen bg-slate-900 flex flex-col items-center justify-center gap-4 text-white">
+        <h1 className="sr-only">{srTitle}</h1>
         <svg className="animate-spin w-10 h-10 text-[var(--accent-400)]" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -309,6 +314,7 @@ export default function ShortsScreen() {
   if (noContent) {
     return (
       <div className="h-screen bg-slate-900 flex flex-col items-center justify-center gap-4 text-white px-6 text-center">
+        <h1 className="sr-only">{srTitle}</h1>
         <div className="text-5xl">📚</div>
         <h2 className="text-xl font-bold">아직 콘텐츠가 없어요</h2>
         <p className="text-white/60 text-sm">이 템플릿을 처음으로 공부하고<br/>콘텐츠를 만들어보세요!</p>
@@ -323,14 +329,13 @@ export default function ShortsScreen() {
     );
   }
 
-  const template = TEMPLATES.find((t) => t.id === templateId);
-
   return (
     <div
       className="h-screen overflow-hidden relative bg-slate-900"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      <h1 className="sr-only">{srTitle}</h1>
       {/* 닫기 버튼 */}
       <button
         onClick={() => navigate(-1)}
