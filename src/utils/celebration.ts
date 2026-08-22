@@ -2,7 +2,21 @@
 // canvas-confetti 같은 라이브러리를 추가하면 이 프로젝트 최초의 "장식성" 의존성이 되고
 // Cloudflare Workers 정적 배포 + PWA 캐시에 새 청크가 늘어나므로, 50~80줄 수준의 직접 구현으로 대체한다.
 
-const CONFETTI_COLORS = ['#6366f1', '#f59e0b', '#22c55e', '#ec4899', '#38bdf8'];
+// getComputedStyle 자체가 실패하거나(테스트 환경 등) --accent-* 변수가 비어있을 때만 쓰는 안전망 —
+// 실제 브라우저에서는 항상 아래 getThemeConfettiColors()가 우선한다.
+const FALLBACK_CONFETTI_COLORS = ['#6366f1', '#f59e0b', '#22c55e', '#ec4899', '#38bdf8'];
+
+// F-41 스킨(포인트 컬러) 개인화 — 사용자가 고른 accentTheme을 컨페티 색에도 그대로 반영한다.
+// html[data-theme]에 실제로 적용된 CSS 변수(--accent-300~700)를 읽어오는 방식이라, 테마 종류를
+// 여기 다시 나열하지 않아도 SettingsScreen의 스킨 목록과 항상 자동으로 맞는다.
+function getThemeConfettiColors(): string[] {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return FALLBACK_CONFETTI_COLORS;
+  const style = getComputedStyle(document.documentElement);
+  const shades = ['--accent-300', '--accent-400', '--accent-500', '--accent-600', '--accent-700']
+    .map((name) => style.getPropertyValue(name).trim())
+    .filter((value) => value.length > 0);
+  return shades.length > 0 ? shades : FALLBACK_CONFETTI_COLORS;
+}
 
 interface Particle {
   x: number;
@@ -26,13 +40,14 @@ function runConfetti(canvas: HTMLCanvasElement, particleCount: number): void {
   canvas.style.height = `${window.innerHeight}px`;
   ctx.scale(dpr, dpr);
 
+  const colors = getThemeConfettiColors();
   const particles: Particle[] = Array.from({ length: particleCount }, () => ({
     x: window.innerWidth / 2,
     y: window.innerHeight * 0.3,
     vx: (Math.random() - 0.5) * 12,
     vy: Math.random() * -10 - 4,
     size: Math.random() * 6 + 4,
-    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+    color: colors[Math.floor(Math.random() * colors.length)],
     rotation: Math.random() * 360,
     rotationSpeed: (Math.random() - 0.5) * 12,
   }));
