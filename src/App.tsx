@@ -8,6 +8,7 @@ import { supabase, loadFromCloud, migrateLocalToCloud, syncToCloud } from './ser
 import { fetchMyRole, type UserRole } from './services/academy';
 import { clearAllLocalData } from './utils/storage';
 import OfflineBanner from './components/OfflineBanner';
+import RouteAnnouncer from './components/RouteAnnouncer';
 import { useGoalStore, useSessionStore, useQuizStore, useAppStore } from './store';
 const HomeScreen = lazy(() => import('./screens/HomeScreen'));
 const GoalCreateScreen = lazy(() => import('./screens/GoalCreateScreen'));
@@ -209,6 +210,7 @@ export default function App() {
     return (
       <BrowserRouter>
         <OfflineBanner />
+        <RouteAnnouncer />
         <AnimatedRoutes>
           <Suspense fallback={<div className="min-h-screen bg-[var(--page-bg)]" />}>
             <Routes>
@@ -229,6 +231,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <OfflineBanner />
+      <RouteAnnouncer />
       <PendingTemplateRedirect />
       <AnimatedRoutes>
       <Suspense fallback={<div className="min-h-screen bg-[var(--page-bg)]" />}>
