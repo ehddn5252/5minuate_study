@@ -227,6 +227,31 @@ export default function SettingsScreen() {
           */}
         </div>
 
+        {/* F-40: 축하 효과 opt-out — 2026-07-22 CEO 요청으로 일시 비활성화됐다가
+            2026-08-22 재미 요소 추가 작업으로 재활성화 */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-700">축하 효과</p>
+              <p className="text-xs text-gray-400 mt-0.5">완료 화면의 컨페티·효과음·진동</p>
+            </div>
+            <button
+              onClick={() => updateAppState({ celebrationEffectsEnabled: !appState.celebrationEffectsEnabled })}
+              aria-pressed={appState.celebrationEffectsEnabled}
+              aria-label="축하 효과 켜기/끄기"
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                appState.celebrationEffectsEnabled ? 'bg-[var(--accent-600)]' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  appState.celebrationEffectsEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
         {/* 계정 섹션 */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">계정 & 동기화</h2>

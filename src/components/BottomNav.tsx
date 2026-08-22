@@ -30,7 +30,7 @@ const SETTINGS_ICON = (
 );
 
 interface BottomNavProps {
-  // 교사 계정은 목표 개념이 없어 홈/설정 2개 탭만 노출한다
+  // 교사 계정은 목표/업적 개념이 없어 홈/설정 2개 탭만 노출한다
   variant?: 'student' | 'teacher';
 }
 
@@ -57,6 +57,15 @@ export default function BottomNav({ variant = 'student' }: BottomNavProps) {
                   strokeWidth={2}
                   d="M4 6h16M4 10h16M4 14h16M4 18h16"
                 />
+              </svg>
+            ),
+          },
+          {
+            path: '/achievements',
+            label: '업적',
+            icon: (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
             ),
           },
