@@ -5,3 +5,6 @@ __pycache__/
 node_modules/
 dist/
 .DS_Store
+
+# 개인용 비공개 메모(이직 준비용 프로젝트 정리 등) — 원격 저장소에 올리지 않음
+docs/private/
