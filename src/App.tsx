@@ -5,7 +5,6 @@ import type { User } from '@supabase/supabase-js';
 // 나머지 화면은 전부 lazy로 분리해 초기 번들 크기를 줄인다(각 화면은 실제로 들어갈 때만 받음).
 import LoginScreen from './screens/LoginScreen';
 import { supabase, loadFromCloud, migrateLocalToCloud, syncToCloud } from './services/supabase';
-import { fetchMyRole, type UserRole } from './services/academy';
 import { clearAllLocalData } from './utils/storage';
 import OfflineBanner from './components/OfflineBanner';
 import RouteAnnouncer from './components/RouteAnnouncer';
@@ -30,10 +29,6 @@ const AchievementsScreen = lazy(() => import('./screens/AchievementsScreen'));
 const StudyMaterialsScreen = lazy(() => import('./screens/StudyMaterialsScreen'));
 const ShortsScreen = lazy(() => import('./screens/ShortsScreen'));
 const SettingsScreen = lazy(() => import('./screens/SettingsScreen'));
-const TeacherOnboardScreen = lazy(() => import('./screens/TeacherOnboardScreen'));
-const TeacherHomeScreen = lazy(() => import('./screens/TeacherHomeScreen'));
-const ClassDetailScreen = lazy(() => import('./screens/ClassDetailScreen'));
-const AssignmentCreateScreen = lazy(() => import('./screens/AssignmentCreateScreen'));
 const JoinClassScreen = lazy(() => import('./screens/JoinClassScreen'));
 const MyAssignmentsScreen = lazy(() => import('./screens/MyAssignmentsScreen'));
 const AssignmentSolveScreen = lazy(() => import('./screens/AssignmentSolveScreen'));
@@ -119,8 +114,6 @@ export default function App() {
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  // 학원용 선생/학생 모드 — role이 없으면(신규/개인 사용자) 기존 학생 화면 그대로 노출
-  const [role, setRole] = useState<UserRole>('student');
   const [roleChecked, setRoleChecked] = useState(false);
 
   const reloadAllStores = () => {
@@ -155,7 +148,6 @@ export default function App() {
       await migrateLocalToCloud(userId);
       const loaded = await loadFromCloud(userId);
       if (loaded) reloadAllStores();
-      setRole(await fetchMyRole());
       setRoleChecked(true);
     });
 
@@ -169,14 +161,12 @@ export default function App() {
           await migrateLocalToCloud(userId);
           const loaded = await loadFromCloud(userId);
           if (loaded) reloadAllStores();
-          setRole(await fetchMyRole());
           setRoleChecked(true);
         }
         if (event === 'SIGNED_OUT') {
           clearAllLocalData();
           localStorage.removeItem(LAST_USER_KEY);
           reloadAllStores();
-          setRole('student');
         }
       }
     );
@@ -238,12 +228,9 @@ export default function App() {
       <AnimatedRoutes>
       <Suspense fallback={<div className="min-h-screen bg-[var(--page-bg)]" />}>
       <Routes>
-        <Route path="/" element={role === 'teacher' ? <TeacherHomeScreen /> : <HomeScreen />} />
-        {/* 선생님 계정도 개인 학습 화면을 볼 수 있는 통로 — role은 그대로 두고 화면만 잠깐 전환 */}
+        <Route path="/" element={<HomeScreen />} />
+        {/* 학원/교사 모드 기능은 임시 비활성화 상태 — 개인 학습만 유지 */}
         <Route path="/my-study" element={<HomeScreen />} />
-        <Route path="/teacher/onboard" element={<TeacherOnboardScreen />} />
-        <Route path="/teacher/classes/:classId" element={<ClassDetailScreen />} />
-        <Route path="/teacher/classes/:classId/new-assignment" element={<AssignmentCreateScreen />} />
         <Route path="/join-class" element={<JoinClassScreen />} />
         <Route path="/assignments" element={<MyAssignmentsScreen />} />
         <Route path="/assignments/:assignmentId" element={<AssignmentSolveScreen />} />

@@ -57,6 +57,15 @@ export default function BottomNav({ variant = 'student' }: BottomNavProps) {
     variant === 'teacher'
       ? [
           { path: '/', label: '홈', icon: HOME_ICON },
+          {
+            path: '/friends',
+            label: '친구',
+            icon: (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 19v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M12 11a3 3 0 100-6 3 3 0 000 6zm8 8v-1a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+              </svg>
+            ),
+          },
           { path: '/settings', label: '설정', icon: SETTINGS_ICON },
         ]
       : [

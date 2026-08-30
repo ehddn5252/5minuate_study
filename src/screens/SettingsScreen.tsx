@@ -2,14 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, signInWithGoogle, signOut, syncToCloud } from '../services/supabase';
 import {
-  fetchMyRole,
-  getMyAcademyName,
-  listMyJoinedClasses,
-  setRole as setUserRole,
   getMyDisplayName,
   setDisplayName,
-  type UserRole,
-  type JoinedClass,
 } from '../services/academy';
 import type { User } from '@supabase/supabase-js';
 import BottomNav from '../components/BottomNav';
@@ -70,13 +64,7 @@ export default function SettingsScreen() {
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
 
-  // 이미 참여한 학원/반이 있으면 코드 입력 화면 대신 참여 현황을 보여준다 —
-  // 한 번 등록하면 다시 코드를 넣을 필요 없이 이 화면에서 바로 확인만 하면 되게 하기 위함
-  const [role, setRole] = useState<UserRole>('student');
-  const [academyName, setAcademyName] = useState<string | null>(null);
-  const [joinedClasses, setJoinedClasses] = useState<JoinedClass[]>([]);
-  const [academyLoading, setAcademyLoading] = useState(true);
-  const [switchingRole, setSwitchingRole] = useState(false);
+  // 학원/교사 기능은 임시 비활성화 상태 — 개인 학습만 유지한다.
 
   // 닉네임 — 안 정해두면 Google 이름을 그대로 씀
   const [nickname, setNickname] = useState('');
@@ -112,31 +100,6 @@ export default function SettingsScreen() {
     setNicknameSaved(nickname.trim());
     setNicknameMsg('저장됐어요!');
     setTimeout(() => setNicknameMsg(''), 2000);
-  };
-
-  useEffect(() => {
-    (async () => {
-      setAcademyLoading(true);
-      const [r, name] = await Promise.all([fetchMyRole(), getMyAcademyName()]);
-      setRole(r);
-      // academyName은 role과 무관하게 조회한다 — "선생님이었다가 학생 모드로 전환한" 계정도
-      // academy_members 소속은 그대로 남아있으므로, 그 경우에도 전환 버튼을 보여줄 수 있어야 함
-      setAcademyName(name);
-      if (r === 'student') {
-        setJoinedClasses(await listMyJoinedClasses());
-      }
-      setAcademyLoading(false);
-    })();
-  }, []);
-
-  // 학생↔선생님 화면 전환 — academy_members 소속은 그대로 두고 profiles.role만 바꾼다.
-  // App.tsx가 role을 로그인 시점에만 조회하므로, 새로고침해서 다시 읽게 한다.
-  const handleSwitchRole = async (nextRole: UserRole) => {
-    setSwitchingRole(true);
-    const result = await setUserRole(nextRole);
-    setSwitchingRole(false);
-    if (result.error) return;
-    window.location.href = '/';
   };
 
   const handleSync = async () => {
@@ -369,67 +332,9 @@ export default function SettingsScreen() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">학원</h2>
-          {academyLoading ? (
-            <p className="text-xs text-gray-400">확인 중…</p>
-          ) : role === 'teacher' ? (
-            <>
-              <p className="text-sm text-gray-700 mb-3">🏫 {academyName ?? '학원'} 소속 선생님으로 활동 중이에요</p>
-              <button
-                onClick={() => handleSwitchRole('student')}
-                disabled={switchingRole}
-                className="w-full py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium disabled:opacity-50"
-              >
-                {switchingRole ? '전환 중…' : '학생 모드로 전환'}
-              </button>
-            </>
-          ) : (
-            <>
-              {academyName && (
-                <div className="mb-3 p-3 bg-[var(--accent-50)] rounded-xl">
-                  <p className="text-sm text-[var(--accent-700)] mb-2">
-                    🏫 {academyName} 선생님 계정이에요 (지금은 학생 화면 사용 중)
-                  </p>
-                  <button
-                    onClick={() => handleSwitchRole('teacher')}
-                    disabled={switchingRole}
-                    className="w-full py-2 bg-[var(--accent-600)] text-white rounded-lg text-sm font-medium disabled:opacity-50"
-                  >
-                    {switchingRole ? '전환 중…' : '선생님 모드로 전환'}
-                  </button>
-                </div>
-              )}
-              {joinedClasses.length > 0 && (
-                <div className="mb-3">
-                  <p className="text-xs text-gray-400 mb-1.5">참여 중인 반</p>
-                  <ul className="space-y-1">
-                    {joinedClasses.map((c) => (
-                      <li key={c.id} className="text-sm text-gray-700">🙋 {c.name}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <button
-                onClick={() => navigate('/join-class')}
-                className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
-              >
-                <span>{joinedClasses.length > 0 ? '+ 다른 반 참여하기' : '반 참여하기'}</span>
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-              {!academyName && (
-                <button
-                  onClick={() => navigate('/teacher/onboard')}
-                  className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
-                >
-                  <span>선생님이신가요? 학원 시작하기</span>
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              )}
-            </>
-          )}
+          <p className="text-sm text-gray-500">
+            학원/교사 기능은 잠시 비활성화되어 있어요. 개인 학습 기능만 정상적으로 사용하실 수 있습니다.
+          </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
