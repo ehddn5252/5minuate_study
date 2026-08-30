@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGoalStore } from '../store';
+import { useGoalStore, useQuizStore, useSessionStore } from '../store';
 import {
   acceptFriendRequest,
   addFriend,
@@ -13,11 +13,14 @@ import {
   type FriendRequestItem,
   type LeaderboardItem,
   type SocialUserSearchResult,
+  type StudyShareType,
 } from '../services/social';
 
 export default function FriendsScreen() {
   const navigate = useNavigate();
   const { goals } = useGoalStore();
+  const { sessions } = useSessionStore();
+  const { quizzes } = useQuizStore();
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
   const [friends, setFriends] = useState<{ userId: string; displayName: string; score: number }[]>([]);
   const [requests, setRequests] = useState<FriendRequestItem[]>([]);
@@ -25,6 +28,50 @@ export default function FriendsScreen() {
   const [searchResults, setSearchResults] = useState<SocialUserSearchResult[]>([]);
   const [message, setMessage] = useState('');
   const [copyMessage, setCopyMessage] = useState('');
+  const [shareType, setShareType] = useState<StudyShareType>('goal');
+  const [selectedGoalId, setSelectedGoalId] = useState('');
+  const [selectedSessionId, setSelectedSessionId] = useState('');
+
+  useEffect(() => {
+    if (goals.length === 0) {
+      setSelectedGoalId('');
+      setSelectedSessionId('');
+      return;
+    }
+
+    const nextSelectedGoal = goals.find((goal) => goal.id === selectedGoalId)
+      ?? goals.find((goal) => goal.status === 'active')
+      ?? goals[0];
+    setSelectedGoalId(nextSelectedGoal.id);
+
+    const nextSessions = sessions.filter((session) => session.goalId === nextSelectedGoal.id);
+    const nextSelectedSession = nextSessions.find((session) => session.id === selectedSessionId) ?? nextSessions[0];
+    if (nextSelectedSession) setSelectedSessionId(nextSelectedSession.id);
+    else setSelectedSessionId('');
+  }, [goals, sessions, selectedGoalId, selectedSessionId]);
+
+  const goalSessions = useMemo(
+    () => sessions.filter((session) => session.goalId === selectedGoalId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [sessions, selectedGoalId]
+  );
+
+  const selectedSession = useMemo(
+    () => goalSessions.find((session) => session.id === selectedSessionId) ?? goalSessions[0],
+    [goalSessions, selectedSessionId]
+  );
+
+  const selectedQuizList = useMemo(() => {
+    if (!selectedSession) return [];
+    const selectedQuizIds = new Set(selectedSession.selectedQuizIds ?? []);
+    return quizzes
+      .filter((quiz) => selectedQuizIds.has(quiz.id))
+      .slice(0, 8)
+      .map((quiz) => ({
+        question: quiz.question,
+        answer: quiz.answer,
+        explanation: quiz.explanation,
+      }));
+  }, [quizzes, selectedSession]);
 
   const refresh = async () => {
     setLeaderboard(await getFriendLeaderboard());
@@ -74,16 +121,26 @@ export default function FriendsScreen() {
   };
 
   const handleShare = async () => {
-    const goal = goals.find((item) => item.status === 'active') ?? goals[0];
+    const goal = goals.find((item) => item.id === selectedGoalId) ?? goals[0];
     if (!goal) {
       setCopyMessage('공유할 학습 목표가 아직 없어요.');
       return;
     }
 
-    const shareUrl = buildStudyShareLink(goal);
+    const shareUrl = buildStudyShareLink({
+      ...goal,
+      shareType,
+      sessionId: shareType === 'goal' ? undefined : selectedSession?.id,
+      sessionDate: shareType === 'goal' ? undefined : selectedSession?.date,
+      sessionSummary: shareType === 'goal' ? undefined : selectedSession?.summaryContent ?? '',
+      quizIds: shareType === 'quizset' ? selectedSession?.selectedQuizIds ?? [] : undefined,
+      quizList: shareType === 'quizset' ? selectedQuizList : undefined,
+    });
+
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setCopyMessage('공유 링크가 복사됐어요. 친구에게 보내보세요.');
+      const label = shareType === 'goal' ? '목표' : shareType === 'session' ? '세션' : '문제집';
+      setCopyMessage(`"${goal.topic}" ${label} 공유 링크를 복사했어요. 친구에게 보내보세요.`);
     } catch {
       setCopyMessage(shareUrl);
     }
@@ -219,11 +276,64 @@ export default function FriendsScreen() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
           <h2 className="font-semibold text-gray-900 mb-3">같은 학습 공유</h2>
+          {goals.length > 0 ? (
+            <>
+              <label className="block text-xs font-medium text-gray-500 mb-2">공유 범위</label>
+              <select
+                value={shareType}
+                onChange={(e) => setShareType(e.target.value as StudyShareType)}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--accent-200)] mb-3"
+              >
+                <option value="goal">목표 전체</option>
+                <option value="session">특정 세션</option>
+                <option value="quizset">문제집</option>
+              </select>
+
+              <label className="block text-xs font-medium text-gray-500 mb-2">학습 목표 선택</label>
+              <select
+                value={selectedGoalId}
+                onChange={(e) => setSelectedGoalId(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--accent-200)] mb-3"
+              >
+                {goals.map((goal) => (
+                  <option key={goal.id} value={goal.id}>
+                    {goal.topic}
+                    {goal.status === 'active' ? ' • 진행 중' : goal.status === 'completed' ? ' • 완료' : ' • 보관'}
+                  </option>
+                ))}
+              </select>
+
+              {(shareType === 'session' || shareType === 'quizset') && (
+                <>
+                  <label className="block text-xs font-medium text-gray-500 mb-2">세션 선택</label>
+                  <select
+                    value={selectedSessionId}
+                    onChange={(e) => setSelectedSessionId(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--accent-200)] mb-3"
+                    disabled={goalSessions.length === 0}
+                  >
+                    {goalSessions.length === 0 ? (
+                      <option value="">세션이 아직 없어요</option>
+                    ) : (
+                      goalSessions.map((session) => (
+                        <option key={session.id} value={session.id}>
+                          {session.date} · {session.summaryContent ? session.summaryContent.slice(0, 24) : '세션 학습'}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-gray-500 mb-3">공유할 학습이 아직 없어요.</p>
+          )}
           <button
             onClick={handleShare}
-            className="w-full py-3 rounded-xl bg-[var(--accent-600)] text-white font-semibold text-base"
+            disabled={goals.length === 0 || ((shareType === 'session' || shareType === 'quizset') && goalSessions.length === 0)}
+            className="w-full py-3 rounded-xl bg-[var(--accent-600)] text-white font-semibold text-base disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            공유 링크 생성
+            {shareType === 'goal' ? '목표 링크 생성' : shareType === 'session' ? '세션 링크 생성' : '문제집 링크 생성'}
           </button>
           {copyMessage && <p className="mt-3 text-sm text-gray-600">{copyMessage}</p>}
         </div>

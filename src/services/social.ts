@@ -279,41 +279,81 @@ export async function getFriendLeaderboard(): Promise<LeaderboardItem[]> {
     }));
 }
 
-export function buildStudyShareLink(goal: Pick<Goal, 'id' | 'topic' | 'summaryContent' | 'dailyPlan'>): string {
-  const payload = {
-    goalId: goal.id,
-    topic: goal.topic,
-    summary: goal.summaryContent ?? '',
-    dailyPlan: goal.dailyPlan ?? '',
-    at: new Date().toISOString(),
-  };
-  const text = JSON.stringify(payload);
-  const encoded = btoa(encodeURIComponent(text).replace(/%([0-9A-F]{2})/g, (_, hex) => String.fromCharCode(Number.parseInt(hex, 16))));
-  return `${window.location.origin}/shared/${encoded}`;
-}
+export type StudyShareType = 'goal' | 'session' | 'quizset';
 
-export function decodeStudyShareLink(code: string): {
+export interface StudyShareLinkPayload {
+  shareType: StudyShareType;
   goalId: string;
   topic: string;
   summary: string;
   dailyPlan: string;
-} | null {
+  sessionId?: string;
+  sessionDate?: string;
+  sessionSummary?: string;
+  quizIds?: string[];
+  quizList?: Array<{
+    question: string;
+    answer: string;
+    explanation?: string;
+  }>;
+  at: string;
+}
+
+export function buildStudyShareLink(
+  goal: Pick<Goal, 'id' | 'topic' | 'summaryContent' | 'dailyPlan'> & {
+    shareType?: StudyShareType;
+    sessionId?: string;
+    sessionDate?: string;
+    sessionSummary?: string;
+    quizIds?: string[];
+    quizList?: Array<{
+      question: string;
+      answer: string;
+      explanation?: string;
+    }>;
+  }
+): string {
+  const payload: StudyShareLinkPayload = {
+    shareType: goal.shareType ?? 'goal',
+    goalId: goal.id,
+    topic: goal.topic,
+    summary: goal.summaryContent ?? '',
+    dailyPlan: goal.dailyPlan ?? '',
+    sessionId: goal.sessionId,
+    sessionDate: goal.sessionDate,
+    sessionSummary: goal.sessionSummary ?? '',
+    quizIds: goal.quizIds ?? [],
+    quizList: goal.quizList ?? [],
+    at: new Date().toISOString(),
+  };
+
+  const text = JSON.stringify(payload);
+  const encoded = btoa(
+    encodeURIComponent(text).replace(/%([0-9A-F]{2})/g, (_, hex) => String.fromCharCode(Number.parseInt(hex, 16)))
+  );
+  return `${window.location.origin}/shared/${encoded}`;
+}
+
+export function decodeStudyShareLink(code: string): StudyShareLinkPayload | null {
   try {
     const raw = decodeURIComponent(
       Array.from(atob(code), (char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`).join('')
     );
-    const parsed = JSON.parse(raw) as {
-      goalId?: string;
-      topic?: string;
-      summary?: string;
-      dailyPlan?: string;
-    };
+    const parsed = JSON.parse(raw) as Partial<StudyShareLinkPayload>;
     if (!parsed.goalId || !parsed.topic) return null;
+
     return {
+      shareType: parsed.shareType ?? 'goal',
       goalId: parsed.goalId,
       topic: parsed.topic,
       summary: parsed.summary ?? '',
       dailyPlan: parsed.dailyPlan ?? '',
+      sessionId: parsed.sessionId,
+      sessionDate: parsed.sessionDate,
+      sessionSummary: parsed.sessionSummary ?? '',
+      quizIds: parsed.quizIds ?? [],
+      quizList: parsed.quizList ?? [],
+      at: parsed.at ?? new Date().toISOString(),
     };
   } catch {
     return null;

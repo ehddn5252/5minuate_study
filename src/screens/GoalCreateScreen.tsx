@@ -41,7 +41,17 @@ export default function GoalCreateScreen() {
     return d.toISOString().split('T')[0];
   });
   // F-76: Web Share Target으로 다른 앱에서 텍스트/링크를 공유해 들어오면 참고 자료로 프리필한다
-  const [rawContent, setRawContent] = useState(() => searchParams.get('content') ?? '');
+  const [rawContent, setRawContent] = useState(() => {
+    const sharedContent = searchParams.get('content') ?? '';
+    const shareType = searchParams.get('shareType');
+    const sessionSummary = searchParams.get('sessionSummary') ?? '';
+    if (shareType && shareType !== 'goal' && !sharedContent && sessionSummary) {
+      return sessionSummary;
+    }
+    return sharedContent;
+  });
+  const sharedSourceType = searchParams.get('shareType') ?? 'goal';
+  const sharedSessionDate = searchParams.get('sessionDate') ?? '';
   const [level, setLevel] = useState<QuizLevel>(() => {
     const lvl = searchParams.get('level');
     return lvl === 'beginner' || lvl === 'intermediate' || lvl === 'advanced' ? lvl : 'intermediate';
@@ -177,6 +187,13 @@ export default function GoalCreateScreen() {
   return (
     <div className="min-h-screen bg-[var(--page-bg)]">
       <div className="max-w-md mx-auto px-4 py-6">
+        {sharedSourceType !== 'goal' && (
+          <div className="mb-4 rounded-2xl border border-[var(--accent-200)] bg-[var(--accent-50)] p-3 text-sm text-[var(--accent-700)]">
+            {sharedSourceType === 'session'
+              ? `공유받은 세션 기반으로 목표를 만들고 있어요${sharedSessionDate ? ` (${sharedSessionDate})` : ''}.`
+              : '공유받은 문제집 기반으로 목표를 만들고 있어요.'}
+          </div>
+        )}
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => navigate(-1)}

@@ -5,12 +5,42 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+const DEV_DEMO_EMAIL = (import.meta.env.VITE_DEV_DEMO_EMAIL as string | undefined) ?? 'demo@5minute.study';
+const DEV_DEMO_PASSWORD = (import.meta.env.VITE_DEV_DEMO_PASSWORD as string | undefined) ?? 'demo123456';
+
 export async function signInWithGoogle(): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.origin },
   });
   if (error) throw error;
+}
+
+export async function signInWithDevAccount(): Promise<void> {
+  if (!import.meta.env.DEV && !import.meta.env.VITE_DEV_DEMO_EMAIL) {
+    throw new Error('개발용 로그인은 로컬 개발 환경에서만 사용할 수 있어요. VITE_DEV_DEMO_EMAIL과 VITE_DEV_DEMO_PASSWORD를 설정해 주세요.');
+  }
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: DEV_DEMO_EMAIL,
+    password: DEV_DEMO_PASSWORD,
+  });
+
+  if (signInError) {
+    const { error: signUpError } = await supabase.auth.signUp({
+      email: DEV_DEMO_EMAIL,
+      password: DEV_DEMO_PASSWORD,
+    });
+
+    if (signUpError) throw signUpError;
+
+    const { error: retryError } = await supabase.auth.signInWithPassword({
+      email: DEV_DEMO_EMAIL,
+      password: DEV_DEMO_PASSWORD,
+    });
+    if (retryError) throw retryError;
+    return;
+  }
 }
 
 export async function signOut(): Promise<void> {
