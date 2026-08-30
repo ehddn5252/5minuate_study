@@ -38,6 +38,8 @@ const JoinClassScreen = lazy(() => import('./screens/JoinClassScreen'));
 const MyAssignmentsScreen = lazy(() => import('./screens/MyAssignmentsScreen'));
 const AssignmentSolveScreen = lazy(() => import('./screens/AssignmentSolveScreen'));
 const LevelTestScreen = lazy(() => import('./screens/LevelTestScreen'));
+const FriendsScreen = lazy(() => import('./screens/FriendsScreen'));
+const SharedStudyScreen = lazy(() => import('./screens/SharedStudyScreen'));
 
 const LAST_USER_KEY = 'lastAuthUserId';
 // signInWithGoogle의 redirectTo가 항상 origin("/")으로 돌아오게 돼 있어(OAuth 리다이렉트는
@@ -261,6 +263,8 @@ export default function App() {
         <Route path="/language" element={<LanguageHubScreen />} />
         <Route path="/mix-review" element={<MixReviewScreen />} />
         <Route path="/recordings" element={<RecordingsScreen />} />
+        <Route path="/friends" element={<FriendsScreen />} />
+        <Route path="/shared/:shareCode" element={<SharedStudyScreen />} />
         <Route path="/achievements" element={<AchievementsScreen />} />
         <Route path="/materials/:goalId" element={<StudyMaterialsScreen />} />
         <Route path="/shorts/:templateId" element={<ShortsScreen />} />

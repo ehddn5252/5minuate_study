@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { countPendingFriendRequests } from '../services/social';
 
 interface Tab {
   path: string;
@@ -37,6 +39,19 @@ interface BottomNavProps {
 export default function BottomNav({ variant = 'student' }: BottomNavProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [friendRequestCount, setFriendRequestCount] = useState(0);
+
+  useEffect(() => {
+    const refreshBadge = async () => {
+      const count = await countPendingFriendRequests();
+      setFriendRequestCount(count);
+    };
+
+    refreshBadge();
+    const handleRefresh = () => refreshBadge();
+    window.addEventListener('friendRequestsChanged', handleRefresh);
+    return () => window.removeEventListener('friendRequestsChanged', handleRefresh);
+  }, []);
 
   const tabs: Tab[] =
     variant === 'teacher'
@@ -61,6 +76,15 @@ export default function BottomNav({ variant = 'student' }: BottomNavProps) {
             ),
           },
           {
+            path: '/friends',
+            label: '친구',
+            icon: (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 19v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M12 11a3 3 0 100-6 3 3 0 000 6zm8 8v-1a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+              </svg>
+            ),
+          },
+          {
             path: '/achievements',
             label: '업적',
             icon: (
@@ -81,15 +105,22 @@ export default function BottomNav({ variant = 'student' }: BottomNavProps) {
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex items-center justify-around z-50">
       {tabs.map((tab) => {
         const active = isActive(tab.path);
+        const isFriendTab = tab.path === '/friends';
+        const badgeVisible = isFriendTab && friendRequestCount > 0;
         return (
           <button
             key={tab.path}
             onClick={() => navigate(tab.path)}
             aria-current={active ? 'page' : undefined}
-            className={`flex flex-col items-center justify-center flex-1 min-h-[44px] gap-0.5 transition-colors ${
+            className={`relative flex flex-col items-center justify-center flex-1 min-h-[44px] gap-0.5 transition-colors ${
               active ? 'text-[var(--accent-600)]' : 'text-gray-500 hover:text-gray-600'
             }`}
           >
+            {badgeVisible && (
+              <span className="absolute -top-1 right-3 inline-flex min-w-4 h-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white px-1">
+                {friendRequestCount > 9 ? '9+' : friendRequestCount}
+              </span>
+            )}
             {tab.icon}
             <span className={`text-xs font-medium ${active ? 'text-[var(--accent-600)]' : 'text-gray-500'}`}>
               {tab.label}
