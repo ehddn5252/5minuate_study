@@ -4,7 +4,7 @@ import { TEMPLATES } from '../data/templates';
 
 // 로그인 없이 먼저 체험해볼 수 있는 쇼츠 미리보기 칩 — HomeScreen 빈 상태의 맛보기 칩과 같은 템플릿 구성
 const PREVIEW_TEMPLATE_IDS = ['english_grammar', 'iip_practical', 'driving_written'] as const;
-const ENABLE_DEV_LOGIN = import.meta.env.DEV || Boolean(import.meta.env.VITE_DEV_DEMO_EMAIL && import.meta.env.VITE_DEV_DEMO_PASSWORD);
+const ENABLE_DEV_LOGIN = true;
 
 export default function LoginScreen() {
   const navigate = useNavigate();
