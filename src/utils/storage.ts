@@ -273,6 +273,7 @@ const DEFAULT_APP_STATE: AppState = {
   bgTheme: 'default',
   bgPattern: 'none',
   lifetimeStudyScore: 0,
+  sharedNotes: [],
 };
 
 // F-56: 저장된 상태가 전혀 없는(진짜 첫 실행) 경우에 한해 OS의 다크 모드 설정을 반영한
