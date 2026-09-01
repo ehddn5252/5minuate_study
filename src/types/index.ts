@@ -106,6 +106,16 @@ export interface SharedQuiz {
   explanation: string;
 }
 
+// 친구에게 공유받아 저장할 때, 문제(→ 북마크로 저장)와 별개로 요약/오늘의 계획 텍스트를
+// 담아두기 위한 메모. 목표(Goal)를 새로 만들지 않고 '내 문제집' 주제별로 붙여 보여준다.
+export interface SharedTopicNote {
+  id: string;
+  topic: string;
+  summary: string;
+  dailyPlan: string;
+  createdAt: string;
+}
+
 export interface AppState {
   activeGoalIds: string[];
   lastOpenedDate: string;
@@ -130,4 +140,6 @@ export interface AppState {
   // 목표 완료 시 목표·세션을 정리(보관/삭제)하면서 사라지는 학습 점수를 여기 누적해,
   // 리더보드 점수가 "완료했더니 깎이는" 일이 없게 한다.
   lifetimeStudyScore: number;
+  // 친구에게 공유받아 저장한 요약/계획 메모 목록 (문제는 quizzes 북마크로 별도 저장됨)
+  sharedNotes: SharedTopicNote[];
 }

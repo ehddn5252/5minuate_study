@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { decodeStudyShareLink } from '../services/social';
-import { useQuizStore } from '../store';
+import { useAppStore, useQuizStore } from '../store';
 import { generateId } from '../utils/id';
-import type { Quiz } from '../types';
+import type { Quiz, SharedTopicNote } from '../types';
 
 export default function SharedStudyScreen() {
   const { shareCode } = useParams();
   const navigate = useNavigate();
   const { addQuizzes } = useQuizStore();
+  const { appState, updateAppState } = useAppStore();
   const [saved, setSaved] = useState(false);
 
   const payload = useMemo(() => {
@@ -35,26 +36,51 @@ export default function SharedStudyScreen() {
 
   const quizList = payload.quizList ?? [];
   const label = payload.shareType === 'goal' ? '목표' : payload.shareType === 'session' ? '세션' : '문제집';
+  const summaryText = payload.summary || payload.sessionSummary || '';
+  const planText = payload.dailyPlan || '';
+  const hasNote = !!(summaryText.trim() || planText.trim());
+  const canSave = quizList.length > 0 || hasNote;
 
   const handleSave = () => {
-    if (quizList.length === 0) return;
-    const quizzes: Quiz[] = quizList.map((item) => ({
-      id: generateId(),
-      goalId: '',
-      question: item.question,
-      type: item.type ?? 'short_answer',
-      options: item.options,
-      answer: item.answer,
-      explanation: item.explanation ?? '',
-      isWrong: false,
-      wrongCount: 0,
-      bookmarked: true,
-      // 목표 없이 '내 문제집'에 바로 담기므로, 어느 주제인지 스냅샷으로 남긴다
-      orphanedGoalTopic: payload.topic,
-    }));
-    addQuizzes(quizzes);
+    if (!canSave) return;
+
+    if (quizList.length > 0) {
+      const quizzes: Quiz[] = quizList.map((item) => ({
+        id: generateId(),
+        goalId: '',
+        question: item.question,
+        type: item.type ?? 'short_answer',
+        options: item.options,
+        answer: item.answer,
+        explanation: item.explanation ?? '',
+        isWrong: false,
+        wrongCount: 0,
+        bookmarked: true,
+        // 목표 없이 '내 문제집'에 바로 담기므로, 어느 주제인지 스냅샷으로 남긴다
+        orphanedGoalTopic: payload.topic,
+      }));
+      addQuizzes(quizzes);
+    }
+
+    if (hasNote) {
+      const note: SharedTopicNote = {
+        id: generateId(),
+        topic: payload.topic,
+        summary: summaryText,
+        dailyPlan: planText,
+        createdAt: new Date().toISOString(),
+      };
+      updateAppState({ sharedNotes: [note, ...(appState.sharedNotes ?? [])].slice(0, 100) });
+    }
+
     setSaved(true);
   };
+
+  const saveLabel = quizList.length > 0 && hasNote
+    ? `문제 ${quizList.length}개 + 요약 메모를 내 문제집에 저장하기`
+    : quizList.length > 0
+      ? `이 문제 ${quizList.length}개를 내 문제집에 저장하기`
+      : '요약 메모를 내 문제집에 저장하기';
 
   return (
     <div className="min-h-screen bg-[var(--page-bg)] pb-16">
@@ -69,11 +95,16 @@ export default function SharedStudyScreen() {
             <p className="mt-2 text-xs text-gray-400">세션 날짜: {payload.sessionDate}</p>
           )}
 
-          {(payload.summary || payload.sessionSummary) && (
+          {summaryText && (
             <div className="mt-4 rounded-xl bg-[var(--accent-50)] border border-[var(--accent-200)] p-4">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                {payload.summary || payload.sessionSummary}
-              </p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{summaryText}</p>
+            </div>
+          )}
+
+          {planText && (
+            <div className="mt-3">
+              <h2 className="text-sm font-semibold text-gray-700 mb-2">오늘의 학습 계획</h2>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">{planText}</p>
             </div>
           )}
 
@@ -104,15 +135,15 @@ export default function SharedStudyScreen() {
                   내 문제집으로 가기
                 </button>
               </div>
-            ) : quizList.length > 0 ? (
+            ) : canSave ? (
               <button
                 onClick={handleSave}
                 className="w-full py-3 rounded-xl bg-[var(--accent-600)] text-white font-semibold"
               >
-                이 문제 {quizList.length}개를 내 문제집에 저장하기
+                {saveLabel}
               </button>
             ) : (
-              <p className="text-sm text-gray-500 text-center">저장할 문제가 없는 공유예요.</p>
+              <p className="text-sm text-gray-500 text-center">저장할 내용이 없는 공유예요.</p>
             )}
           </div>
         </div>
