@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { countPendingFriendRequests } from '../services/social';
+import { countPendingFriendRequests, countUnreadShares } from '../services/social';
 
 interface Tab {
   path: string;
@@ -43,14 +43,18 @@ export default function BottomNav({ variant = 'student' }: BottomNavProps) {
 
   useEffect(() => {
     const refreshBadge = async () => {
-      const count = await countPendingFriendRequests();
-      setFriendRequestCount(count);
+      const [requests, shares] = await Promise.all([countPendingFriendRequests(), countUnreadShares()]);
+      setFriendRequestCount(requests + shares);
     };
 
     refreshBadge();
     const handleRefresh = () => refreshBadge();
     window.addEventListener('friendRequestsChanged', handleRefresh);
-    return () => window.removeEventListener('friendRequestsChanged', handleRefresh);
+    window.addEventListener('studySharesChanged', handleRefresh);
+    return () => {
+      window.removeEventListener('friendRequestsChanged', handleRefresh);
+      window.removeEventListener('studySharesChanged', handleRefresh);
+    };
   }, []);
 
   const tabs: Tab[] =

@@ -68,10 +68,46 @@ export async function setDisplayName(name: string): Promise<{ error?: string }> 
   const { error } = await supabase
     .from('profiles')
     .upsert({ user_id: user.id, display_name: trimmed }, { onConflict: 'user_id' });
-  if (error) return { error: '닉네임 저장에 실패했어요.' };
+  if (error) {
+    // 017: lower(display_name) 유니크 인덱스 — 다른 사람이 이미 쓰는 닉네임
+    if (error.code === '23505') return { error: '이미 사용 중인 닉네임이에요. 다른 닉네임을 입력해주세요.' };
+    return { error: '닉네임 저장에 실패했어요.' };
+  }
 
   await supabase.rpc('sync_my_display_name', { p_name: trimmed });
   return {};
+}
+
+// 로그인 시 호출 — profiles 행이 없으면 Google 이름으로 만들어 둔다.
+// 행이 없으면 친구 검색 대상이 아예 되지 않으므로(검색은 profiles를 훑는다) 필요하다.
+// 익명(테스트) 계정처럼 이름이 없는 경우엔 display_name을 비워둔다 — '이름 없음' 같은
+// 더미 값을 넣으면 017의 lower(display_name) 유니크 인덱스를 한 계정이 선점해버려
+// 다른 익명 계정들이 프로필 행조차 못 만든다. 닉네임은 설정에서 직접 정하면 된다.
+// 닉네임 중복(23505)이면 조용히 넘어간다.
+export async function ensureMyProfile(): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('user_id, display_name')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (existing?.display_name) return;
+
+  const meta = user.user_metadata ?? {};
+  const realName = (meta.full_name as string) || (meta.name as string) || user.email || null;
+  if (!realName) {
+    // 이름을 모르면 행만 만들어 두고(검색엔 안 뜸) 닉네임은 사용자가 직접 설정
+    if (!existing) await supabase.from('profiles').insert({ user_id: user.id, role: 'student' });
+    return;
+  }
+
+  if (existing) {
+    await supabase.from('profiles').update({ display_name: realName }).eq('user_id', user.id);
+  } else {
+    await supabase.from('profiles').insert({ user_id: user.id, role: 'student', display_name: realName });
+  }
 }
 
 // 이미 학원에 참여한 선생님인지(설정 화면에서 "선생님 시작하기"를 또 보여줄지 판단용)

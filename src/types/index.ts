@@ -127,4 +127,7 @@ export interface AppState {
   bgTheme: BackgroundTheme;
   // F-41: 배경 무늬 — bgTheme(바탕색)과 별개로 화면 여백에 은은한 도트/별/파도 패턴을 깔아주는 옵션.
   bgPattern: BackgroundPattern;
+  // 목표 완료 시 목표·세션을 정리(보관/삭제)하면서 사라지는 학습 점수를 여기 누적해,
+  // 리더보드 점수가 "완료했더니 깎이는" 일이 없게 한다.
+  lifetimeStudyScore: number;
 }

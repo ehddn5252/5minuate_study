@@ -191,7 +191,8 @@ export default function GoalListScreen() {
   const { goals, updateGoal, loadGoals } = useGoalStore();
   const { loadQuizzes } = useQuizStore();
   const { loadSessions } = useSessionStore();
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'inactive'>('active');
+  // 완료한 목표는 완료 시점에 '내 문제집' 보관 여부를 물어보고 정리하므로 목록에 남기지 않는다.
+  const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('active');
 
   const handleDeactivate = (id: string) => {
     const goal = goals.find((g) => g.id === id);
@@ -207,7 +208,8 @@ export default function GoalListScreen() {
     loadSessions();
   };
 
-  const filtered = filter === 'all' ? goals : goals.filter((g) => g.status === filter);
+  const visibleGoals = goals.filter((g) => g.status !== 'completed');
+  const filtered = filter === 'all' ? visibleGoals : visibleGoals.filter((g) => g.status === filter);
 
   return (
     <div className="min-h-screen bg-[var(--page-bg)] pb-16">
@@ -234,7 +236,7 @@ export default function GoalListScreen() {
         </div>
 
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          {(['active', 'all', 'completed', 'inactive'] as const).map((f) => (
+          {(['active', 'all', 'inactive'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -244,7 +246,7 @@ export default function GoalListScreen() {
                   : 'bg-white text-gray-500 border border-gray-200'
               }`}
             >
-              {f === 'active' ? '진행중' : f === 'all' ? '전체' : f === 'completed' ? '완료' : '중단'}
+              {f === 'active' ? '진행중' : f === 'all' ? '전체' : '중단'}
             </button>
           ))}
         </div>

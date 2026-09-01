@@ -5,6 +5,7 @@ import type { User } from '@supabase/supabase-js';
 // 나머지 화면은 전부 lazy로 분리해 초기 번들 크기를 줄인다(각 화면은 실제로 들어갈 때만 받음).
 import LoginScreen from './screens/LoginScreen';
 import { supabase, loadFromCloud, migrateLocalToCloud, syncToCloud } from './services/supabase';
+import { ensureMyProfile } from './services/academy';
 import { clearAllLocalData } from './utils/storage';
 import OfflineBanner from './components/OfflineBanner';
 import RouteAnnouncer from './components/RouteAnnouncer';
@@ -29,6 +30,7 @@ const AchievementsScreen = lazy(() => import('./screens/AchievementsScreen'));
 const StudyMaterialsScreen = lazy(() => import('./screens/StudyMaterialsScreen'));
 const ShortsScreen = lazy(() => import('./screens/ShortsScreen'));
 const SettingsScreen = lazy(() => import('./screens/SettingsScreen'));
+const CleanupQuestionsScreen = lazy(() => import('./screens/CleanupQuestionsScreen'));
 const JoinClassScreen = lazy(() => import('./screens/JoinClassScreen'));
 const MyAssignmentsScreen = lazy(() => import('./screens/MyAssignmentsScreen'));
 const AssignmentSolveScreen = lazy(() => import('./screens/AssignmentSolveScreen'));
@@ -148,6 +150,7 @@ export default function App() {
       await migrateLocalToCloud(userId);
       const loaded = await loadFromCloud(userId);
       if (loaded) reloadAllStores();
+      ensureMyProfile().catch(() => {});
       setRoleChecked(true);
     });
 
@@ -161,6 +164,7 @@ export default function App() {
           await migrateLocalToCloud(userId);
           const loaded = await loadFromCloud(userId);
           if (loaded) reloadAllStores();
+          ensureMyProfile().catch(() => {});
           setRoleChecked(true);
         }
         if (event === 'SIGNED_OUT') {
@@ -256,6 +260,7 @@ export default function App() {
         <Route path="/materials/:goalId" element={<StudyMaterialsScreen />} />
         <Route path="/shorts/:templateId" element={<ShortsScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
+        <Route path="/cleanup-questions" element={<CleanupQuestionsScreen />} />
       </Routes>
       </Suspense>
       </AnimatedRoutes>

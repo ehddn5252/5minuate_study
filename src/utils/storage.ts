@@ -66,6 +66,22 @@ export function deleteGoalCascade(goalId: string): void {
   deleteGoal(goalId);
 }
 
+// 목표 완료 시 "이 문제집을 보관" → 이 목표의 모든 문제를 북마크("내 문제집")로 옮기고
+// (주제명을 스냅샷으로 남김), 목표·세션·오답풀은 정리한다. deleteGoalCascade가
+// 북마크된 문제는 보존하므로 여기서 먼저 전부 북마크로 표시한 뒤 호출한다.
+export function archiveGoalToBookmarks(goalId: string): void {
+  const topic = getGoal(goalId)?.topic;
+  setItem(
+    KEYS.QUIZZES,
+    getQuizzes().map((q) =>
+      q.goalId === goalId
+        ? { ...q, bookmarked: true, orphanedGoalTopic: topic ?? q.orphanedGoalTopic }
+        : q,
+    ),
+  );
+  deleteGoalCascade(goalId);
+}
+
 // Sessions
 export function getSessions(): Session[] {
   return getItem<Session>(KEYS.SESSIONS);
@@ -139,6 +155,39 @@ export function saveQuizzes(quizzes: Quiz[]): void {
 
 export function deleteQuiz(id: string): void {
   setItem(KEYS.QUIZZES, getQuizzes().filter((q) => q.id !== id));
+}
+
+// "문제 정리" — 여러 문제를 한 번에 지우면서 참조도 함께 정리한다.
+// (오답풀, 목표의 quizPoolIds, 세션의 selectedQuizIds/dailyQuizIds/testQuizIds)
+export function bulkDeleteQuizzes(ids: string[]): number {
+  if (ids.length === 0) return 0;
+  const toDelete = new Set(ids);
+
+  const remaining = getQuizzes().filter((q) => !toDelete.has(q.id));
+  const removed = getQuizzes().length - remaining.length;
+  setItem(KEYS.QUIZZES, remaining);
+
+  setItem(KEYS.WRONG_POOL, getWrongPool().filter((w) => !toDelete.has(w.quizId)));
+
+  setItem(
+    KEYS.GOALS,
+    getGoals().map((g) => ({
+      ...g,
+      quizPoolIds: (g.quizPoolIds ?? []).filter((qid) => !toDelete.has(qid)),
+    })),
+  );
+
+  setItem(
+    KEYS.SESSIONS,
+    getSessions().map((s) => ({
+      ...s,
+      selectedQuizIds: (s.selectedQuizIds ?? []).filter((qid) => !toDelete.has(qid)),
+      dailyQuizIds: s.dailyQuizIds?.filter((qid) => !toDelete.has(qid)),
+      testQuizIds: s.testQuizIds?.filter((qid) => !toDelete.has(qid)),
+    })),
+  );
+
+  return removed;
 }
 
 // WrongPool
@@ -223,6 +272,7 @@ const DEFAULT_APP_STATE: AppState = {
   accentTheme: 'indigo',
   bgTheme: 'default',
   bgPattern: 'none',
+  lifetimeStudyScore: 0,
 };
 
 // F-56: 저장된 상태가 전혀 없는(진짜 첫 실행) 경우에 한해 OS의 다크 모드 설정을 반영한
@@ -258,6 +308,13 @@ export function saveAppState(state: AppState): void {
 
 export function updateAppState(partial: Partial<AppState>): void {
   saveAppState({ ...getAppState(), ...partial });
+}
+
+// 목표 완료 후 목표·세션이 삭제돼도 리더보드 점수가 깎이지 않도록, 사라질 점수를 누적한다.
+export function recordCompletedGoalScore(score: number): void {
+  const state = getAppState();
+  const add = Number.isFinite(score) ? Math.max(0, Math.round(score)) : 0;
+  saveAppState({ ...state, lifetimeStudyScore: (state.lifetimeStudyScore ?? 0) + add });
 }
 
 // F-65: 학원 공지를 안 읽었는지 표시하기 위한 "마지막으로 확인한 시각". 저장된 값이 아예 없으면
