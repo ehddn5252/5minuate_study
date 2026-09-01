@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useGoalStore, useAppStore } from '../store';
+import { useGoalStore, useAppStore, useSessionStore, useQuizStore } from '../store';
+import { computeStudyScore } from '../services/social';
+import { archiveGoalToBookmarks, deleteGoalCascade, recordCompletedGoalScore } from '../utils/storage';
 import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
 import { getIdentityStatement } from '../utils/identity';
@@ -15,6 +17,7 @@ interface LocationState {
   total: number;
   streak: number;
   completedSessions: number;
+  topic?: string;
   newBadges?: BadgeId[];
   growthFeedback?: GrowthFeedback;
   mateTone?: MateTone;
@@ -28,11 +31,35 @@ export default function GoalCompleteScreen() {
   const { goalId } = useParams<{ goalId: string }>();
   const location = useLocation();
   const state = location.state as LocationState | null;
-  const { goals } = useGoalStore();
+  const { goals, loadGoals } = useGoalStore();
+  const { sessions, loadSessions } = useSessionStore();
+  const { quizzes, loadQuizzes } = useQuizStore();
   const { appState } = useAppStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [archiveResult, setArchiveResult] = useState<'kept' | 'deleted' | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const goal = goals.find((g) => g.id === goalId);
+  // 보관/삭제를 정하면 goal이 store에서 사라지므로, 화면 표시에 쓸 값은 처음 한 번만 스냅샷.
+  const snapshotRef = useRef<{ topic: string; quizCount: number } | null>(null);
+  if (goal && !snapshotRef.current) {
+    snapshotRef.current = { topic: goal.topic, quizCount: quizzes.filter((q) => q.goalId === goal.id).length };
+  }
+  const displayTopic = snapshotRef.current?.topic ?? state?.topic ?? '';
+  const goalQuizCount = snapshotRef.current?.quizCount ?? 0;
+
+  const handleArchiveDecision = (keep: boolean) => {
+    if (goal) {
+      const goalSessions = sessions.filter((s) => s.goalId === goal.id);
+      recordCompletedGoalScore(computeStudyScore([goal], goalSessions));
+      if (keep) archiveGoalToBookmarks(goal.id);
+      else deleteGoalCascade(goal.id);
+      loadGoals();
+      loadSessions();
+      loadQuizzes();
+    }
+    setArchiveResult(keep ? 'kept' : 'deleted');
+  };
   const score = state?.score ?? 0;
   const total = state?.total ?? 5;
   const streak = state?.streak ?? 1;
@@ -47,12 +74,14 @@ export default function GoalCompleteScreen() {
   const [sharing, setSharing] = useState(false);
   const xpDisplay = useCountUp(xpGained, 600);
 
-  // F-37: 레벨업처럼 드문 순간에만 자동 이동 타이머를 짧게 연장(캡 +2초)
+  // 보관 여부를 아직 안 정했으면 자동으로 홈에 보내지 않는다(선택을 받아야 목표·문제가 정리됨).
+  // 정할 목표가 없거나(새로고침 등) 이미 정했으면, 잠시 뒤 홈으로.
   useEffect(() => {
+    if (goal && archiveResult === null) return;
     const delay = didLevelUp ? 8000 : 6000;
     const timer = setTimeout(() => navigate('/'), delay);
     return () => clearTimeout(timer);
-  }, [navigate, didLevelUp]);
+  }, [navigate, didLevelUp, goal, archiveResult]);
 
   // F-40: 목표 완주는 이미 특별한 순간이므로 항상 축하 연출(opt-out 가능, 설정 화면 "축하 효과").
   // 2026-07-22 CEO 요청으로 일시 비활성화됐다가, 2026-08-22 재미 요소 추가 작업으로 재활성화.
@@ -68,8 +97,8 @@ export default function GoalCompleteScreen() {
       <div className="max-w-md w-full text-center">
         <div className="text-7xl mb-4 animate-bounce">🏆</div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">목표 달성!</h1>
-        {goal && (
-          <p className="text-[var(--accent-600)] font-semibold text-lg mb-1">{goal.topic}</p>
+        {displayTopic && (
+          <p className="text-[var(--accent-600)] font-semibold text-lg mb-1">{displayTopic}</p>
         )}
         <p className="text-gray-500 mb-8">처음부터 끝까지 완주했어요. 정말 대단합니다!</p>
 
@@ -115,10 +144,10 @@ export default function GoalCompleteScreen() {
           )}
         </div>
 
-        {goal && (
+        {displayTopic && (
           <div className="bg-[var(--accent-600)] rounded-2xl p-5 mb-4">
             <p className="text-white font-semibold leading-relaxed">
-              "{getIdentityStatement(goal.topic)}"
+              "{getIdentityStatement(displayTopic)}"
             </p>
           </div>
         )}
@@ -140,8 +169,6 @@ export default function GoalCompleteScreen() {
           </div>
         )}
 
-        <p className="text-gray-400 text-sm mb-4">{didLevelUp ? '8초' : '6초'} 후 홈으로 이동합니다</p>
-
         <div className="mb-3">
           <button
             onClick={async () => {
@@ -158,18 +185,72 @@ export default function GoalCompleteScreen() {
             {sharing ? '생성 중...' : '🙋 친구에게'}
           </button>
         </div>
-        <button
-          onClick={() => navigate('/goals/create')}
-          className="w-full mb-3 py-3 border-2 border-[var(--accent-200)] text-[var(--accent-600)] rounded-xl font-semibold min-h-[44px]"
-        >
-          새 목표 만들기
-        </button>
-        <button
-          onClick={() => navigate('/')}
-          className="w-full py-3 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold min-h-[44px]"
-        >
-          홈으로 가기
-        </button>
+
+        {goal && archiveResult === null ? (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-left">
+            <p className="font-semibold text-gray-900 mb-1">이 문제집을 보관할까요?</p>
+            <p className="text-sm text-gray-500 mb-4">
+              보관하면 문제 {goalQuizCount}개가 '내 문제집'에 저장돼요.
+              보관하지 않으면 이 목표와 문제는 삭제됩니다(따로 담아둔 문제는 남아요).
+            </p>
+            {confirmingDelete ? (
+              <div>
+                <p className="text-sm text-red-600 font-medium mb-3">
+                  문제 {goalQuizCount}개와 이 목표를 삭제할까요? 되돌릴 수 없어요.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleArchiveDecision(false)}
+                    className="flex-1 py-3 bg-red-600 text-white rounded-xl font-semibold min-h-[44px]"
+                  >
+                    삭제
+                  </button>
+                  <button
+                    onClick={() => setConfirmingDelete(false)}
+                    className="flex-1 py-3 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold min-h-[44px]"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleArchiveDecision(true)}
+                  className="flex-1 py-3 bg-[var(--accent-600)] text-white rounded-xl font-semibold min-h-[44px]"
+                >
+                  문제집에 보관
+                </button>
+                <button
+                  onClick={() => setConfirmingDelete(true)}
+                  className="flex-1 py-3 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold min-h-[44px]"
+                >
+                  보관 안 함
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {archiveResult && (
+              <p className="text-gray-500 text-sm mb-3">
+                {archiveResult === 'kept' ? "'내 문제집'에 보관했어요." : '목표와 문제를 정리했어요.'}
+              </p>
+            )}
+            <button
+              onClick={() => navigate('/goals/create')}
+              className="w-full mb-3 py-3 border-2 border-[var(--accent-200)] text-[var(--accent-600)] rounded-xl font-semibold min-h-[44px]"
+            >
+              새 목표 만들기
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full py-3 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold min-h-[44px]"
+            >
+              홈으로 가기
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

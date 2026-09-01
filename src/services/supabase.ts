@@ -5,9 +5,6 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-const DEV_DEMO_EMAIL = (import.meta.env.VITE_DEV_DEMO_EMAIL as string | undefined) ?? 'demo@5minute.study';
-const DEV_DEMO_PASSWORD = (import.meta.env.VITE_DEV_DEMO_PASSWORD as string | undefined) ?? 'demo123456';
-
 export async function signInWithGoogle(): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -16,31 +13,26 @@ export async function signInWithGoogle(): Promise<void> {
   if (error) throw error;
 }
 
-export async function signInWithDevAccount(): Promise<void> {
-  if (!import.meta.env.DEV && !import.meta.env.VITE_DEV_DEMO_EMAIL) {
-    throw new Error('개발용 로그인은 로컬 개발 환경에서만 사용할 수 있어요. VITE_DEV_DEMO_EMAIL과 VITE_DEV_DEMO_PASSWORD를 설정해 주세요.');
-  }
+// 테스트용 로그인: 고정된 두 개의 계정(슬롯 1/2)으로 로그인한다. 익명 로그인은
+// 매번 새 유저가 만들어져 친구·닉네임·데이터가 로그인마다 사라지므로 쓰지 않는다.
+// 두 계정은 Supabase Dashboard > Authentication > Users에서 한 번 수동 생성해 둔다
+// (Auto Confirm 체크, 아래 비밀번호로).
+const DEV_TEST_PASSWORD = (import.meta.env.VITE_DEV_TEST_PASSWORD as string | undefined) ?? 'test-5min-2026!';
+const DEV_TEST_EMAILS: Record<1 | 2, string> = {
+  1: (import.meta.env.VITE_DEV_TEST_EMAIL_1 as string | undefined) ?? 'test1@5minute.study',
+  2: (import.meta.env.VITE_DEV_TEST_EMAIL_2 as string | undefined) ?? 'test2@5minute.study',
+};
 
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: DEV_DEMO_EMAIL,
-    password: DEV_DEMO_PASSWORD,
-  });
+export async function signInWithDevAccount(slot: 1 | 2 = 1): Promise<void> {
+  const email = DEV_TEST_EMAILS[slot];
+  const { error } = await supabase.auth.signInWithPassword({ email, password: DEV_TEST_PASSWORD });
+  if (!error) return;
 
-  if (signInError) {
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: DEV_DEMO_EMAIL,
-      password: DEV_DEMO_PASSWORD,
-    });
-
-    if (signUpError) throw signUpError;
-
-    const { error: retryError } = await supabase.auth.signInWithPassword({
-      email: DEV_DEMO_EMAIL,
-      password: DEV_DEMO_PASSWORD,
-    });
-    if (retryError) throw retryError;
-    return;
-  }
+  throw new Error(
+    `테스트 계정 ${slot} 로그인 실패: ${error.message}\n\n` +
+      `Supabase Dashboard > Authentication > Users에서 "${email}" 계정을 만들어주세요 ` +
+      `(비밀번호: ${DEV_TEST_PASSWORD}, Auto Confirm 체크).`,
+  );
 }
 
 export async function signOut(): Promise<void> {

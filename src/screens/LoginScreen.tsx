@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithDevAccount, signInWithGoogle } from '../services/supabase';
 import { TEMPLATES } from '../data/templates';
@@ -8,6 +9,20 @@ const ENABLE_DEV_LOGIN = true;
 
 export default function LoginScreen() {
   const navigate = useNavigate();
+  const [devLoading, setDevLoading] = useState(false);
+  const [devError, setDevError] = useState<string | null>(null);
+
+  const handleDevLogin = async (slot: 1 | 2) => {
+    setDevError(null);
+    setDevLoading(true);
+    try {
+      await signInWithDevAccount(slot);
+      // 로그인 성공 시 App의 onAuthStateChange가 화면을 전환한다.
+    } catch (e) {
+      setDevError(e instanceof Error ? e.message : '테스트 로그인에 실패했어요.');
+      setDevLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center px-4">
@@ -30,13 +45,24 @@ export default function LoginScreen() {
         </button>
 
         {ENABLE_DEV_LOGIN && (
-          <button
-            onClick={() => signInWithDevAccount()}
-            className="mt-3 w-full flex items-center justify-center gap-2 py-3 border border-[var(--accent-200)] rounded-xl text-sm font-semibold text-[var(--accent-700)] bg-[var(--accent-50)] min-h-[44px] hover:bg-[var(--accent-100)] transition-colors"
-          >
-            <span>🧪</span>
-            개발용 테스트 계정으로 로그인
-          </button>
+          <>
+            <div className="mt-3 flex gap-2">
+              {([1, 2] as const).map((slot) => (
+                <button
+                  key={slot}
+                  onClick={() => handleDevLogin(slot)}
+                  disabled={devLoading}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 border border-[var(--accent-200)] rounded-xl text-sm font-semibold text-[var(--accent-700)] bg-[var(--accent-50)] min-h-[44px] hover:bg-[var(--accent-100)] transition-colors disabled:opacity-60"
+                >
+                  <span>🧪</span>
+                  {devLoading ? '로그인 중…' : `테스트 계정 ${slot}`}
+                </button>
+              ))}
+            </div>
+            {devError && (
+              <p className="mt-2 text-xs text-red-500 text-left whitespace-pre-wrap">{devError}</p>
+            )}
+          </>
         )}
 
         <p className="text-xs text-gray-400 mt-6 mb-3">계정 없이 먼저 둘러볼래요</p>

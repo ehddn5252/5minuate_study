@@ -4,17 +4,35 @@ import { useGoalStore, useQuizStore, useSessionStore } from '../store';
 import {
   acceptFriendRequest,
   addFriend,
+  buildStudySharePayload,
   buildStudyShareLink,
+  dismissReceivedShare,
+  encodeStudySharePayload,
   getFriendLeaderboard,
   listFriends,
   listPendingRequests,
+  listReceivedShares,
+  markReceivedSharesRead,
   rejectFriendRequest,
   searchUsersByDisplayName,
+  sendStudyShareToFriend,
   type FriendRequestItem,
   type LeaderboardItem,
+  type ReceivedShareItem,
   type SocialUserSearchResult,
   type StudyShareType,
 } from '../services/social';
+
+function relativeTime(iso: string): string {
+  const diffMin = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (diffMin < 1) return '방금';
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 7) return `${diffDay}일 전`;
+  return new Date(iso).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+}
 
 export default function FriendsScreen() {
   const navigate = useNavigate();
@@ -31,6 +49,13 @@ export default function FriendsScreen() {
   const [shareType, setShareType] = useState<StudyShareType>('goal');
   const [selectedGoalId, setSelectedGoalId] = useState('');
   const [selectedSessionId, setSelectedSessionId] = useState('');
+  // 'quizset' 공유 시 범위: 이 세션 / 목표 전체 / 커리큘럼 Day 구간
+  const [quizsetScope, setQuizsetScope] = useState<'session' | 'goal' | 'dayrange'>('session');
+  const [dayFrom, setDayFrom] = useState(1);
+  const [dayTo, setDayTo] = useState(5);
+  const [sendTargetId, setSendTargetId] = useState('');
+  const [sending, setSending] = useState(false);
+  const [receivedShares, setReceivedShares] = useState<ReceivedShareItem[]>([]);
 
   useEffect(() => {
     if (goals.length === 0) {
@@ -60,28 +85,81 @@ export default function FriendsScreen() {
     [goalSessions, selectedSessionId]
   );
 
-  const selectedQuizList = useMemo(() => {
-    if (!selectedSession) return [];
-    const selectedQuizIds = new Set(selectedSession.selectedQuizIds ?? []);
-    return quizzes
-      .filter((quiz) => selectedQuizIds.has(quiz.id))
-      .slice(0, 8)
-      .map((quiz) => ({
+  const selectedGoal = useMemo(
+    () => goals.find((goal) => goal.id === selectedGoalId) ?? goals[0],
+    [goals, selectedGoalId]
+  );
+
+  // 커리큘럼 목표는 "N번째 세션 = Day N" — 날짜 오름차순으로 정렬해 인덱스로 Day를 매핑한다.
+  const sessionsByDay = useMemo(
+    () => [...goalSessions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [goalSessions]
+  );
+
+  // 공유 링크(URL에 base64로 통째로 실림)와 메신저 전달을 고려한 상한.
+  const QUIZSET_MAX = 30;
+
+  // 받는 사람이 "똑같은 문제"를 그대로 복원하도록, 어떤 공유 유형이든 실제 문제를 담는다.
+  const quizsetAll = useMemo(() => {
+    let quizIds: Set<string>;
+    if (shareType === 'goal' || (shareType === 'quizset' && quizsetScope === 'goal')) {
+      quizIds = new Set(
+        quizzes.filter((quiz) => quiz.goalId === selectedGoalId).map((quiz) => quiz.id)
+      );
+    } else if (shareType === 'quizset' && quizsetScope === 'dayrange') {
+      const lo = Math.max(1, Math.min(dayFrom, dayTo));
+      const hi = Math.max(dayFrom, dayTo);
+      quizIds = new Set(
+        sessionsByDay.slice(lo - 1, hi).flatMap((session) => session.selectedQuizIds ?? [])
+      );
+    } else {
+      quizIds = new Set(selectedSession?.selectedQuizIds ?? []);
+    }
+    return quizzes.filter((quiz) => quizIds.has(quiz.id));
+  }, [quizzes, selectedSession, shareType, quizsetScope, selectedGoalId, dayFrom, dayTo, sessionsByDay]);
+
+  const selectedQuizList = useMemo(
+    () =>
+      quizsetAll.slice(0, QUIZSET_MAX).map((quiz) => ({
         question: quiz.question,
+        type: quiz.type,
+        options: quiz.options,
         answer: quiz.answer,
         explanation: quiz.explanation,
-      }));
-  }, [quizzes, selectedSession]);
+      })),
+    [quizsetAll]
+  );
 
   const refresh = async () => {
     setLeaderboard(await getFriendLeaderboard());
     setFriends(await listFriends());
     setRequests(await listPendingRequests());
+    setReceivedShares(await listReceivedShares());
     window.dispatchEvent(new CustomEvent('friendRequestsChanged'));
   };
 
+  // 커리큘럼이 아닌 목표로 바꾸면 'Day 구간' 범위는 성립하지 않으므로 되돌린다
   useEffect(() => {
-    refresh();
+    if (quizsetScope === 'dayrange' && !selectedGoal?.curriculumId) {
+      setQuizsetScope('session');
+    }
+  }, [selectedGoal, quizsetScope]);
+
+  useEffect(() => {
+    if (friends.length === 0) {
+      setSendTargetId('');
+    } else if (!friends.some((f) => f.userId === sendTargetId)) {
+      setSendTargetId(friends[0].userId);
+    }
+  }, [friends, sendTargetId]);
+
+  useEffect(() => {
+    (async () => {
+      await refresh();
+      // 받은 공유 목록을 열었으니 읽음 처리 → 하단 탭 배지 정리
+      await markReceivedSharesRead();
+      window.dispatchEvent(new CustomEvent('studySharesChanged'));
+    })();
   }, []);
 
   const handleSearch = async () => {
@@ -94,7 +172,7 @@ export default function FriendsScreen() {
       setMessage(result.error);
       return;
     }
-    setMessage('친구 요청을 보냈어요. 상대가 수락하면 친구가 됩니다.');
+    setMessage(result.accepted ? '친구가 되었어요!' : '친구 요청을 보냈어요. 상대가 수락하면 친구가 됩니다.');
     setQuery('');
     setSearchResults([]);
     await refresh();
@@ -120,30 +198,71 @@ export default function FriendsScreen() {
     await refresh();
   };
 
-  const handleShare = async () => {
+  const shareLabel = shareType === 'goal' ? '목표' : shareType === 'session' ? '세션' : '문제집';
+
+  const shareDisabled =
+    goals.length === 0 ||
+    (shareType === 'session' && goalSessions.length === 0) ||
+    // 공유는 "똑같은 문제 전달"이 핵심이라, 담을 문제가 없으면 보내지 못하게 막는다
+    selectedQuizList.length === 0;
+
+  // 문제집 공유에서 한 세션이 아니라 목표 전체/Day 구간을 고른 경우엔 세션 정보를 붙이지 않는다
+  const quizsetIsWholeGoal = shareType === 'quizset' && quizsetScope !== 'session';
+
+  const currentShareInput = () => {
     const goal = goals.find((item) => item.id === selectedGoalId) ?? goals[0];
-    if (!goal) {
+    if (!goal) return null;
+    const attachSession = shareType !== 'goal' && !quizsetIsWholeGoal;
+    return {
+      ...goal,
+      shareType,
+      sessionId: attachSession ? selectedSession?.id : undefined,
+      sessionDate: attachSession ? selectedSession?.date : undefined,
+      sessionSummary: attachSession ? selectedSession?.summaryContent ?? '' : undefined,
+      // 어떤 유형이든 실제 문제를 담아 받는 사람이 똑같은 문제를 그대로 받게 한다
+      quizList: selectedQuizList,
+    };
+  };
+
+  const handleShare = async () => {
+    const input = currentShareInput();
+    if (!input) {
       setCopyMessage('공유할 학습 목표가 아직 없어요.');
       return;
     }
-
-    const shareUrl = buildStudyShareLink({
-      ...goal,
-      shareType,
-      sessionId: shareType === 'goal' ? undefined : selectedSession?.id,
-      sessionDate: shareType === 'goal' ? undefined : selectedSession?.date,
-      sessionSummary: shareType === 'goal' ? undefined : selectedSession?.summaryContent ?? '',
-      quizIds: shareType === 'quizset' ? selectedSession?.selectedQuizIds ?? [] : undefined,
-      quizList: shareType === 'quizset' ? selectedQuizList : undefined,
-    });
-
+    const shareUrl = buildStudyShareLink(input);
     try {
       await navigator.clipboard.writeText(shareUrl);
-      const label = shareType === 'goal' ? '목표' : shareType === 'session' ? '세션' : '문제집';
-      setCopyMessage(`"${goal.topic}" ${label} 공유 링크를 복사했어요. 친구에게 보내보세요.`);
+      setCopyMessage(`"${input.topic}" ${shareLabel} 공유 링크를 복사했어요. 친구에게 보내보세요.`);
     } catch {
       setCopyMessage(shareUrl);
     }
+  };
+
+  const handleSendToFriend = async () => {
+    const input = currentShareInput();
+    if (!input) {
+      setCopyMessage('공유할 학습 목표가 아직 없어요.');
+      return;
+    }
+    if (!sendTargetId) {
+      setCopyMessage('보낼 친구를 선택해주세요.');
+      return;
+    }
+    setSending(true);
+    const result = await sendStudyShareToFriend(sendTargetId, buildStudySharePayload(input));
+    setSending(false);
+    const friendName = friends.find((f) => f.userId === sendTargetId)?.displayName ?? '친구';
+    setCopyMessage(result.error ?? `${friendName}님에게 "${input.topic}" ${shareLabel}을(를) 보냈어요.`);
+  };
+
+  const handleSaveReceived = (share: ReceivedShareItem) => {
+    navigate(`/shared/${encodeStudySharePayload(share.payload)}`);
+  };
+
+  const handleDismissReceived = async (id: string) => {
+    await dismissReceivedShare(id);
+    setReceivedShares((prev) => prev.filter((s) => s.id !== id));
   };
 
   return (
@@ -214,6 +333,42 @@ export default function FriendsScreen() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {receivedShares.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+            <h2 className="font-semibold text-gray-900 mb-3">받은 공유</h2>
+            <div className="space-y-3">
+              {receivedShares.map((share) => {
+                const label = share.payload.shareType === 'goal' ? '목표' : share.payload.shareType === 'session' ? '세션' : '문제집';
+                return (
+                  <div key={share.id} className="rounded-xl border border-gray-200 p-3">
+                    <p className="text-xs text-gray-400">
+                      {share.senderName}님이 보낸 {label} · {relativeTime(share.createdAt)}
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 mt-0.5">{share.payload.topic}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      문제 {share.payload.quizList?.length ?? 0}개
+                    </p>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => handleSaveReceived(share)}
+                        className="px-3 py-1.5 rounded-lg bg-[var(--accent-600)] text-white text-xs font-semibold"
+                      >
+                        보기 / 저장
+                      </button>
+                      <button
+                        onClick={() => handleDismissReceived(share.id)}
+                        className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -303,7 +458,52 @@ export default function FriendsScreen() {
                 ))}
               </select>
 
-              {(shareType === 'session' || shareType === 'quizset') && (
+              {shareType === 'quizset' && (
+                <>
+                  <label className="block text-xs font-medium text-gray-500 mb-2">문제집 범위</label>
+                  <select
+                    value={quizsetScope}
+                    onChange={(e) => setQuizsetScope(e.target.value as typeof quizsetScope)}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--accent-200)] mb-3"
+                  >
+                    <option value="session">특정 세션의 문제</option>
+                    <option value="goal">목표 전체 문제 (최대 {QUIZSET_MAX}개)</option>
+                    {selectedGoal?.curriculumId && <option value="dayrange">커리큘럼 Day 구간</option>}
+                  </select>
+
+                  {quizsetScope === 'dayrange' && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <input
+                        type="number"
+                        min={1}
+                        value={dayFrom}
+                        onChange={(e) => setDayFrom(Math.max(1, Number(e.target.value) || 1))}
+                        className="w-20 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--accent-200)]"
+                        aria-label="시작 Day"
+                      />
+                      <span className="text-sm text-gray-400">~</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={dayTo}
+                        onChange={(e) => setDayTo(Math.max(1, Number(e.target.value) || 1))}
+                        className="w-20 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--accent-200)]"
+                        aria-label="끝 Day"
+                      />
+                      <span className="text-xs text-gray-400">Day</span>
+                    </div>
+                  )}
+                  {quizsetScope !== 'session' && (
+                    <p className="text-xs text-gray-400 mb-3">
+                      {quizsetAll.length > QUIZSET_MAX
+                        ? `문제 ${quizsetAll.length}개 중 앞에서부터 ${QUIZSET_MAX}개만 담겨요.`
+                        : `문제 ${selectedQuizList.length}개가 담겨요.`}
+                    </p>
+                  )}
+                </>
+              )}
+
+              {(shareType === 'session' || (shareType === 'quizset' && quizsetScope === 'session')) && (
                 <>
                   <label className="block text-xs font-medium text-gray-500 mb-2">세션 선택</label>
                   <select
@@ -328,12 +528,41 @@ export default function FriendsScreen() {
           ) : (
             <p className="text-sm text-gray-500 mb-3">공유할 학습이 아직 없어요.</p>
           )}
+
+          {goals.length > 0 && (
+            <>
+              <label className="block text-xs font-medium text-gray-500 mb-2">친구에게 바로 보내기</label>
+              {friends.length === 0 ? (
+                <p className="text-xs text-gray-400 mb-3">친구를 먼저 추가하면 앱에서 바로 보낼 수 있어요.</p>
+              ) : (
+                <div className="flex gap-2 mb-3">
+                  <select
+                    value={sendTargetId}
+                    onChange={(e) => setSendTargetId(e.target.value)}
+                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--accent-200)]"
+                  >
+                    {friends.map((friend) => (
+                      <option key={friend.userId} value={friend.userId}>{friend.displayName}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={handleSendToFriend}
+                    disabled={sending || shareDisabled}
+                    className="px-4 py-2.5 rounded-xl bg-[var(--accent-600)] text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {sending ? '보내는 중…' : '보내기'}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
           <button
             onClick={handleShare}
-            disabled={goals.length === 0 || ((shareType === 'session' || shareType === 'quizset') && goalSessions.length === 0)}
-            className="w-full py-3 rounded-xl bg-[var(--accent-600)] text-white font-semibold text-base disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={shareDisabled}
+            className="w-full py-3 rounded-xl bg-[var(--accent-50)] text-[var(--accent-700)] font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {shareType === 'goal' ? '목표 링크 생성' : shareType === 'session' ? '세션 링크 생성' : '문제집 링크 생성'}
+            {shareType === 'goal' ? '목표 링크 복사' : shareType === 'session' ? '세션 링크 복사' : '문제집 링크 복사'}
           </button>
           {copyMessage && <p className="mt-3 text-sm text-gray-600">{copyMessage}</p>}
         </div>

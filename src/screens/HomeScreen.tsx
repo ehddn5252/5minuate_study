@@ -269,6 +269,7 @@ export default function HomeScreen() {
   }, [loadGoals, loadSessions]);
 
   const activeGoals = goals.filter((g) => g.status === 'active');
+  const completedPendingCount = goals.filter((g) => g.status === 'completed').length;
 
   const handleBannerStart = (goalId: string) => {
     let session = getTodaySession(goalId);
@@ -352,6 +353,20 @@ export default function HomeScreen() {
             </button>
           </div>
         </div>
+
+        {completedPendingCount > 0 && (
+          <button
+            onClick={() => navigate('/cleanup-questions')}
+            className="w-full mb-4 flex items-center justify-between gap-2 rounded-xl bg-[var(--accent-50)] border border-[var(--accent-200)] px-4 py-3 text-left"
+          >
+            <span className="text-sm text-[var(--accent-700)] font-medium">
+              완료한 목표 {completedPendingCount}개를 정리해 주세요
+            </span>
+            <svg className="w-4 h-4 text-[var(--accent-600)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
 
         {activeGoals.length === 0 ? (
           <div className="text-center py-10">
