@@ -23,3 +23,6 @@ app-release-signed.apk
 app-release-unsigned-aligned.apk
 /app/
 /store_icon.png
+
+# Playwright E2E 하베스트 산출물
+e2e/out/

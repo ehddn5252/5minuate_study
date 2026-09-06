@@ -23,7 +23,9 @@ export async function fetchFromPool(cacheKey: string): Promise<PoolEntry | null>
       .from('shared_content')
       .select('summary, quizzes, use_count')
       .eq('cache_key', cacheKey)
-      .single();
+      // 캐시 미스(0행)는 정상 흐름이다. .single()은 0행에 406+콘솔 에러를 내므로
+      // .maybeSingle()로 조용히 null을 받는다 — 로그인 없이 열리는 쇼츠 화면 콘솔이 지저분해지지 않게.
+      .maybeSingle();
 
     if (error || !data || !data.summary) return null;
 

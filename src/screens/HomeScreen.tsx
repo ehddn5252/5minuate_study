@@ -292,11 +292,13 @@ export default function HomeScreen() {
       <AssignmentBanner />
       <InstallBanner />
       <div className="max-w-md mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+        {/* 좁은 화면(390px 등)에서 우측 아이콘 5개가 제목을 세로로 짓눌러 "오늘 의 학 습"으로
+            줄바꿈되던 문제 — 제목은 한 줄 고정, 아이콘 줄은 공간이 부족하면 아래로 내린다. */}
+        <div className="flex items-center justify-between gap-2 mb-6 flex-wrap">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <img src="/mascot.png" alt="마스코트" className="w-11 h-11 flex-shrink-0" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">오늘의 학습</h1>
+              <h1 className="text-2xl font-bold text-gray-900 whitespace-nowrap">오늘의 학습</h1>
               <p className="text-gray-500 text-sm mt-0.5">
                 {new Date().toLocaleDateString('ko-KR', {
                   month: 'long',

@@ -63,11 +63,12 @@ export async function syncToCloud(userId: string): Promise<void> {
 
 // Supabase에서 데이터를 내려받아 localStorage에 저장
 export async function loadFromCloud(userId: string): Promise<boolean> {
+  // 신규 계정은 user_data 행이 없다 — .single()은 이때 406+콘솔 에러를 내므로 .maybeSingle() 사용.
   const { data, error } = await supabase
     .from('user_data')
     .select('*')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (error || !data) return false;
 
@@ -87,7 +88,7 @@ export async function migrateLocalToCloud(userId: string): Promise<void> {
     .from('user_data')
     .select('user_id')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (!data) {
     // 신규 계정 → 기존 로컬 데이터 업로드

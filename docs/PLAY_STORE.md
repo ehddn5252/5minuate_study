@@ -29,8 +29,7 @@
 | 파일 | 역할 |
 |------|------|
 | `twa-manifest.json` | TWA 설정의 **단일 원본**. 패키지명·아이콘·색·바로가기·버전. 커밋 대상 |
-| `cloudflare_worker.js` 의 `assetLinksResponse()` | `/.well-known/assetlinks.json` 을 서빙해 도메인 소유를 증명 |
-| `wrangler.toml` 의 `run_worker_first` | 위 경로가 SPA 폴백보다 먼저 Worker 로 가도록 강제 |
+| `public/.well-known/assetlinks.json` | 도메인 소유 증명(Digital Asset Links). 정적 자산으로 그대로 배포됨. **여기에 SHA-256 지문을 넣는다** |
 | `package.json` 의 `android:*` 스크립트 | 아래 참고 |
 | `.gitignore` | `android/`, `*.keystore`, `*.aab`, `*.apk` 제외 (**서명 키는 절대 커밋 금지**) |
 
@@ -50,7 +49,7 @@ npm run android:install     # 연결된 기기/에뮬레이터에 APK 설치
 
 ### 2-1. 패키지명 확정 (⚠️ 영구, 변경 불가)
 
-`twa-manifest.json` 의 `packageId` 와 `cloudflare_worker.js` 의 `ANDROID_PACKAGE_NAME`
+`twa-manifest.json` 의 `packageId` 와 `public/.well-known/assetlinks.json` 의 `package_name`
 이 **정확히 같아야** 한다. 현재 기본값:
 
 ```
@@ -79,19 +78,18 @@ npx @bubblewrap/cli init --manifest ./twa-manifest.json
 > 🔐 **`android/signing.keystore` 와 두 비밀번호를 반드시 백업**한다 (비밀번호 관리자 등).
 > 분실하면 같은 앱의 업데이트를 영원히 올릴 수 없다. git 에는 올리지 않는다.
 
-### 2-3. 로컬 서명 키 지문을 Worker 에 등록
+### 2-3. 로컬 서명 키 지문을 assetlinks.json 에 등록
 
 ```bash
 cd android
 npx @bubblewrap/cli fingerprint list
 ```
 
-출력된 `SHA-256` 값을 `cloudflare_worker.js` 의 `ANDROID_SHA256_FINGERPRINTS` 배열에 추가:
+출력된 `SHA-256` 값을 `public/.well-known/assetlinks.json` 의
+`sha256_cert_fingerprints` 배열에 추가:
 
-```js
-const ANDROID_SHA256_FINGERPRINTS = [
-  'AB:CD:EF:...:12',  // ← fingerprint list 결과
-];
+```json
+"sha256_cert_fingerprints": ["AB:CD:EF:...:12"]
 ```
 
 배포:
@@ -139,8 +137,8 @@ npm run android:install     # 또는 apk 파일을 폰에 옮겨 설치
 3. 비공개 테스트(내부 테스트) 트랙 생성 → `app-release-bundle.aab` 업로드.
 4. 업로드 후 **앱 무결성 → 앱 서명** 에서 **"앱 서명 키 인증서"의 SHA-256** 을 복사한다.
    (Play 가 재서명하므로 로컬 키와 지문이 다르다.)
-5. 이 지문을 `cloudflare_worker.js` 의 `ANDROID_SHA256_FINGERPRINTS` 에 **추가**
-   (로컬 지문과 둘 다 유지) 후 `npm run build && npx wrangler deploy`.
+5. 이 지문을 `public/.well-known/assetlinks.json` 의 `sha256_cert_fingerprints` 에
+   **추가** (로컬 지문과 둘 다 유지) 후 `npm run build && npx wrangler deploy`.
 6. 스토어 등록정보(설명, 스크린샷, 개인정보처리방침 URL 등) 작성.
    - 스크린샷은 `public/screenshots/` 것을 재활용하거나 실기기 캡처.
 7. 심사 제출.
@@ -172,7 +170,7 @@ npm run android:install     # 또는 apk 파일을 폰에 옮겨 설치
 
 | 증상 | 원인 / 해결 |
 |------|-------------|
-| 앱에 URL 주소창이 보임 | asset links 지문 불일치. 로컬 + Play 서명 지문 둘 다 Worker 에 넣고 재배포. `curl .../.well-known/assetlinks.json` 확인 |
+| 앱에 URL 주소창이 보임 | asset links 지문 불일치. 로컬 + Play 서명 지문 둘 다 `public/.well-known/assetlinks.json` 에 넣고 재배포. `curl .../.well-known/assetlinks.json` 확인 |
 | `bubblewrap` 빌드 시 JDK/SDK 오류 | `cd android && npx @bubblewrap/cli doctor` 로 점검, 경로 재설정 |
 | Play 업로드 시 "APK 는 안 됨" | AAB(`.aab`) 를 올려야 함. `.apk` 는 로컬 테스트 전용 |
 | 서명 키 분실 | 복구 불가. 백업 필수. (Play 앱 서명 사용 시 업로드 키는 Console 에서 재설정 가능) |

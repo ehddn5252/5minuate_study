@@ -426,9 +426,10 @@ interface AppState {
 ### 구현
 
 - `twa-manifest.json` (repo 루트, 커밋) — 설정 단일 원본.
-- `cloudflare_worker.js` 가 `/.well-known/assetlinks.json` 을 직접 서빙 (Digital Asset Links).
-  정적 자산 서빙이 dot-directory 를 누락하거나 SPA 폴백이 가로채는 경우를 피하려고
-  `wrangler.toml` 에 `run_worker_first = ["/.well-known/assetlinks.json"]` 지정.
+- `public/.well-known/assetlinks.json` 정적 파일로 배포 (Digital Asset Links). Vite 가
+  `dist/.well-known/` 로 복사하고 Cloudflare 가 정적 자산으로 서빙한다. (Worker 라우트로
+  처리하려다 `run_worker_first` 가 `POST /api/generate` 를 assets 레이어의 405 로 막는
+  회귀를 유발해 철회 — 정적 파일이 가장 단순하고 안전하다.)
 - SHA-256 지문 2개(로컬 서명 키 + Play 앱 서명 키)를 Worker 상수 배열에 넣는다.
 - 빌드 산출물: `.aab`(스토어) + `.apk`(로컬 테스트). `android/` 전체는 gitignore.
 - 상세 절차: `docs/PLAY_STORE.md`.

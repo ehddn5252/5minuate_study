@@ -18,40 +18,6 @@ const GEMINI_MODEL = 'gemini-2.5-flash';
 const DAILY_LIMIT = 40;
 const GEMINI_MAX_ATTEMPTS = 3;
 
-// ── TWA(Google Play) Digital Asset Links ───────────────────────────────────────
-// Play 스토어에 올리는 Android 앱(Trusted Web Activity)이 이 도메인의 주인임을 증명한다.
-// 이게 있어야 앱이 주소창 없는 전체화면으로 열린다. /.well-known/assetlinks.json 로 서빙.
-//
-// sha256_cert_fingerprints 에 넣을 값 (docs/PLAY_STORE.md 참고):
-//   1) 로컬 서명 키 지문 — `npx @bubblewrap/cli fingerprint list` 결과
-//   2) Play 앱 서명 키 지문 — Play Console > 앱 무결성 > 앱 서명 에 표시되는 SHA-256
-// 두 지문을 모두 배열에 넣어야 내부 테스트(APK)와 스토어 배포(AAB) 양쪽에서 검증된다.
-const ANDROID_PACKAGE_NAME = 'com.ehddn5252.study5min'; // twa-manifest.json 의 packageId 와 일치해야 함
-const ANDROID_SHA256_FINGERPRINTS = [
-  // 'AA:BB:CC:...:FF',  // ← bubblewrap 로컬 서명 키
-  // 'A1:B2:C3:...:9F',  // ← Play 앱 서명 키
-];
-
-function assetLinksResponse() {
-  const body = [
-    {
-      relation: ['delegate_permission/common.handle_all_urls'],
-      target: {
-        namespace: 'android_app',
-        package_name: ANDROID_PACKAGE_NAME,
-        sha256_cert_fingerprints: ANDROID_SHA256_FINGERPRINTS,
-      },
-    },
-  ];
-  return new Response(JSON.stringify(body, null, 2), {
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 'public, max-age=300',
-    },
-  });
-}
-
 // Gemini API가 이 요청을 처리한 Cloudflare 엣지 콜로의 지역을 근거로 거부할 때가 있다
 // ("User location is not supported for the API use.", FAILED_PRECONDITION). 콜로마다
 // 결과가 달라질 수 있어 짧은 지연을 두고 재시도한다.
@@ -128,17 +94,17 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // TWA 검증 파일 (정적 자산 서빙이 dot-directory를 건너뛰는 경우가 있어 Worker에서 직접 응답)
-    if (url.pathname === '/.well-known/assetlinks.json') {
-      return assetLinksResponse();
-    }
-
     // Gemini 프록시
     if (url.pathname === '/api/generate' && request.method === 'POST') {
       return handleGenerate(request, env);
     }
 
-    if (request.method !== 'POST') return new Response('OK');
+    // POST가 아닌 요청(브라우저 페이지 로드 등)은 정적 자산 + SPA 폴백에 위임한다.
+    // 이게 없으면 /goals/create 같은 하위 경로를 직접 열거나 새로고침할 때 이 Worker가
+    // "OK"만 돌려줘 앱이 안 뜬다(서비스워커 캐시가 없는 첫 방문·공유 링크·share_target).
+    if (request.method !== 'POST') {
+      return env.ASSETS ? env.ASSETS.fetch(request) : new Response('OK');
+    }
 
     let update;
     try {
