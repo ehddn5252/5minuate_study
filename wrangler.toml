@@ -12,6 +12,8 @@ mode = "smart"
 [assets]
 directory = "./dist"
 not_found_handling = "single-page-application"
+# TWA(Play 스토어) 검증 파일은 SPA 폴백(index.html)보다 Worker가 먼저 처리하도록 강제한다.
+run_worker_first = ["/.well-known/assetlinks.json"]
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT"

@@ -405,4 +405,43 @@ interface AppState {
 
 ---
 
+## 9. Google Play 스토어 배포 방식 (2026-09-06 추가)
+
+### 결정: TWA(Trusted Web Activity) — Bubblewrap 으로 PWA 래핑
+
+### 이유
+
+| 고려 사항 | TWA (Bubblewrap) | Capacitor | React Native 재작성 |
+|-----------|------------------|-----------|---------------------|
+| 코드베이스 | 기존 PWA 그대로, 껍데기만 추가 | 기존 웹 + 네이티브 셸 동기화 | 전면 재작성 |
+| 웹 변경 반영 | 재배포만으로 즉시 (앱 재제출 불필요) | 앱 자산 재동기화·재빌드 필요 | 무관 |
+| 네이티브 기능 | Custom Tabs 수준으로 제한 | 플러그인으로 확장 | 완전 자유 |
+| 유지비 | 서명 키 관리만 | 빌드 파이프라인 유지 | 별도 팀 수준 |
+
+**TWA 선택 근거:**
+- 현재 요구는 "스토어에 존재 + 자동 반영"이고, 네이티브 플러그인 요구가 없다.
+- PWA manifest·아이콘·스크린샷·바로가기·share_target 이 이미 갖춰져 있어 그대로 재사용된다.
+- 웹 배포(`wrangler deploy`)가 곧 앱 업데이트라 릴리스 흐름이 단일화된다.
+
+### 구현
+
+- `twa-manifest.json` (repo 루트, 커밋) — 설정 단일 원본.
+- `cloudflare_worker.js` 가 `/.well-known/assetlinks.json` 을 직접 서빙 (Digital Asset Links).
+  정적 자산 서빙이 dot-directory 를 누락하거나 SPA 폴백이 가로채는 경우를 피하려고
+  `wrangler.toml` 에 `run_worker_first = ["/.well-known/assetlinks.json"]` 지정.
+- SHA-256 지문 2개(로컬 서명 키 + Play 앱 서명 키)를 Worker 상수 배열에 넣는다.
+- 빌드 산출물: `.aab`(스토어) + `.apk`(로컬 테스트). `android/` 전체는 gitignore.
+- 상세 절차: `docs/PLAY_STORE.md`.
+
+### 리스크
+
+| 리스크 | 대응 |
+|--------|------|
+| 서명 키 분실 시 앱 업데이트 불가 | 키스토어·비밀번호 오프라인 백업. Play 앱 서명 사용으로 업로드 키는 재설정 가능 |
+| asset links 지문 누락 → 앱에 URL 바 노출 | 로컬+Play 지문 모두 등록, 배포 후 `curl` 로 검증 (PLAY_STORE.md §6) |
+| Bubblewrap manifest 스키마 변동 | `bubblewrap init --manifest ./twa-manifest.json` 로 재생성 가능 |
+| 패키지명 영구 고정 | 등록 전 `packageId` 와 `ANDROID_PACKAGE_NAME` 일치 확인 |
+
+---
+
 > **휴먼 게이트:** 이 아키텍처 결정 문서는 CEO 승인 후 코드 작성이 시작된다.

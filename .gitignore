@@ -8,3 +8,18 @@ dist/
 
 # 개인용 비공개 메모(이직 준비용 프로젝트 정리 등) — 원격 저장소에 올리지 않음
 docs/private/
+
+# ── TWA / Android (bubblewrap) ────────────────────────────────────────────────
+# 서명 키와 비밀번호는 절대 커밋 금지. 분실 시 Play 스토어 앱 업데이트 불가.
+android/
+*.keystore
+*.jks
+android.keystore
+signing.keystore
+twa-manifest.json.bak
+# bubblewrap 빌드 산출물
+app-release-bundle.aab
+app-release-signed.apk
+app-release-unsigned-aligned.apk
+/app/
+/store_icon.png
