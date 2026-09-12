@@ -5,6 +5,7 @@ import { generateGoalContent } from '../services/gemini';
 import { generateId } from '../utils/id';
 import { TEMPLATES } from '../data/templates';
 import { computeAutoQuizCount } from '../utils/quizCount';
+import { MAX_ACTIVE_GOALS } from '../utils/goalLimits';
 import LoadingTips from '../components/LoadingTips';
 import type { Goal, QuizLevel, MateTone } from '../types';
 
@@ -13,10 +14,6 @@ const LEVEL_OPTIONS: { id: QuizLevel; label: string }[] = [
   { id: 'intermediate', label: '중급' },
   { id: 'advanced', label: '고급' },
 ];
-
-// F-01: 진행 중 목표는 동시에 최대 5개까지만 허용한다(감사 P-2 후속 — 기획엔 있었지만
-// 코드로 구현된 적 없던 규칙을 반영, 원래 문서의 3개 대신 5개로 상향).
-const MAX_ACTIVE_GOALS = 5;
 
 export default function GoalCreateScreen() {
   const navigate = useNavigate();

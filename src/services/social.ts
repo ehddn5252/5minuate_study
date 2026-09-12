@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Goal, QuizType, Session } from '../types';
+import type { Goal, QuizLevel, QuizType, Session } from '../types';
 
 // 목표 완료 시 목표·세션을 지우면서(보관하거나 삭제하거나) 잃게 되는 점수를 appState에 누적해
 // 리더보드 점수가 "완료했더니 오히려 깎이는" 일이 없게 한다. computeStudyScore에 더해진다.
@@ -290,6 +290,10 @@ export interface StudyShareLinkPayload {
   sessionDate?: string;
   sessionSummary?: string;
   quizIds?: string[];
+  // F-81: 받는 사람이 "학습 목표로 가져오기"를 할 때 난이도를 다시 묻지 않고 공유자
+  // 목표의 난이도를 그대로 상속하기 위함. 레벨 필드가 없는 레거시 공유 링크는
+  // decodeStudyShareLink에서 기본값('intermediate')으로 채운다.
+  level?: QuizLevel;
   // 받는 사람이 "똑같은 문제"를 그대로 복원할 수 있도록 type/options까지 담는다
   quizList?: Array<{
     question: string;
@@ -301,7 +305,7 @@ export interface StudyShareLinkPayload {
   at: string;
 }
 
-type ShareGoalInput = Pick<Goal, 'id' | 'topic' | 'summaryContent' | 'dailyPlan'> & {
+type ShareGoalInput = Pick<Goal, 'id' | 'topic' | 'summaryContent' | 'dailyPlan' | 'level'> & {
   shareType?: StudyShareType;
   sessionId?: string;
   sessionDate?: string;
@@ -328,6 +332,7 @@ export function buildStudySharePayload(goal: ShareGoalInput): StudyShareLinkPayl
     sessionDate: goal.sessionDate,
     sessionSummary: goal.sessionSummary ?? '',
     quizIds: goal.quizIds ?? [],
+    level: goal.level,
     quizList: goal.quizList ?? [],
     at: new Date().toISOString(),
   };
@@ -381,6 +386,8 @@ export function decodeStudyShareLink(code: string): StudyShareLinkPayload | null
       sessionDate: parsed.sessionDate,
       sessionSummary: parsed.sessionSummary ?? '',
       quizIds: parsed.quizIds ?? [],
+      // F-81: 레벨 필드가 없는 레거시 공유 링크(이 필드 추가 이전에 만들어진 링크)는 '중급'으로 대체한다.
+      level: parsed.level ?? 'intermediate',
       quizList: parsed.quizList ?? [],
       at: parsed.at ?? new Date().toISOString(),
     };
