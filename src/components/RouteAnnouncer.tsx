@@ -27,7 +27,9 @@ export default function RouteAnnouncer() {
       const label = heading.textContent?.trim();
       if (!label || label === lastAnnouncedRef.current) return;
       lastAnnouncedRef.current = label;
-      document.title = `${label} · 학습 보관함`;
+      // 로그인 화면처럼 h1 자체가 이미 브랜드명("학습 보관함")이면 접미사를 붙이지 않는다 —
+      // 안 그러면 "학습 보관함 · 학습 보관함"처럼 중복된 탭 제목이 된다.
+      document.title = label === '학습 보관함' ? label : `${label} · 학습 보관함`;
       if (liveRegionRef.current) {
         liveRegionRef.current.textContent = label;
       }

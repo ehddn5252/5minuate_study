@@ -12,7 +12,9 @@ interface ConceptCard {
   type: 'concept';
   day: number;
   topic: string;
-  bullets: string[];
+  bullet: string;
+  bulletIndex: number;
+  bulletTotal: number;
   templateName: string;
 }
 interface QuizCard {
@@ -47,7 +49,19 @@ async function buildCards(templateId: string): Promise<ShortsCard[]> {
         .slice(0, 4)
         .map((l) => l.replace(/^•\s*/, '').trim());
 
-      cards.push({ type: 'concept', day: day.day, topic: day.topic, bullets, templateName: template.name });
+      // 영어단어 쇼츠 형식 참고: 불릿을 한 카드에 몰아넣지 않고 한 불릿=한 카드로 쪼개
+      // 스와이프 템포를 빠르게 하고, 카드당 정보량을 하나로 줄인다.
+      bullets.forEach((bullet, bi) => {
+        cards.push({
+          type: 'concept',
+          day: day.day,
+          topic: day.topic,
+          bullet,
+          bulletIndex: bi + 1,
+          bulletTotal: bullets.length,
+          templateName: template.name,
+        });
+      });
 
       const poolData = await fetchFromPool(buildCacheKey(templateId, day.day));
       const mcQuiz = poolData?.quizzes.find((q) => q.options && q.options.length >= 2);
@@ -97,28 +111,59 @@ const GRADIENTS = [
   'from-purple-600 to-[var(--accent-800)]',
 ];
 
+// 영어단어 쇼츠 참고: "word (v) 뜻 — "예문"" 형태의 불릿을 단어/품사/뜻/예문으로 쪼개
+// 큰 표제어 중심 레이아웃을 만든다. 이 형식이 아닌 불릿(단어 학습 외 템플릿)은 그대로 문단으로 보여준다.
+interface ParsedVocab {
+  word: string;
+  pos: string;
+  meaning: string;
+  example: string | null;
+}
+const VOCAB_BULLET_RE = /^([A-Za-z][A-Za-z\s'-]*?)\s*\(([^)]+)\)\s*([^—-]+?)\s*(?:[—-]\s*"?(.+?)"?)?$/;
+
+function parseVocabBullet(bullet: string): ParsedVocab | null {
+  const m = bullet.match(VOCAB_BULLET_RE);
+  if (!m) return null;
+  const [, word, pos, meaning, example] = m;
+  if (!word.trim() || !meaning.trim()) return null;
+  return { word: word.trim(), pos: pos.trim(), meaning: meaning.trim(), example: example?.trim() || null };
+}
+
 function ConceptCardView({ card, index, onNext }: { card: ConceptCard; index: number; onNext: () => void }) {
   const grad = GRADIENTS[index % GRADIENTS.length];
+  const vocab = parseVocabBullet(card.bullet);
   return (
     <div className={`h-full flex flex-col bg-gradient-to-br ${grad} text-white p-6 pt-14`}>
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-2">
         <span className="text-xs font-semibold bg-white/20 px-3 py-1 rounded-full">Day {card.day}</span>
         <span className="text-xs text-white/70">{card.templateName}</span>
       </div>
-      <h2 className="text-2xl font-bold leading-tight mb-6">{card.topic}</h2>
-      <ul className="space-y-3 flex-1">
-        {card.bullets.map((b, i) => (
-          <li key={i} className="flex items-start gap-3">
-            <span className="flex-shrink-0 mt-0.5 w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-xs font-bold">
-              {i + 1}
-            </span>
-            <p className="text-base leading-relaxed text-white/95">{b}</p>
-          </li>
+      <p className="text-sm text-white/60 mb-6">{card.topic}</p>
+      {vocab ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-center gap-3 px-2">
+          <p className="text-5xl font-extrabold tracking-tight break-keep">{vocab.word}</p>
+          <span className="text-xs font-semibold bg-white/20 px-3 py-1 rounded-full">{vocab.pos}</span>
+          <p className="text-xl font-semibold text-white/90 break-keep">{vocab.meaning}</p>
+          {vocab.example && (
+            <p className="text-sm text-white/70 italic mt-6 leading-relaxed break-keep">"{vocab.example}"</p>
+          )}
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center">
+          <p className="text-3xl font-bold leading-snug break-keep">{card.bullet}</p>
+        </div>
+      )}
+      <div className="flex items-center gap-1.5 mb-4">
+        {Array.from({ length: card.bulletTotal }).map((_, i) => (
+          <div
+            key={i}
+            className={`h-1 flex-1 rounded-full ${i < card.bulletIndex ? 'bg-white/80' : 'bg-white/20'}`}
+          />
         ))}
-      </ul>
+      </div>
       <button
         onClick={onNext}
-        className="mt-6 w-full py-4 bg-white/20 hover:bg-white/30 rounded-2xl font-semibold text-base transition-colors"
+        className="w-full py-4 bg-white/20 hover:bg-white/30 rounded-2xl font-semibold text-base transition-colors"
       >
         다음 ↑
       </button>

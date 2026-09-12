@@ -10,6 +10,7 @@ import { fetchFromBank } from '../services/questionBank';
 import { getDailyHook } from '../utils/dailyHook';
 import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, isPaused } from '../utils/speech';
 import { useElapsedSeconds, formatElapsed } from '../utils/useElapsedTime';
+import EstimatedProgressBar from '../components/EstimatedProgressBar';
 import type { Quiz } from '../types';
 
 const SPEECH_RATES = [1, 1.25, 1.5];
@@ -303,6 +304,9 @@ export default function LearningScreen() {
           {dayNum}일째 학습 콘텐츠 생성 중…
         </p>
         <p className="text-gray-400 text-sm text-center">약 10~20초 소요됩니다</p>
+        <div className="w-full max-w-xs">
+          <EstimatedProgressBar />
+        </div>
       </div>
     );
   }
