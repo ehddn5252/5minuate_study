@@ -371,7 +371,7 @@ export default function GoalCreateScreen() {
               <LoadingTips />
             ) : (
               <p className="text-[var(--accent-500)] text-xs mt-1.5">
-                💚 하루 5분이면 충분해요.
+                💚 오늘 할 만큼만 가볍게 시작해봐요.
               </p>
             )}
           </div>

@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
-        name: '5분 학습',
-        short_name: '5분학습',
-        description: '하루 5분, 목표를 향한 꾸준한 학습',
+        name: '학습 보관함',
+        short_name: '학습보관함',
+        description: '내가 정한 목표를, 나만의 학습 시퀀스로 꾸준히',
         theme_color: '#6366f1',
         background_color: '#6366f1',
         display: 'standalone',

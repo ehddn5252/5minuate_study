@@ -27,7 +27,7 @@ export default function RouteAnnouncer() {
       const label = heading.textContent?.trim();
       if (!label || label === lastAnnouncedRef.current) return;
       lastAnnouncedRef.current = label;
-      document.title = `${label} · 5분 학습`;
+      document.title = `${label} · 학습 보관함`;
       if (liveRegionRef.current) {
         liveRegionRef.current.textContent = label;
       }

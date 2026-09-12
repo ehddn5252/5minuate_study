@@ -11,9 +11,9 @@ import AssignmentBanner from '../components/AssignmentBanner';
 
 // F-30: 긴급 독려 배너도 mateTone(F-27)에 맞춰 압박형 대신 동행형 문구로 분기
 const URGENT_MESSAGES: Record<MateTone, (topic: string) => string> = {
-  plain: (topic) => `📢 ${topic}을 잊지 않았죠? 오늘 딱 5분만요!`,
-  friendly: (topic) => `📢 ${topic}, 요즘 뜸했죠? 오늘 5분만 같이 해볼까요?`,
-  hype: (topic) => `📢 ${topic} 도전 중단?! 지금 5분이면 부활 가능 🔥`,
+  plain: (topic) => `📢 ${topic}을 잊지 않았죠? 오늘 조금만 해볼까요!`,
+  friendly: (topic) => `📢 ${topic}, 요즘 뜸했죠? 오늘 같이 해볼까요?`,
+  hype: (topic) => `📢 ${topic} 도전 중단?! 지금이면 부활 가능 🔥`,
 };
 
 function DaysLeft({ deadline }: { deadline: string }) {
@@ -180,7 +180,7 @@ function GoalCard({ goal }: { goal: Goal }) {
             onClick={handleStart}
             className="flex-1 py-3 rounded-xl bg-[var(--accent-600)] text-white font-semibold text-base min-h-[44px] active:opacity-80 transition-opacity"
           >
-            오늘 학습 시작 · 약 5분
+            오늘 학습 시작
           </button>
           <button
             onClick={() => navigate(`/materials/${goal.id}`)}
@@ -413,7 +413,7 @@ export default function HomeScreen() {
                 <span className="text-2xl flex-shrink-0">🔀</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-purple-700">오늘의 복습 믹스</p>
-                  <p className="text-xs text-purple-400 mt-0.5">여러 목표를 섞어서 5분에 훑어보기</p>
+                  <p className="text-xs text-purple-400 mt-0.5">여러 목표를 섞어서 빠르게 훑어보기</p>
                 </div>
               </button>
             )}

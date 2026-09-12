@@ -268,7 +268,7 @@ export default function SettingsScreen() {
             </div>
           )}
           <p className="text-xs text-green-600 mt-4 pt-3 border-t border-gray-100">
-            💚 오늘 5분, 내일도 5분이면 충분해요.
+            💚 오늘도 가볍게, 내일도 가볍게 이어가요.
           </p>
         </div>
 
@@ -349,7 +349,7 @@ export default function SettingsScreen() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">고객센터</h2>
           <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[5분 학습] 문의')}&body=${encodeURIComponent('아래에 문의 내용을 자유롭게 작성해주세요.\n\n')}`}
+            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[학습 보관함] 문의')}&body=${encodeURIComponent('아래에 문의 내용을 자유롭게 작성해주세요.\n\n')}`}
             className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
           >
             <span>문의하기</span>

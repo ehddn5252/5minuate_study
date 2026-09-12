@@ -34,11 +34,11 @@ export async function generateShareCard(data: ShareCardData): Promise<Blob> {
 
   // app name tag
   ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  roundRect(ctx, 40, 40, 130, 36, 18);
+  roundRect(ctx, 40, 40, 150, 36, 18);
   ctx.fill();
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 16px sans-serif';
-  ctx.fillText('5분 학습', 60, 63);
+  ctx.fillText('학습 보관함', 60, 63);
 
   // main emoji
   ctx.font = '72px sans-serif';
@@ -107,16 +107,16 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 function buildShareText(data: ShareCardData): string {
   return data.isGoalComplete
     ? `${data.topic} — 목표를 달성했어요! 🏆`
-    : `${data.topic} — 오늘도 5분 학습 완료 🔥`;
+    : `${data.topic} — 오늘도 학습 완료 🔥`;
 }
 
 export async function shareOrDownload(data: ShareCardData): Promise<void> {
   const blob = await generateShareCard(data);
-  const file = new File([blob], '5분학습_달성.png', { type: 'image/png' });
+  const file = new File([blob], '학습보관함_달성.png', { type: 'image/png' });
 
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({
-      title: '5분 학습 달성!',
+      title: '학습 보관함 달성!',
       text: buildShareText(data),
       files: [file],
     });
@@ -127,7 +127,7 @@ export async function shareOrDownload(data: ShareCardData): Promise<void> {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = '5분학습_달성.png';
+  a.download = '학습보관함_달성.png';
   a.click();
   URL.revokeObjectURL(url);
 }

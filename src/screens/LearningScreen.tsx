@@ -350,7 +350,7 @@ export default function LearningScreen() {
           <div className="flex-1">
             <h1 className="text-lg font-bold text-gray-900 leading-tight">{goal.topic}</h1>
             <p className="text-gray-400 text-xs mt-0.5">
-              {dayNum}일째 / 전체 {goal.totalSessions}일 · 약 5분 · ⏱ {formatElapsed(elapsedSeconds)}
+              {dayNum}일째 / 전체 {goal.totalSessions}일 · ⏱ {formatElapsed(elapsedSeconds)}
             </p>
           </div>
           {isSpeechSupported() && (
