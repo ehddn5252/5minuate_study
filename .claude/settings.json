@@ -3,5 +3,19 @@
     "allow": [
       "Bash(git commit -m ' *)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/backup-session.cjs",
+            "timeout": 30,
+            "statusMessage": "세션 백업 저장 중..."
+          }
+        ]
+      }
+    ]
   }
 }

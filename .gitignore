@@ -26,3 +26,7 @@ app-release-unsigned-aligned.apk
 
 # Playwright E2E 하베스트 산출물
 e2e/out/
+
+# 세션 백업 원본(생각 과정 포함, Stop hook이 매 턴 갱신) — 로컬 전용, git에 안 올림.
+# 정제된 요약(docs/sessions/*.md)만 git으로 공유한다.
+docs/sessions/raw/
