@@ -40,6 +40,14 @@ const NO_VISUAL_FORMATTING_INSTRUCTION =
 const NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION =
   '"다음 중 ~이 아닌 것은?"처럼 예외를 고르는 문제에서, 오답(예시에 해당하는 선택지)들과 정답(예외)이 철자·어미·형태 등 겉모습만으로 구별되지 않게 하세요. 예를 들어 접미사 "-tion"이 붙어 명사가 되는 경우가 아닌 것을 고르는 문제라면, 정답 선택지도 "-tion"으로 끝나되 실제로는 그 접미사 규칙이 적용되지 않는 단어를 써야 합니다(예: 나머지 3개가 "creation, action, information"처럼 동사+"-tion" 구조인데 정답은 "nation"처럼 겉보기엔 "-tion"으로 끝나지만 "nat-"이라는 독립된 어근이 없어 접미사 결합으로 볼 수 없는 단어). 겉모양만 보고 소거할 수 있는 선택지 구성은 금지합니다.';
 
+// 버그: 주제가 "영어 단어 1000개 완성"처럼 구체적인 지식 항목(단어, 사실, 공식 등)을 익히는
+// 것인데도, AI가 실제 항목 대신 "왜 복습이 중요한가", "이 학습법이 효과적인 이유는?" 같은
+// 학습법 자체에 대한 메타 질문만 채워서 내는 경우가 있었다(사용자가 실제로 배워야 할 단어는
+// 하나도 안 나오고, 공부 방법에 대한 문제만 나옴). 주제 자체가 "공부법/학습 습관"이 아닌 한,
+// 반드시 그 주제의 실제 지식 항목을 묻도록 명시적으로 금지·지시한다.
+const CONCRETE_SUBJECT_CONTENT_INSTRUCTION =
+  '요약과 퀴즈는 반드시 주제 자체가 다루는 구체적인 지식(예: 실제 단어와 뜻·예문, 실제 개념의 정의, 실제 공식, 실제 역사적 사실 등)을 다뤄야 합니다. "복습이 왜 중요한가", "이 방법이 효과적인 이유는?", "장기 기억으로 전환하려면?"처럼 학습 방법론·공부 습관 자체를 묻는 메타 문제로 채우지 마세요 — 주제 자체가 "공부법", "학습 습관"처럼 학습 방법론을 다루는 경우가 아니라면 이런 메타 문제는 전부 금지합니다. 예를 들어 주제가 "영어 단어 1000개 완성"이라면 퀴즈는 실제 영단어(예: enhance, abandon)의 뜻·유의어·용법을 물어야지, "어휘 학습 시 문맥이 왜 중요한가" 같은 질문을 내면 안 됩니다.';
+
 // F-27: AI 케미 학습메이트 — 말투 프리셋. 'plain'은 기존과 동일한 중립 톤(기본값, 회귀 없음)이라 지시문을 추가하지 않는다.
 const TONE_INSTRUCTION: Record<MateTone, string> = {
   friendly: '설명 말투는 다정한 친구처럼 편안하고 다정하게 써주세요. 존댓말은 유지하되 따뜻하고 친근한 어조로 작성하세요.',
@@ -151,6 +159,7 @@ ${TONE_INSTRUCTION[mateTone]}
 }
 
 퀴즈는 정확히 ${quizCount}개를 생성하세요. multiple_choice는 ${mcCount}개, short_answer는 ${saCount}개.
+${CONCRETE_SUBJECT_CONTENT_INSTRUCTION}
 ${NO_VISUAL_FORMATTING_INSTRUCTION}
 ${NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION}
 JSON만 응답하고 다른 텍스트는 포함하지 마세요.
@@ -250,6 +259,7 @@ ${TONE_INSTRUCTION[mateTone]}
 }
 
 퀴즈는 정확히 8개. multiple_choice 6개, short_answer 2개. 오늘 배운 내용 기반으로 출제.
+${CONCRETE_SUBJECT_CONTENT_INSTRUCTION}
 ${NO_VISUAL_FORMATTING_INSTRUCTION}
 ${NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION}
 JSON만 응답하세요.

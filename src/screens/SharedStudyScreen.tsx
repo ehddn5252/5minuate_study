@@ -4,6 +4,7 @@ import { decodeStudyShareLink } from '../services/social';
 import { useAppStore, useGoalStore, useQuizStore } from '../store';
 import { generateId } from '../utils/id';
 import { MAX_ACTIVE_GOALS } from '../utils/goalLimits';
+import { estimateMinSessionsFromTopic } from '../utils/scopeEstimate';
 import type { Goal, Quiz, QuizLevel, SharedTopicNote } from '../types';
 
 // F-81: 공유받은 문제집을 학습 목표로 가져올 때, GoalCreateScreen과 동일한 난이도 선택지를 재사용한다.
@@ -125,6 +126,9 @@ export default function SharedStudyScreen() {
       setImportError('오늘 이후 날짜를 선택해주세요.');
       return;
     }
+    // F-01 동작 규칙: 공유받은 목표도 주제 분량이 기한보다 많으면 하루로 욱여넣지 않는다
+    // (GoalCreateScreen과 동일한 규칙 — daysLeft를 줄이지 않고 필요하면 늘리기만 함).
+    const totalSessions = Math.max(daysLeft, estimateMinSessionsFromTopic(payload.topic));
 
     const goalId = generateId();
     const quizzes: Quiz[] = quizList.map((item) => ({
@@ -147,7 +151,7 @@ export default function SharedStudyScreen() {
       deadline: importDeadline,
       status: 'active',
       createdAt: new Date().toISOString(),
-      totalSessions: daysLeft,
+      totalSessions,
       completedSessions: 0,
       streak: 0,
       bestStreak: 0,

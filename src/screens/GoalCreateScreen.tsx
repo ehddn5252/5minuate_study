@@ -5,8 +5,10 @@ import { generateGoalContent } from '../services/gemini';
 import { generateId } from '../utils/id';
 import { TEMPLATES } from '../data/templates';
 import { computeAutoQuizCount } from '../utils/quizCount';
+import { estimateMinSessionsFromTopic } from '../utils/scopeEstimate';
 import { MAX_ACTIVE_GOALS } from '../utils/goalLimits';
 import LoadingTips from '../components/LoadingTips';
+import EstimatedProgressBar from '../components/EstimatedProgressBar';
 import type { Goal, QuizLevel, MateTone } from '../types';
 
 const LEVEL_OPTIONS: { id: QuizLevel; label: string }[] = [
@@ -76,6 +78,16 @@ export default function GoalCreateScreen() {
   minDate.setDate(minDate.getDate() + 1);
   const minDateStr = minDate.toISOString().split('T')[0];
 
+  // F-01 동작 규칙 미리보기: 주제에 담긴 분량이 선택한 기한보다 많으면, 제출 전에 미리
+  // "총 며칠 계획으로 자동 연장되는지" 보여준다(handleSubmit의 실제 계산과 동일한 함수 사용).
+  const todayStr = new Date().toISOString().split('T')[0];
+  const previewDaysLeft = deadline
+    ? Math.ceil((new Date(deadline).getTime() - new Date(todayStr).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  const previewMinSessions = estimateMinSessionsFromTopic(topic);
+  const scopeExceedsDeadline =
+    previewDaysLeft !== null && previewDaysLeft > 0 && previewMinSessions > previewDaysLeft;
+
   const handleSelectTemplate = (id: string) => {
     const tpl = TEMPLATES.find((t) => t.id === id);
     if (!tpl) return;
@@ -108,6 +120,11 @@ export default function GoalCreateScreen() {
         (new Date(deadline).getTime() - new Date(today).getTime()) /
           (1000 * 60 * 60 * 24)
       );
+      // F-01 동작 규칙: 주제 분량이 기한보다 지나치게 많으면(예: "단어 1000개"인데 마감이
+      // 하루뿐) 조용히 하루로 욱여넣지 않고, 분량이 필요로 하는 최소 세션 수만큼 totalSessions를
+      // 늘린다 — daysLeft를 줄이는 방향으로는 절대 작동하지 않는다(항상 더 큰 쪽을 취함).
+      const minSessionsForScope = estimateMinSessionsFromTopic(topic);
+      const totalSessions = Math.max(daysLeft, minSessionsForScope);
       // F-02/F-44 감사 반영: 사용자가 문제 수를 직접 고르지 않고, 참고 자료 분량과
       // 기한에 맞춰 자동으로 정한다.
       const quizCount = computeAutoQuizCount(rawContent, daysLeft);
@@ -128,7 +145,7 @@ export default function GoalCreateScreen() {
         deadline,
         status: 'active',
         createdAt: new Date().toISOString(),
-        totalSessions: daysLeft,
+        totalSessions,
         completedSessions: 0,
         streak: 0,
         bestStreak: 0,
@@ -295,6 +312,12 @@ export default function GoalCreateScreen() {
             {examScoped && (
               <p className="text-xs text-gray-400 mt-1">실제 시험 날짜를 입력하세요. 자동으로 채워지지 않아요.</p>
             )}
+            {!examScoped && scopeExceedsDeadline && (
+              <p className="text-xs text-amber-600 mt-1">
+                ⚠️ 이 분량은 하루 만에 무리 없이 끝내기엔 많아 보여요. 총 {previewMinSessions}일짜리 계획으로 자동
+                조정할게요.
+              </p>
+            )}
           </div>
 
           <div>
@@ -368,7 +391,10 @@ export default function GoalCreateScreen() {
               약 10~20초 소요됩니다.
             </p>
             {loading ? (
-              <LoadingTips />
+              <>
+                <EstimatedProgressBar />
+                <LoadingTips />
+              </>
             ) : (
               <p className="text-[var(--accent-500)] text-xs mt-1.5">
                 💚 오늘 할 만큼만 가볍게 시작해봐요.
