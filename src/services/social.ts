@@ -335,10 +335,27 @@ export function buildStudySharePayload(goal: ShareGoalInput): StudyShareLinkPayl
 
 // 링크 공유와 앱 내 공유("받은 공유" → 저장하기)가 같은 /shared/:code 화면을 재사용하도록,
 // 페이로드를 URL 조각(base64)으로 인코딩하는 부분만 따로 뽑았다.
+//
+// 표준 base64(btoa 결과)는 +, /, = 를 포함하는데 이 값을 그대로 URL 경로 세그먼트에
+// 넣으면 "/"가 새 경로 구분자로 해석돼 /shared/:shareCode 라우팅이 깨진다(root cause).
+// 실제 페이로드는 길이가 조금만 길어져도 거의 항상 "/"를 포함해 재현됨 — base64url
+// 변형(+→-, /→_, = 패딩 제거)으로 URL 경로에 안전하게 넣는다.
+function toBase64Url(base64: string): string {
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function fromBase64Url(base64url: string): string {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+  return padded;
+}
+
 export function encodeStudySharePayload(payload: StudyShareLinkPayload): string {
   const text = JSON.stringify(payload);
-  return btoa(
-    encodeURIComponent(text).replace(/%([0-9A-F]{2})/g, (_, hex) => String.fromCharCode(Number.parseInt(hex, 16)))
+  return toBase64Url(
+    btoa(
+      encodeURIComponent(text).replace(/%([0-9A-F]{2})/g, (_, hex) => String.fromCharCode(Number.parseInt(hex, 16)))
+    )
   );
 }
 
@@ -349,7 +366,7 @@ export function buildStudyShareLink(goal: ShareGoalInput): string {
 export function decodeStudyShareLink(code: string): StudyShareLinkPayload | null {
   try {
     const raw = decodeURIComponent(
-      Array.from(atob(code), (char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`).join('')
+      Array.from(atob(fromBase64Url(code)), (char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`).join('')
     );
     const parsed = JSON.parse(raw) as Partial<StudyShareLinkPayload>;
     if (!parsed.goalId || !parsed.topic) return null;
