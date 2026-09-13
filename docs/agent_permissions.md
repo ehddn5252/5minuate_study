@@ -1,8 +1,13 @@
 # 에이전트 권한 매트릭스 및 상호 질의 프로토콜
 
 > `docs/rule.md` 규칙 5(최소 권한)와 규칙 4(생성/평가 에이전트 분리, 자기 결과 자기 평가 금지)를
-> 이 프로젝트의 실제 스킬(`study-planner`/`study-fo`/`study-developer`/루프 스킬)에 적용한 문서.
-> `study-planner`/`study-fo`/`study-developer`/`study-improve-loop`/`study-research-loop` 전부 이 문서를 따른다.
+> 이 프로젝트의 실제 스킬(`study-planner`/`study-planner-education`/`study-fo`/`study-developer`/루프 스킬)에 적용한 문서.
+> `study-planner`/`study-planner-education`/`study-fo`/`study-developer`/`study-improve-loop`/`study-research-loop` 전부 이 문서를 따른다.
+>
+> (2026-09-13 추가) `study-planner-education`은 "교육 전문 기획자"로, 일반 Planner와 같은
+> `docs/planning_document.md`를 다루지만 **학습과학/교수설계 관점으로만** 판단한다(제품 비전·
+> 리텐션 판단은 하지 않음). 두 Planner의 결론이 갈리면 어느 한쪽도 서로를 임의로 덮어쓰지 않고
+> FO 또는 사용자(CEO)가 조정한다 — 아래 표의 "Planner" 행은 이 서브세트에도 그대로 적용된다.
 
 ## 왜 필요한가
 
