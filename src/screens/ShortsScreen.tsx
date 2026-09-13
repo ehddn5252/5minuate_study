@@ -298,16 +298,21 @@ export default function ShortsScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [animating, setAnimating] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
   const touchStartY = useRef(0);
 
   useEffect(() => {
     if (!templateId) return;
+    setLoading(true);
+    setNoContent(false);
     buildCards(templateId).then((c) => {
       if (c.length <= 1) setNoContent(true);
       setCards(c);
       setLoading(false);
     });
-  }, [templateId]);
+  }, [templateId, retryTick]);
+
+  const handleRetry = () => setRetryTick((t) => t + 1);
 
   const goNext = () => {
     if (animating || currentIndex >= cards.length - 1) return;
@@ -370,12 +375,14 @@ export default function ShortsScreen() {
         <div className="text-5xl">📚</div>
         <h2 className="text-xl font-bold">아직 콘텐츠가 없어요</h2>
         <p className="text-white/60 text-sm">이 템플릿을 처음으로 공부하고<br/>콘텐츠를 만들어보세요!</p>
+        <p className="text-white/30 text-xs">일시적인 네트워크 문제일 수도 있어요.</p>
         <button
           onClick={() => navigate(`/goals/create`)}
           className="mt-4 px-8 py-3 bg-[var(--accent-600)] rounded-xl font-semibold"
         >
           목표 만들기
         </button>
+        <button onClick={handleRetry} className="text-white/60 text-sm">다시 시도</button>
         <button onClick={() => navigate(-1)} className="text-white/40 text-sm">뒤로</button>
       </div>
     );

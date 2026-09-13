@@ -22,7 +22,11 @@ export default function LevelTestScreen() {
   const template = TEMPLATES.find((t) => t.id === templateId);
 
   const [loading, setLoading] = useState(true);
+  // 템플릿 자체가 레벨테스트를 지원 안 하는 경우(재시도 무의미)와, 데이터 조회 실패/타임아웃으로
+  // 못 가져온 경우(재시도하면 될 수도 있음)를 구분해 후자에만 "다시 시도" 버튼을 보여준다.
   const [unsupported, setUnsupported] = useState(false);
+  const [fetchFailed, setFetchFailed] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
   const [questions, setQuestions] = useState<LevelTestQuestion[]>([]);
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -36,16 +40,20 @@ export default function LevelTestScreen() {
       setLoading(false);
       return;
     }
+    setLoading(true);
+    setFetchFailed(false);
     withTimeout(fetchLevelTestQuestions(template.curriculumId), BANK_TIMEOUT_MS, null).then((qs) => {
       if (!qs) {
-        setUnsupported(true);
+        setFetchFailed(true);
       } else {
         setQuestions(qs);
       }
       setLoading(false);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateId]);
+  }, [templateId, retryTick]);
+
+  const handleRetry = () => setRetryTick((t) => t + 1);
 
   const currentQuiz = questions[index];
   const isLast = index === questions.length - 1;
@@ -100,6 +108,22 @@ export default function LevelTestScreen() {
         >
           뒤로
         </button>
+      </div>
+    );
+  }
+
+  if (fetchFailed) {
+    return (
+      <div className="min-h-screen bg-[var(--page-bg)] flex flex-col items-center justify-center gap-4 px-6 text-center">
+        <div className="text-4xl">⚠️</div>
+        <p className="text-gray-500 text-sm">문제를 불러오지 못했어요. 일시적인 네트워크 문제일 수 있어요.</p>
+        <button
+          onClick={handleRetry}
+          className="px-5 py-2.5 bg-[var(--accent-600)] text-white rounded-xl font-semibold text-sm min-h-[44px]"
+        >
+          다시 시도
+        </button>
+        <button onClick={() => navigate(-1)} className="text-gray-400 text-sm">뒤로</button>
       </div>
     );
   }

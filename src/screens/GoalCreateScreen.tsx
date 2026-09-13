@@ -88,6 +88,12 @@ export default function GoalCreateScreen() {
   const scopeExceedsDeadline =
     previewDaysLeft !== null && previewDaysLeft > 0 && previewMinSessions > previewDaysLeft;
 
+  // 어학 템플릿 선택 시 음성 답변 + AI 피드백 기능(QuizCard의 VoiceRecorder)을 미리 안내한다 —
+  // 이미 구현돼 있지만 목표 생성 단계에선 눈에 띄지 않아 언어 학습 목표에 강점이 될 수 있는
+  // 기능이 묻혀 있었다.
+  const pickedTemplate = TEMPLATES.find((t) => t.id === pickedTemplateId);
+  const isLanguageTemplate = pickedTemplate?.category === '어학';
+
   const handleSelectTemplate = (id: string) => {
     const tpl = TEMPLATES.find((t) => t.id === id);
     if (!tpl) return;
@@ -319,6 +325,15 @@ export default function GoalCreateScreen() {
               </p>
             )}
           </div>
+
+          {isLanguageTemplate && (
+            <div className="bg-[var(--accent-50)] rounded-xl p-3 flex items-start gap-2">
+              <span className="text-base leading-none">🎤</span>
+              <p className="text-xs text-[var(--accent-700)]">
+                어학 목표는 문제 풀 때 답을 소리 내어 녹음하면 AI가 발음·표현 피드백을 줘요.
+              </p>
+            </div>
+          )}
 
           <div>
             <div className="flex items-center justify-between mb-2">
