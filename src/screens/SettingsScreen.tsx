@@ -30,17 +30,17 @@ const ACCENT_THEMES: { id: AccentTheme; label: string; swatch: string }[] = [
   { id: 'orange', label: '오렌지', swatch: '#ea580c' },
 ];
 
+// 옅은 색은 3개(그레이/아이보리/라벤더)만 남기고, 나머지는 서로 뚜렷이 구분되는
+// 어두운 색상으로 다양화했다(회색조 2개뿐이던 것에 숲/플럼/와인 색조 추가).
 const BG_THEMES: { id: BackgroundTheme; label: string; swatch: string; dark?: boolean }[] = [
   { id: 'default', label: '그레이', swatch: '#f9fafb' },
   { id: 'ivory', label: '아이보리', swatch: '#fdf8f0' },
-  { id: 'mint', label: '민트', swatch: '#f1faf7' },
   { id: 'lavender', label: '라벤더', swatch: '#f6f4fc' },
   { id: 'charcoal', label: '차콜', swatch: '#1f2937', dark: true },
   { id: 'navy', label: '네이비', swatch: '#0f172a', dark: true },
-  { id: 'peach', label: '피치', swatch: '#fdf2e9' },
-  { id: 'sky', label: '하늘', swatch: '#eff8ff' },
-  { id: 'blush', label: '블러쉬', swatch: '#fdf2f4' },
-  { id: 'sage', label: '세이지', swatch: '#f3f6f0' },
+  { id: 'forest', label: '포레스트', swatch: '#14291d', dark: true },
+  { id: 'plum', label: '플럼', swatch: '#2a1a3d', dark: true },
+  { id: 'wine', label: '와인', swatch: '#3a1220', dark: true },
 ];
 
 // 접힌 상태에서도 이미 고른 색이 목록에서 사라져 "선택이 없어진 것처럼" 보이지 않도록,

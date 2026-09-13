@@ -146,33 +146,16 @@ html[data-bg='ivory'] {
   --page-bg: #fdf8f0;
 }
 
-html[data-bg='mint'] {
-  --page-bg: #f1faf7;
-}
-
 html[data-bg='lavender'] {
   --page-bg: #f6f4fc;
 }
 
-html[data-bg='peach'] {
-  --page-bg: #fdf2e9;
-}
-
-html[data-bg='sky'] {
-  --page-bg: #eff8ff;
-}
-
-html[data-bg='blush'] {
-  --page-bg: #fdf2f4;
-}
-
-html[data-bg='sage'] {
-  --page-bg: #f3f6f0;
-}
-
 /* F-42: 어두운 배경 스킨 — 카드(bg-white) 밖에 직접 놓이는 텍스트(제목·라벨 등)는
    text-gray-900 등 고정 클래스라서, 어두운 배경에선 그 글자색도 밝게 함께 바꿔야
-   가려지지 않는다. .bg-white 안쪽(카드 내부)은 원래 색 그대로 둔다. */
+   가려지지 않는다. .bg-white 안쪽(카드 내부)은 원래 색 그대로 둔다.
+   각 배경이 어두운지 여부는 utils/theme.ts의 목록으로 판단해 html에 data-bg-dark
+   속성으로 미리 반영해둔다 — 아래 규칙들은 전부 이 속성 하나만 보고 적용되므로,
+   새 어두운 배경을 추가해도 CSS를 여러 곳에 고칠 필요가 없다(utils/theme.ts만 갱신). */
 html[data-bg='charcoal'] {
   --page-bg: #1f2937;
   --page-fg: #f9fafb;
@@ -183,6 +166,21 @@ html[data-bg='navy'] {
   --page-fg: #f1f5f9;
 }
 
+html[data-bg='forest'] {
+  --page-bg: #14291d;
+  --page-fg: #ecfdf5;
+}
+
+html[data-bg='plum'] {
+  --page-bg: #2a1a3d;
+  --page-fg: #f5f0ff;
+}
+
+html[data-bg='wine'] {
+  --page-bg: #3a1220;
+  --page-fg: #fdf0f2;
+}
+
 @layer base {
   body {
     @apply text-gray-900;
@@ -190,41 +188,34 @@ html[data-bg='navy'] {
   }
 }
 
-html[data-bg='charcoal'] body,
-html[data-bg='navy'] body {
+html[data-bg-dark='true'] body {
   color: var(--page-fg);
 }
 
 /* input/textarea/select는 클래스와 무관하게 브라우저 기본 흰 배경을 그대로 유지하므로
    (Tailwind preflight가 text류 입력 요소의 배경까지 투명하게 만들지는 않는다), 이 안의
    글자색까지 밝게 뒤집으면 흰 배경 위에 흰 글씨가 되어 안 보인다 — 폼 요소는 제외한다. */
-html[data-bg='charcoal'] .text-gray-900:not(.bg-white *):not(input):not(textarea):not(select),
-html[data-bg='navy'] .text-gray-900:not(.bg-white *):not(input):not(textarea):not(select) {
+html[data-bg-dark='true'] .text-gray-900:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #f9fafb;
 }
 
-html[data-bg='charcoal'] .text-gray-800:not(.bg-white *):not(input):not(textarea):not(select),
-html[data-bg='navy'] .text-gray-800:not(.bg-white *):not(input):not(textarea):not(select) {
+html[data-bg-dark='true'] .text-gray-800:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #f3f4f6;
 }
 
-html[data-bg='charcoal'] .text-gray-700:not(.bg-white *):not(input):not(textarea):not(select),
-html[data-bg='navy'] .text-gray-700:not(.bg-white *):not(input):not(textarea):not(select) {
+html[data-bg-dark='true'] .text-gray-700:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #e5e7eb;
 }
 
-html[data-bg='charcoal'] .text-gray-600:not(.bg-white *):not(input):not(textarea):not(select),
-html[data-bg='navy'] .text-gray-600:not(.bg-white *):not(input):not(textarea):not(select) {
+html[data-bg-dark='true'] .text-gray-600:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #cbd5e1;
 }
 
-html[data-bg='charcoal'] .text-gray-500:not(.bg-white *):not(input):not(textarea):not(select),
-html[data-bg='navy'] .text-gray-500:not(.bg-white *):not(input):not(textarea):not(select) {
+html[data-bg-dark='true'] .text-gray-500:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #9ca3af;
 }
 
-html[data-bg='charcoal'] .text-gray-400:not(.bg-white *):not(input):not(textarea):not(select),
-html[data-bg='navy'] .text-gray-400:not(.bg-white *):not(input):not(textarea):not(select) {
+html[data-bg-dark='true'] .text-gray-400:not(.bg-white *):not(input):not(textarea):not(select) {
   color: #6b7280;
 }
 
@@ -237,8 +228,7 @@ html[data-bg='navy'] .text-gray-400:not(.bg-white *):not(input):not(textarea):no
   --pattern-rgb: 0, 0, 0;
 }
 
-html[data-bg='charcoal'],
-html[data-bg='navy'] {
+html[data-bg-dark='true'] {
   --pattern-rgb: 255, 255, 255;
 }
 
@@ -259,13 +249,11 @@ html[data-bg-pattern='waves'] body {
   background-size: 120px 24px;
 }
 
-html[data-bg='charcoal'][data-bg-pattern='stars'] body,
-html[data-bg='navy'][data-bg-pattern='stars'] body {
+html[data-bg-dark='true'][data-bg-pattern='stars'] body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='rgba(255,255,255,0.14)'%3E%3Ccircle cx='10' cy='15' r='1.5'/%3E%3Ccircle cx='45' cy='8' r='1'/%3E%3Ccircle cx='65' cy='30' r='1.8'/%3E%3Ccircle cx='25' cy='50' r='1.2'/%3E%3Ccircle cx='55' cy='60' r='1.5'/%3E%3Ccircle cx='75' cy='72' r='1'/%3E%3Ccircle cx='5' cy='68' r='1.3'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-html[data-bg='charcoal'][data-bg-pattern='waves'] body,
-html[data-bg='navy'][data-bg-pattern='waves'] body {
+html[data-bg-dark='true'][data-bg-pattern='waves'] body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='24' viewBox='0 0 120 24'%3E%3Cpath d='M0 12 Q30 0 60 12 T120 12' fill='none' stroke='rgba(255,255,255,0.16)' stroke-width='3'/%3E%3C/svg%3E");
   background-repeat: repeat-x;
   background-position: bottom;

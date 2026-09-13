@@ -9,6 +9,7 @@ import { ensureMyProfile } from './services/academy';
 import { clearAllLocalData } from './utils/storage';
 import OfflineBanner from './components/OfflineBanner';
 import RouteAnnouncer from './components/RouteAnnouncer';
+import { isDarkBackground } from './utils/theme';
 import { useGoalStore, useSessionStore, useQuizStore, useAppStore } from './store';
 const HomeScreen = lazy(() => import('./screens/HomeScreen'));
 const GoalCreateScreen = lazy(() => import('./screens/GoalCreateScreen'));
@@ -192,6 +193,7 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = appState.accentTheme;
     document.documentElement.dataset.bg = appState.bgTheme;
+    document.documentElement.dataset.bgDark = String(isDarkBackground(appState.bgTheme));
     document.documentElement.dataset.bgPattern = appState.bgPattern;
   }, [appState.accentTheme, appState.bgTheme, appState.bgPattern]);
 
