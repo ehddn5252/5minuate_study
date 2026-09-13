@@ -4,7 +4,11 @@ import { TEMPLATES } from '../data/templates';
 import { fetchLevelTestQuestions, computeRecommendedLevel, type LevelTestQuestion } from '../services/questionBank';
 import { playAnswerSound } from '../utils/celebration';
 import { shuffle } from '../utils/shuffle';
+import { withTimeout } from '../utils/withTimeout';
 import type { QuizLevel } from '../types';
+
+// Supabase 조회가 응답 없이 멈추면 이 시간 뒤 "미지원"으로 간주해 화면을 빠져나올 수 있게 한다.
+const BANK_TIMEOUT_MS = 15000;
 
 const LEVEL_LABEL: Record<QuizLevel, string> = {
   beginner: '초급',
@@ -32,7 +36,7 @@ export default function LevelTestScreen() {
       setLoading(false);
       return;
     }
-    fetchLevelTestQuestions(template.curriculumId).then((qs) => {
+    withTimeout(fetchLevelTestQuestions(template.curriculumId), BANK_TIMEOUT_MS, null).then((qs) => {
       if (!qs) {
         setUnsupported(true);
       } else {
@@ -77,7 +81,12 @@ export default function LevelTestScreen() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center text-gray-400 text-sm">문제 불러오는 중…</div>;
+    return (
+      <div className="min-h-screen bg-[var(--page-bg)] flex flex-col items-center justify-center gap-3 text-gray-400 text-sm">
+        <p>문제 불러오는 중…</p>
+        <button onClick={() => navigate(-1)} className="text-gray-400 text-sm">뒤로</button>
+      </div>
+    );
   }
 
   if (unsupported || !template) {

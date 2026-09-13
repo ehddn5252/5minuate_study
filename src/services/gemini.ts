@@ -59,6 +59,25 @@ interface GeminiResponse {
   candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
 }
 
+// 서버가 응답을 아예 안 주고 연결만 유지하는 "행(hang)" 상황을 대비한 타임아웃 — 이게 없으면
+// fetch의 Promise가 영원히 pending 상태로 남아 로딩 화면에서 빠져나올 방법이 없어진다.
+const REQUEST_TIMEOUT_MS = 40000;
+
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('서버 응답이 너무 오래 걸려요. 네트워크 상태를 확인하고 다시 시도해주세요.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // CF Worker가 Gemini API 키를 대신 보관하는 프록시를 통해서만 호출한다(사용자가 직접 키를 넣는 경로는 없음)
 async function callGemini(body: object): Promise<GeminiResponse> {
   const url = '/api/generate';
@@ -66,7 +85,7 @@ async function callGemini(body: object): Promise<GeminiResponse> {
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

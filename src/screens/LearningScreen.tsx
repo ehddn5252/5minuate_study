@@ -11,7 +11,12 @@ import { getDailyHook } from '../utils/dailyHook';
 import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, isPaused } from '../utils/speech';
 import { useElapsedSeconds, formatElapsed } from '../utils/useElapsedTime';
 import EstimatedProgressBar from '../components/EstimatedProgressBar';
+import { withTimeout } from '../utils/withTimeout';
 import type { Quiz } from '../types';
+
+// Supabase 호출(사전 제작 뱅크/공유 풀 조회)이 응답 없이 멈추는 경우, 이 시간이 지나면
+// 캐시 미스로 간주하고 Gemini 생성(이미 자체 타임아웃 보호가 있음)으로 넘어간다.
+const BANK_POOL_TIMEOUT_MS = 15000;
 
 const SPEECH_RATES = [1, 1.25, 1.5];
 
@@ -190,7 +195,11 @@ export default function LearningScreen() {
       // 0) 사전 제작 문제 데이터셋 조회 (커리큘럼 + 날짜 + 난이도 일치 시 Gemini 호출 없이 즉시 사용)
       // 개인화 콘텐츠(실무 연계/커스텀 말투)는 사전 제작 뱅크를 건너뛴다
       if (goal.curriculumId && curricDay && !isPersonalized) {
-        const bankData = await fetchFromBank(goal.curriculumId, dayNum, goal.level ?? 'intermediate');
+        const bankData = await withTimeout(
+          fetchFromBank(goal.curriculumId, dayNum, goal.level ?? 'intermediate'),
+          BANK_POOL_TIMEOUT_MS,
+          null
+        );
         if (bankData) {
           const quizzes: Quiz[] = bankData.quizzes.map(({ bankId, ...q }) => ({
             ...q,
@@ -208,7 +217,7 @@ export default function LearningScreen() {
 
       // 1) 공유 풀 조회
       if (cacheKey) {
-        const poolData = await fetchFromPool(cacheKey);
+        const poolData = await withTimeout(fetchFromPool(cacheKey), BANK_POOL_TIMEOUT_MS, null);
         if (poolData) {
           const quizzes: Quiz[] = poolData.quizzes.map((q) => ({
             ...q,
@@ -307,6 +316,9 @@ export default function LearningScreen() {
         <div className="w-full max-w-xs">
           <EstimatedProgressBar />
         </div>
+        <button onClick={() => navigate('/')} className="text-gray-400 text-sm mt-2">
+          홈으로
+        </button>
       </div>
     );
   }

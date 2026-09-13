@@ -5,6 +5,10 @@ import { fetchFromPool, buildCacheKey } from '../services/contentPool';
 import { TEMPLATES } from '../data/templates';
 import { playAnswerSound } from '../utils/celebration';
 import { shuffle } from '../utils/shuffle';
+import { withTimeout } from '../utils/withTimeout';
+
+// Supabase 조회(공유 풀)가 응답 없이 멈추면 이 시간 뒤 캐시 미스로 간주하고 다음 날짜로 넘어간다.
+const POOL_TIMEOUT_MS = 15000;
 
 // ── 타입 ──────────────────────────────────────────────────────────────────
 
@@ -63,7 +67,7 @@ async function buildCards(templateId: string): Promise<ShortsCard[]> {
         });
       });
 
-      const poolData = await fetchFromPool(buildCacheKey(templateId, day.day));
+      const poolData = await withTimeout(fetchFromPool(buildCacheKey(templateId, day.day)), POOL_TIMEOUT_MS, null);
       const mcQuiz = poolData?.quizzes.find((q) => q.options && q.options.length >= 2);
       if (mcQuiz && mcQuiz.options) {
         cards.push({
@@ -79,7 +83,7 @@ async function buildCards(templateId: string): Promise<ShortsCard[]> {
   } else {
     // 커리큘럼 없는 템플릿: 풀에서 퀴즈만 가져옴
     for (let d = 1; d <= 5; d++) {
-      const poolData = await fetchFromPool(buildCacheKey(templateId, d));
+      const poolData = await withTimeout(fetchFromPool(buildCacheKey(templateId, d)), POOL_TIMEOUT_MS, null);
       if (poolData) {
         const mcQuizzes = poolData.quizzes.filter((q) => q.options && q.options.length >= 2);
         if (mcQuizzes.length > 0) {
@@ -351,6 +355,9 @@ export default function ShortsScreen() {
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
         <p className="text-white/70">콘텐츠 불러오는 중…</p>
+        <button onClick={() => navigate(-1)} className="text-white/40 text-sm mt-2">
+          뒤로
+        </button>
       </div>
     );
   }
