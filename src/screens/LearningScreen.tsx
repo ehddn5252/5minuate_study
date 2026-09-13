@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useGoalStore, useSessionStore, useQuizStore, useAppStore } from '../store';
-import { getTodaySession, saveSession } from '../utils/storage';
+import { getTodaySession, saveSession, getLatestCompletedSessionWithSummary } from '../utils/storage';
 import { generateDailyContent } from '../services/gemini';
 import { generateId } from '../utils/id';
 import { getCurriculumDay } from '../data/curriculum';
@@ -188,6 +188,14 @@ export default function LearningScreen() {
     // 템플릿 목표면 공유 풀 먼저 확인
     const cacheKey = goal.templateId && !isPersonalized ? buildCacheKey(goal.templateId, dayNum) : null;
 
+    // F-86: 프리셋 커리큘럼(고정 원고+진행률 지시가 이미 있음)과 공유 풀 대상 템플릿(다른
+    // 사용자와 콘텐츠가 캐시 공유됨, cacheKey가 성립하는 것과 동일 조건)은 "전날 이어가기"가
+    // 성립하지 않거나 캐시 오염을 일으키므로 제외한다. 자유 주제/개인화 목표에만 적용.
+    const usesPreviousSummary = dayNum >= 2 && !goal.curriculumId && !(goal.templateId && !isPersonalized);
+    const previousSummary = usesPreviousSummary
+      ? getLatestCompletedSessionWithSummary(goal.id)?.summaryContent
+      : undefined;
+
     const applyContent = (s: string, quizzes: Quiz[]) => {
       addQuizzes(quizzes);
       const updated = {
@@ -269,7 +277,8 @@ export default function LearningScreen() {
           goal.level,
           effectiveRawContent,
           goal.practicalMode,
-          goal.mateTone
+          goal.mateTone,
+          previousSummary
         );
         applyContent(s, quizzes);
 

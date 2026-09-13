@@ -283,7 +283,8 @@ export async function generateDailyContent(
   level: QuizLevel = 'intermediate',
   rawContent?: string,
   practicalMode = false,
-  mateTone: MateTone = 'plain'
+  mateTone: MateTone = 'plain',
+  previousSummary?: string
 ): Promise<GenerateDailyContentResult> {
   const { mc: dailyMc, sa: dailySa } = splitDailyQuizCount(level);
   const prompt = `
@@ -295,6 +296,11 @@ export async function generateDailyContent(
 ${rawContent ? `참고 자료:\n${rawContent}\n` : ''}
 ${practicalMode ? PRACTICAL_MODE_INSTRUCTION : ''}
 ${TONE_INSTRUCTION[mateTone]}
+${previousSummary ? `
+직전 학습 세션에서 다룬 내용(참고용):
+${previousSummary}
+위 내용은 이미 학습을 마친 것으로 간주하고, 오늘 콘텐츠는 이 내용 위에서 자연스럽게 다음 단계로 이어지도록 구성하세요. 직전 내용을 그대로 반복하지 마세요.
+` : ''}
 
 규칙:
 - 전체 ${totalDays}일을 균등하게 나눠 각 날짜마다 새로운 내용을 다룹니다.

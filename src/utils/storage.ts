@@ -110,6 +110,17 @@ export function getYesterdaySession(goalId: string): Session | undefined {
   return matches[matches.length - 1];
 }
 
+// F-86: 자유 주제/개인화 목표의 스캐폴딩 컨텍스트 주입을 위해 "가장 최근에 완료된" 세션을
+// 찾는다. getYesterdaySession(F-84)은 정확히 어제만 보는 반면, 이 함수는 며칠 건너뛴 경우도
+// 포함해 완료+summaryContent가 있는 세션 중 가장 최근 것을 찾는다 — 목적이 달라 별도 함수로 둔다.
+export function getLatestCompletedSessionWithSummary(goalId: string): Session | undefined {
+  const candidates = getSessionsByGoal(goalId).filter(
+    (s) => s.status === 'completed' && !!s.summaryContent
+  );
+  if (candidates.length === 0) return undefined;
+  return candidates.reduce((latest, s) => (s.date > latest.date ? s : latest));
+}
+
 export function saveSession(session: Session): void {
   const sessions = getSessions();
   const idx = sessions.findIndex((s) => s.id === session.id);
