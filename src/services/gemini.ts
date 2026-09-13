@@ -48,6 +48,15 @@ const NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION =
 const CONCRETE_SUBJECT_CONTENT_INSTRUCTION =
   '요약과 퀴즈는 반드시 주제 자체가 다루는 구체적인 지식(예: 실제 단어와 뜻·예문, 실제 개념의 정의, 실제 공식, 실제 역사적 사실 등)을 다뤄야 합니다. "복습이 왜 중요한가", "이 방법이 효과적인 이유는?", "장기 기억으로 전환하려면?"처럼 학습 방법론·공부 습관 자체를 묻는 메타 문제로 채우지 마세요 — 주제 자체가 "공부법", "학습 습관"처럼 학습 방법론을 다루는 경우가 아니라면 이런 메타 문제는 전부 금지합니다. 예를 들어 주제가 "영어 단어 1000개 완성"이라면 퀴즈는 실제 영단어(예: enhance, abandon)의 뜻·유의어·용법을 물어야지, "어휘 학습 시 문맥이 왜 중요한가" 같은 질문을 내면 안 됩니다.';
 
+// F-83: 해설이 "정답은 이거다"로 끝나면 오개념이 왜 틀렸는지 스스로 정정할 기회가 없다.
+// 형성적 피드백(formative feedback, Hattie & Timperley) 구조 — (1) 정답 근거 (2) 가장
+// 헷갈리는 오답이 왜 틀렸는지 — 를 명시적으로 요구해 "정답만 알고 넘어가는" 얕은 학습을 막는다.
+// NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION이 이미 오답을 "실제 오개념을 담은 그럴듯한 함정"으로
+// 만들도록 강제하는데, 정작 해설에서 그 오개념을 왜 틀렸는지 설명 안 하면 애써 설계한 함정의
+// 교육적 가치를 버리게 된다.
+const FORMATIVE_EXPLANATION_INSTRUCTION =
+  '"explanation" 필드는 정답만 알려주고 끝내지 마세요. 반드시 다음을 포함하세요: (1) 정답이 왜 맞는지 근거나 원리, (2) 객관식이라면 오답 선택지 중 학생이 가장 헷갈릴 만한(정답과 개념이 가장 가까운) 선택지 하나를 콕 집어 그것이 왜 틀렸는지(단답형이면 이 항목 생략). 전체 해설은 2~3문장 이내로 간결하게 유지하세요.';
+
 // F-27: AI 케미 학습메이트 — 말투 프리셋. 'plain'은 기존과 동일한 중립 톤(기본값, 회귀 없음)이라 지시문을 추가하지 않는다.
 const TONE_INSTRUCTION: Record<MateTone, string> = {
   friendly: '설명 말투는 다정한 친구처럼 편안하고 다정하게 써주세요. 존댓말은 유지하되 따뜻하고 친근한 어조로 작성하세요.',
@@ -181,6 +190,7 @@ ${TONE_INSTRUCTION[mateTone]}
 ${CONCRETE_SUBJECT_CONTENT_INSTRUCTION}
 ${NO_VISUAL_FORMATTING_INSTRUCTION}
 ${NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION}
+${FORMATIVE_EXPLANATION_INSTRUCTION}
 JSON만 응답하고 다른 텍스트는 포함하지 마세요.
 `.trim();
 
@@ -281,6 +291,7 @@ ${TONE_INSTRUCTION[mateTone]}
 ${CONCRETE_SUBJECT_CONTENT_INSTRUCTION}
 ${NO_VISUAL_FORMATTING_INSTRUCTION}
 ${NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION}
+${FORMATIVE_EXPLANATION_INSTRUCTION}
 JSON만 응답하세요.
 `.trim();
 

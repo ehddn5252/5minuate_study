@@ -12,6 +12,8 @@ import { isSpeechSupported, speakQueue, pauseSpeech, resumeSpeech, stopSpeech, i
 import { useElapsedSeconds, formatElapsed } from '../utils/useElapsedTime';
 import EstimatedProgressBar from '../components/EstimatedProgressBar';
 import { withTimeout } from '../utils/withTimeout';
+import { shuffle } from '../utils/shuffle';
+import PretestQuizCard from '../components/PretestQuizCard';
 import type { Quiz } from '../types';
 
 // Supabase 호출(사전 제작 뱅크/공유 풀 조회)이 응답 없이 멈추는 경우, 이 시간이 지나면
@@ -69,6 +71,14 @@ export default function LearningScreen() {
   const [dailyHook, setDailyHook] = useState<string | null>(null);
   // 콜로 지역 문제로 생성 실패 시, 홈으로 나갔다 들어오지 않고도 재시도할 수 있게 하는 트리거
   const [retryTick, setRetryTick] = useState(0);
+
+  // F-82: 프리테스트("찍어보기") — 오늘 콘텐츠가 새로 생성될 때만 채워지고(재방문 시 이미
+  // summaryContent가 있어 이 상태를 건드리는 applyContent 자체가 호출되지 않음), 요약 화면
+  // 진입 전에 한 번 소비되고 나면 다시 안 뜬다. Session/Quiz 어느 필드도 쓰지 않는 완전히
+  // 읽기 전용 트랙이라 간격 반복(SRS) 스케줄과 무관하다.
+  const [pretestQuizzes, setPretestQuizzes] = useState<Quiz[]>([]);
+  const [pretestIndex, setPretestIndex] = useState(0);
+  const [pretestActive, setPretestActive] = useState(false);
 
   // F-25: 듣는 5분 학습 — 오디오 퍼스트 모드
   const [audioMode, setAudioMode] = useState(appState.audioModeEnabled);
@@ -187,6 +197,15 @@ export default function LearningScreen() {
       saveSession(updated);
       updateSession(updated);
       setSummary(s);
+
+      // F-82: 신규 생성일에만 이 함수가 호출되므로, 여기서 채우면 "재방문 시 다시 안 뜸"이
+      // 별도 플래그 없이 자동으로 만족된다. 객관식만, 최대 2문항.
+      const mcCandidates = quizzes.filter((q) => q.type === 'multiple_choice' && q.options && q.options.length >= 2);
+      if (mcCandidates.length > 0) {
+        setPretestQuizzes(shuffle(mcCandidates).slice(0, Math.min(2, mcCandidates.length)));
+        setPretestIndex(0);
+        setPretestActive(true);
+      }
     };
 
     setGenerating(true);
@@ -346,6 +365,31 @@ export default function LearningScreen() {
         <button onClick={() => navigate('/')} className="text-gray-400 text-sm">
           홈으로
         </button>
+      </div>
+    );
+  }
+
+  // F-82: 프리테스트 — 요약 표시 전, 페널티 없는 "찍어보기" 1~2문항
+  if (pretestActive && pretestQuizzes.length > 0) {
+    const currentPretest = pretestQuizzes[pretestIndex];
+    const handlePick = () => {
+      if (pretestIndex + 1 < pretestQuizzes.length) {
+        setPretestIndex((i) => i + 1);
+      } else {
+        setPretestActive(false);
+      }
+    };
+    return (
+      <div className="min-h-screen bg-[var(--page-bg)] flex flex-col">
+        <div className="max-w-md mx-auto w-full flex flex-col flex-1 px-4 py-6 justify-center gap-4">
+          <p className="text-center text-gray-500 text-sm font-medium">
+            오늘 배울 내용, 가볍게 찍어볼까요? 정답을 몰라도 괜찮아요 — 점수엔 반영되지 않아요.
+          </p>
+          <PretestQuizCard key={currentPretest.id} quiz={currentPretest} onPick={handlePick} />
+          {pretestQuizzes.length > 1 && (
+            <p className="text-center text-gray-300 text-xs">{pretestIndex + 1} / {pretestQuizzes.length}</p>
+          )}
+        </div>
       </div>
     );
   }
