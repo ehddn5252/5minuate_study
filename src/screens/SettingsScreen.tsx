@@ -13,12 +13,21 @@ import type { AccentTheme, BackgroundTheme } from '../types';
 
 const SUPPORT_EMAIL = 'ehddn5252@gmail.com';
 
+// 기본 노출(접힌 상태)은 앞 4개, 나머지는 "더보기"를 눌러야 보인다.
+const ACCENT_DEFAULT_COUNT = 4;
+const BG_DEFAULT_COUNT = 4;
+
 const ACCENT_THEMES: { id: AccentTheme; label: string; swatch: string }[] = [
   { id: 'indigo', label: '인디고', swatch: '#4f46e5' },
   { id: 'rose', label: '로즈', swatch: '#e11d48' },
   { id: 'emerald', label: '에메랄드', swatch: '#059669' },
   { id: 'amber', label: '앰버', swatch: '#d97706' },
   { id: 'violet', label: '바이올렛', swatch: '#7c3aed' },
+  { id: 'blue', label: '블루', swatch: '#2563eb' },
+  { id: 'sky', label: '스카이', swatch: '#0284c7' },
+  { id: 'teal', label: '틸', swatch: '#0d9488' },
+  { id: 'pink', label: '핑크', swatch: '#db2777' },
+  { id: 'orange', label: '오렌지', swatch: '#ea580c' },
 ];
 
 const BG_THEMES: { id: BackgroundTheme; label: string; swatch: string; dark?: boolean }[] = [
@@ -28,7 +37,21 @@ const BG_THEMES: { id: BackgroundTheme; label: string; swatch: string; dark?: bo
   { id: 'lavender', label: '라벤더', swatch: '#f6f4fc' },
   { id: 'charcoal', label: '차콜', swatch: '#1f2937', dark: true },
   { id: 'navy', label: '네이비', swatch: '#0f172a', dark: true },
+  { id: 'peach', label: '피치', swatch: '#fdf2e9' },
+  { id: 'sky', label: '하늘', swatch: '#eff8ff' },
+  { id: 'blush', label: '블러쉬', swatch: '#fdf2f4' },
+  { id: 'sage', label: '세이지', swatch: '#f3f6f0' },
 ];
+
+// 접힌 상태에서도 이미 고른 색이 목록에서 사라져 "선택이 없어진 것처럼" 보이지 않도록,
+// 기본 노출분 + 현재 선택된 항목(기본분에 없으면)을 합쳐서 보여준다.
+function visibleThemes<T extends { id: string }>(all: T[], expanded: boolean, selectedId: string, defaultCount: number): T[] {
+  if (expanded) return all;
+  const defaults = all.slice(0, defaultCount);
+  if (defaults.some((t) => t.id === selectedId)) return defaults;
+  const selected = all.find((t) => t.id === selectedId);
+  return selected ? [...defaults, selected] : defaults;
+}
 
 // 배경 무늬 선택 UI 비활성화 — index.css의 관련 규칙과 App/main.tsx 연동은 그대로 두고
 // 이 화면의 노출만 잠시 꺼둔다. 재활성화 시 아래 주석을 해제.
@@ -71,6 +94,8 @@ export default function SettingsScreen() {
   const [nicknameSaved, setNicknameSaved] = useState('');
   const [nicknameSaving, setNicknameSaving] = useState(false);
   const [nicknameMsg, setNicknameMsg] = useState('');
+  const [accentExpanded, setAccentExpanded] = useState(false);
+  const [bgExpanded, setBgExpanded] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user: u } }) => setUser(u));
@@ -137,8 +162,8 @@ export default function SettingsScreen() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">스킨 꾸미기</h2>
           <p className="text-xs text-gray-400 mb-2">포인트 컬러</p>
-          <div className="flex gap-2.5 mb-4">
-            {ACCENT_THEMES.map((t) => (
+          <div className="flex flex-wrap gap-2.5 mb-4">
+            {visibleThemes(ACCENT_THEMES, accentExpanded, appState.accentTheme, ACCENT_DEFAULT_COUNT).map((t) => (
               <button
                 key={t.id}
                 onClick={() => updateAppState({ accentTheme: t.id })}
@@ -151,10 +176,20 @@ export default function SettingsScreen() {
                 {appState.accentTheme === t.id && <span className="text-white text-sm">✓</span>}
               </button>
             ))}
+            {ACCENT_THEMES.length > ACCENT_DEFAULT_COUNT && (
+              <button
+                onClick={() => setAccentExpanded((v) => !v)}
+                aria-label={accentExpanded ? '색상 접기' : '더 많은 색상 보기'}
+                aria-expanded={accentExpanded}
+                className="w-10 h-10 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-base active:scale-90 transition-transform"
+              >
+                {accentExpanded ? '−' : '+'}
+              </button>
+            )}
           </div>
           <p className="text-xs text-gray-400 mb-2">배경</p>
-          <div className="flex gap-2.5 mb-4">
-            {BG_THEMES.map((t) => (
+          <div className="flex flex-wrap gap-2.5 mb-4">
+            {visibleThemes(BG_THEMES, bgExpanded, appState.bgTheme, BG_DEFAULT_COUNT).map((t) => (
               <button
                 key={t.id}
                 onClick={() => updateAppState({ bgTheme: t.id })}
@@ -169,6 +204,16 @@ export default function SettingsScreen() {
                 )}
               </button>
             ))}
+            {BG_THEMES.length > BG_DEFAULT_COUNT && (
+              <button
+                onClick={() => setBgExpanded((v) => !v)}
+                aria-label={bgExpanded ? '배경색 접기' : '더 많은 배경색 보기'}
+                aria-expanded={bgExpanded}
+                className="w-10 h-10 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-base active:scale-90 transition-transform"
+              >
+                {bgExpanded ? '−' : '+'}
+              </button>
+            )}
           </div>
           {/* 배경 무늬 선택 UI 비활성화 — 재활성화 시 위 BG_PATTERNS 주석과 함께 해제.
           <p className="text-xs text-gray-400 mb-2">배경 무늬</p>

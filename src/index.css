@@ -70,6 +70,71 @@ html[data-theme='violet'] {
   --accent-900: #4c1d95;
 }
 
+html[data-theme='blue'] {
+  --accent-50: #eff6ff;
+  --accent-100: #dbeafe;
+  --accent-200: #bfdbfe;
+  --accent-300: #93c5fd;
+  --accent-400: #60a5fa;
+  --accent-500: #3b82f6;
+  --accent-600: #2563eb;
+  --accent-700: #1d4ed8;
+  --accent-800: #1e40af;
+  --accent-900: #1e3a8a;
+}
+
+html[data-theme='sky'] {
+  --accent-50: #f0f9ff;
+  --accent-100: #e0f2fe;
+  --accent-200: #bae6fd;
+  --accent-300: #7dd3fc;
+  --accent-400: #38bdf8;
+  --accent-500: #0ea5e9;
+  --accent-600: #0284c7;
+  --accent-700: #0369a1;
+  --accent-800: #075985;
+  --accent-900: #0c4a6e;
+}
+
+html[data-theme='teal'] {
+  --accent-50: #f0fdfa;
+  --accent-100: #ccfbf1;
+  --accent-200: #99f6e4;
+  --accent-300: #5eead4;
+  --accent-400: #2dd4bf;
+  --accent-500: #14b8a6;
+  --accent-600: #0d9488;
+  --accent-700: #0f766e;
+  --accent-800: #115e59;
+  --accent-900: #134e4a;
+}
+
+html[data-theme='pink'] {
+  --accent-50: #fdf2f8;
+  --accent-100: #fce7f3;
+  --accent-200: #fbcfe8;
+  --accent-300: #f9a8d4;
+  --accent-400: #f472b6;
+  --accent-500: #ec4899;
+  --accent-600: #db2777;
+  --accent-700: #be185d;
+  --accent-800: #9d174d;
+  --accent-900: #831843;
+}
+
+html[data-theme='orange'] {
+  --accent-50: #fff7ed;
+  --accent-100: #ffedd5;
+  --accent-200: #fed7aa;
+  --accent-300: #fdba74;
+  --accent-400: #fb923c;
+  --accent-500: #f97316;
+  --accent-600: #ea580c;
+  --accent-700: #c2410c;
+  --accent-800: #9a3412;
+  --accent-900: #7c2d12;
+}
+
 /* F-41: 배경 스킨 — 화면 바탕색만 살짝 바꾸는 옵션. 전부 흰 카드(bg-white)·회색 텍스트와
    대비가 충분한 아주 옅은 톤이라 라이트 테마 가독성엔 영향이 없다(다크모드 아님). */
 :root {
@@ -87,6 +152,22 @@ html[data-bg='mint'] {
 
 html[data-bg='lavender'] {
   --page-bg: #f6f4fc;
+}
+
+html[data-bg='peach'] {
+  --page-bg: #fdf2e9;
+}
+
+html[data-bg='sky'] {
+  --page-bg: #eff8ff;
+}
+
+html[data-bg='blush'] {
+  --page-bg: #fdf2f4;
+}
+
+html[data-bg='sage'] {
+  --page-bg: #f3f6f0;
 }
 
 /* F-42: 어두운 배경 스킨 — 카드(bg-white) 밖에 직접 놓이는 텍스트(제목·라벨 등)는
