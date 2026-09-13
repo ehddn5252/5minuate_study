@@ -101,6 +101,15 @@ export function getTodaySession(goalId: string): Session | undefined {
   return matches[matches.length - 1];
 }
 
+// F-84: 완전학습 소프트 리캡이 "어제" 세션의 정답률을 참조하기 위해 필요. getTodaySession과
+// 동일한 패턴(UTC 기준 날짜 비교)을 그대로 따른다 — "가장 최근 세션"이 아니라 엄격히 어제로
+// 한정해, 며칠 건너뛴 경우까지 리캡 대상으로 확장하지 않는다(범위 확장은 별도 결정 사항).
+export function getYesterdaySession(goalId: string): Session | undefined {
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const matches = getSessions().filter((s) => s.goalId === goalId && s.date === yesterday);
+  return matches[matches.length - 1];
+}
+
 export function saveSession(session: Session): void {
   const sessions = getSessions();
   const idx = sessions.findIndex((s) => s.id === session.id);

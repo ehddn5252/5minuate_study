@@ -14,6 +14,7 @@ import EstimatedProgressBar from '../components/EstimatedProgressBar';
 import { withTimeout } from '../utils/withTimeout';
 import { shuffle } from '../utils/shuffle';
 import PretestQuizCard from '../components/PretestQuizCard';
+import { pickRecapQuiz } from '../utils/softRecap';
 import type { Quiz } from '../types';
 
 // Supabase 호출(사전 제작 뱅크/공유 풀 조회)이 응답 없이 멈추는 경우, 이 시간이 지나면
@@ -200,9 +201,15 @@ export default function LearningScreen() {
 
       // F-82: 신규 생성일에만 이 함수가 호출되므로, 여기서 채우면 "재방문 시 다시 안 뜸"이
       // 별도 플래그 없이 자동으로 만족된다. 객관식만, 최대 2문항.
+      // F-84: 어제 정답률이 완전학습 기준 미만이면, 새 화면을 추가하지 않고 이 프리테스트
+      // 슬롯 한 자리를 어제 최다 오답 문항으로 채운다(리텐션 원칙 2 "화면 수 불변" 유지).
       const mcCandidates = quizzes.filter((q) => q.type === 'multiple_choice' && q.options && q.options.length >= 2);
-      if (mcCandidates.length > 0) {
-        setPretestQuizzes(shuffle(mcCandidates).slice(0, Math.min(2, mcCandidates.length)));
+      const recapQuiz = pickRecapQuiz(goal.id);
+      const combined = recapQuiz
+        ? [recapQuiz, ...shuffle(mcCandidates.filter((q) => q.id !== recapQuiz.id))]
+        : shuffle(mcCandidates);
+      if (combined.length > 0) {
+        setPretestQuizzes(combined.slice(0, Math.min(2, combined.length)));
         setPretestIndex(0);
         setPretestActive(true);
       }

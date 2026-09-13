@@ -11,10 +11,37 @@ const MIN_VALID_DAILY_QUIZZES = 3; // 8개 요청
 
 // F-44(감사 후 개정): 문제 수는 사용자가 직접 고르지 않고 utils/quizCount.ts가 참고 자료
 // 분량·기한을 보고 자동으로 정한다(F-02 "분량을 직접 늘리거나 줄이는 설정 제공 안 함" 원칙 유지).
-// 여기서는 정해진 개수를 객관식:단답형 = 2:1 비율로 나누기만 한다.
-function splitQuizCount(quizCount: number): { mc: number; sa: number } {
-  const mc = Math.round(quizCount * (2 / 3));
+// 여기서는 정해진 개수를 객관식:단답형 비율로 나누기만 한다.
+//
+// F-85: 단답형은 인출 강도가 세지만(testing effect) 실패 시 내재적 부하·좌절도 크고,
+// 객관식은 반대다(인지부하이론, Sweller). 레벨과 무관한 고정 비율은 이 상충을 무시한
+// 설계였다 — intermediate 값은 기존 2:1 그대로 유지해 레벨 미지정/레거시 데이터에서
+// 회귀가 없게 한다.
+const GOAL_SA_SHARE: Record<QuizLevel, number> = {
+  beginner: 1 / 4,
+  intermediate: 1 / 3,
+  advanced: 2 / 5,
+};
+
+function splitQuizCount(quizCount: number, level: QuizLevel = 'intermediate'): { mc: number; sa: number } {
+  const saShare = GOAL_SA_SHARE[level] ?? GOAL_SA_SHARE.intermediate;
+  const mc = Math.round(quizCount * (1 - saShare));
   return { mc, sa: quizCount - mc };
+}
+
+// F-85: generateDailyContent(실제 매일 학습 흐름)는 별도로 문항 수(8개)를 프롬프트에
+// 하드코딩하므로 같은 원칙을 적용하되 별개 테이블로 둔다 — intermediate=6:2는 기존과
+// 동일(회귀 없음), goal 생성 시점의 비율표와 통일하면 둘 중 하나가 조용히 바뀌게 된다.
+const DAILY_SA_SHARE: Record<QuizLevel, number> = {
+  beginner: 1 / 8,
+  intermediate: 1 / 4,
+  advanced: 3 / 8,
+};
+const DAILY_QUIZ_COUNT = 8;
+
+function splitDailyQuizCount(level: QuizLevel = 'intermediate'): { mc: number; sa: number } {
+  const sa = Math.round(DAILY_QUIZ_COUNT * (DAILY_SA_SHARE[level] ?? DAILY_SA_SHARE.intermediate));
+  return { mc: DAILY_QUIZ_COUNT - sa, sa };
 }
 
 const LEVEL_DESC: Record<QuizLevel, string> = {
@@ -154,7 +181,7 @@ export async function generateGoalContent(
     (new Date(deadline).getTime() - new Date(today).getTime()) /
       (1000 * 60 * 60 * 24)
   );
-  const { mc: mcCount, sa: saCount } = splitQuizCount(quizCount);
+  const { mc: mcCount, sa: saCount } = splitQuizCount(quizCount, level);
 
   const prompt = `
 당신은 학습 도우미입니다. 아래 주제에 대한 학습 콘텐츠를 JSON 형식으로 생성해주세요.
@@ -258,6 +285,7 @@ export async function generateDailyContent(
   practicalMode = false,
   mateTone: MateTone = 'plain'
 ): Promise<GenerateDailyContentResult> {
+  const { mc: dailyMc, sa: dailySa } = splitDailyQuizCount(level);
   const prompt = `
 당신은 학습 도우미입니다. 아래 주제를 ${totalDays}일에 걸쳐 단계적으로 학습하는 커리큘럼에서 오늘(${dayNum}일째) 배울 내용을 생성해주세요.
 
@@ -287,7 +315,7 @@ ${TONE_INSTRUCTION[mateTone]}
   ]
 }
 
-퀴즈는 정확히 8개. multiple_choice 6개, short_answer 2개. 오늘 배운 내용 기반으로 출제.
+퀴즈는 정확히 ${DAILY_QUIZ_COUNT}개. multiple_choice ${dailyMc}개, short_answer ${dailySa}개. 오늘 배운 내용 기반으로 출제.
 ${CONCRETE_SUBJECT_CONTENT_INSTRUCTION}
 ${NO_VISUAL_FORMATTING_INSTRUCTION}
 ${NO_SURFACE_PATTERN_GIVEAWAY_INSTRUCTION}
