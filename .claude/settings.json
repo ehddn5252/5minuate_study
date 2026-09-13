@@ -2,6 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(git commit -m ' *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(git branch -D*)"
     ]
   },
   "hooks": {
