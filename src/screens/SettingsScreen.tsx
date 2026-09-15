@@ -394,7 +394,7 @@ export default function SettingsScreen() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">고객센터</h2>
           <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[학습 보관함] 문의')}&body=${encodeURIComponent('아래에 문의 내용을 자유롭게 작성해주세요.\n\n')}`}
+            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[같이런] 문의')}&body=${encodeURIComponent('아래에 문의 내용을 자유롭게 작성해주세요.\n\n')}`}
             className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
           >
             <span>문의하기</span>
@@ -403,6 +403,15 @@ export default function SettingsScreen() {
             </svg>
           </a>
           <p className="text-xs text-gray-400 mt-2">{SUPPORT_EMAIL}로 이메일이 연결돼요.</p>
+          <button
+            onClick={() => navigate('/privacy')}
+            className="w-full flex items-center justify-between py-2 mt-1 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors border-t border-gray-100 pt-3"
+          >
+            <span>개인정보처리방침</span>
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
       <BottomNav />

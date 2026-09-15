@@ -1,9 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { BADGE_DEFS, getBadges } from '../utils/badges';
 import BottomNav from '../components/BottomNav';
+import ConstellationView from '../components/ConstellationView';
+import { useAppStore } from '../store';
 
 export default function AchievementsScreen() {
   const navigate = useNavigate();
+  const { appState } = useAppStore();
   const unlocked = getBadges();
   const unlockedIds = new Set(unlocked.map((b) => b.id));
 
@@ -27,6 +30,10 @@ export default function AchievementsScreen() {
             <h1 className="text-xl font-bold text-gray-900">업적</h1>
             <p className="text-xs text-gray-400 mt-0.5">{unlockedCount}/{total} 획득</p>
           </div>
+        </div>
+
+        <div className="mb-4">
+          <ConstellationView count={appState.lifetimeCompletedGoals ?? 0} />
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">

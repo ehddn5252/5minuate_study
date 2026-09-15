@@ -5,7 +5,12 @@ import { TEMPLATES } from '../data/templates';
 
 // 로그인 없이 먼저 체험해볼 수 있는 쇼츠 미리보기 칩 — HomeScreen 빈 상태의 맛보기 칩과 같은 템플릿 구성
 const PREVIEW_TEMPLATE_IDS = ['english_grammar', 'iip_practical', 'driving_written'] as const;
-const ENABLE_DEV_LOGIN = true;
+// Play 스토어 심사자/일반 사용자에게 테스트 로그인 버튼이 그대로 노출되지 않도록, 로컬 개발 중이거나
+// ?devlogin=1을 붙였을 때만 보이게 한다(운영 배포 URL을 그냥 열면 안 보임 — E2E 스크립트는
+// 계속 https://.../?devlogin=1 형태로 접근해 기존 테스트 흐름을 유지할 수 있다).
+const ENABLE_DEV_LOGIN =
+  import.meta.env.DEV ||
+  (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('devlogin') === '1');
 
 export default function LoginScreen() {
   const navigate = useNavigate();
@@ -27,7 +32,7 @@ export default function LoginScreen() {
   return (
     <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">학습 보관함</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">같이런</h1>
         <p className="text-gray-500 text-sm mb-8">
           목표만 정하면, 나만의 학습 시퀀스와 문제를 자동으로 만들어드려요.
         </p>
@@ -82,6 +87,13 @@ export default function LoginScreen() {
             );
           })}
         </div>
+
+        <button
+          onClick={() => navigate('/privacy')}
+          className="text-xs text-gray-300 hover:text-gray-400 mt-6 underline"
+        >
+          개인정보처리방침
+        </button>
       </div>
     </div>
   );

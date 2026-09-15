@@ -38,7 +38,7 @@ export async function generateShareCard(data: ShareCardData): Promise<Blob> {
   ctx.fill();
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 16px sans-serif';
-  ctx.fillText('학습 보관함', 60, 63);
+  ctx.fillText('같이런', 60, 63);
 
   // main emoji
   ctx.font = '72px sans-serif';
@@ -112,11 +112,11 @@ function buildShareText(data: ShareCardData): string {
 
 export async function shareOrDownload(data: ShareCardData): Promise<void> {
   const blob = await generateShareCard(data);
-  const file = new File([blob], '학습보관함_달성.png', { type: 'image/png' });
+  const file = new File([blob], '같이런_달성.png', { type: 'image/png' });
 
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({
-      title: '학습 보관함 달성!',
+      title: '같이런 달성!',
       text: buildShareText(data),
       files: [file],
     });
@@ -127,7 +127,7 @@ export async function shareOrDownload(data: ShareCardData): Promise<void> {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = '학습보관함_달성.png';
+  a.download = '같이런_달성.png';
   a.click();
   URL.revokeObjectURL(url);
 }

@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
-        name: '학습 보관함',
-        short_name: '학습보관함',
+        name: '같이런',
+        short_name: '같이런',
         description: '내가 정한 목표를, 나만의 학습 시퀀스로 꾸준히',
         theme_color: '#6366f1',
         background_color: '#6366f1',

@@ -293,6 +293,7 @@ const DEFAULT_APP_STATE: AppState = {
   bgTheme: 'default',
   bgPattern: 'none',
   lifetimeStudyScore: 0,
+  lifetimeCompletedGoals: 0,
   sharedNotes: [],
 };
 
@@ -336,6 +337,13 @@ export function recordCompletedGoalScore(score: number): void {
   const state = getAppState();
   const add = Number.isFinite(score) ? Math.max(0, Math.round(score)) : 0;
   saveAppState({ ...state, lifetimeStudyScore: (state.lifetimeStudyScore ?? 0) + add });
+}
+
+// 목표를 하나 완료할 때마다 별자리에 별 하나를 더한다. lifetimeStudyScore와 같은 이유로
+// 목표 레코드 자체와 별개로 여기 누적해, 나중에 목표를 보관/삭제해도 별은 그대로 남는다.
+export function recordCompletedGoal(): void {
+  const state = getAppState();
+  saveAppState({ ...state, lifetimeCompletedGoals: (state.lifetimeCompletedGoals ?? 0) + 1 });
 }
 
 // F-65: 학원 공지를 안 읽었는지 표시하기 위한 "마지막으로 확인한 시각". 저장된 값이 아예 없으면

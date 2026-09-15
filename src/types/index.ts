@@ -140,6 +140,9 @@ export interface AppState {
   // 목표 완료 시 목표·세션을 정리(보관/삭제)하면서 사라지는 학습 점수를 여기 누적해,
   // 리더보드 점수가 "완료했더니 깎이는" 일이 없게 한다.
   lifetimeStudyScore: number;
+  // 목표를 완료할 때마다 1씩 누적되는 별(=별자리 한 점) 개수. lifetimeStudyScore와 같은 이유로
+  // 목표·세션이 삭제(보관/정리)돼도 별자리에서 별이 사라지지 않도록 여기 별도로 누적한다.
+  lifetimeCompletedGoals: number;
   // 친구에게 공유받아 저장한 요약/계획 메모 목록 (문제는 quizzes 북마크로 별도 저장됨)
   sharedNotes: SharedTopicNote[];
 }

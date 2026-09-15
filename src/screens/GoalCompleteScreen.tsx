@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useGoalStore, useAppStore, useSessionStore, useQuizStore } from '../store';
 import { computeStudyScore } from '../services/social';
-import { archiveGoalToBookmarks, deleteGoalCascade, recordCompletedGoalScore } from '../utils/storage';
+import { archiveGoalToBookmarks, deleteGoalCascade, recordCompletedGoal, recordCompletedGoalScore } from '../utils/storage';
 import { getBadgeDef } from '../utils/badges';
 import { shareOrDownload } from '../utils/shareCard';
 import { getIdentityStatement } from '../utils/identity';
@@ -52,6 +52,7 @@ export default function GoalCompleteScreen() {
     if (goal) {
       const goalSessions = sessions.filter((s) => s.goalId === goal.id);
       recordCompletedGoalScore(computeStudyScore([goal], goalSessions));
+      recordCompletedGoal();
       if (keep) archiveGoalToBookmarks(goal.id);
       else deleteGoalCascade(goal.id);
       loadGoals();
@@ -100,7 +101,12 @@ export default function GoalCompleteScreen() {
         {displayTopic && (
           <p className="text-[var(--accent-600)] font-semibold text-lg mb-1">{displayTopic}</p>
         )}
-        <p className="text-gray-500 mb-8">처음부터 끝까지 완주했어요. 정말 대단합니다!</p>
+        <p className="text-gray-500 mb-4">처음부터 끝까지 완주했어요. 정말 대단합니다!</p>
+
+        <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-4 py-1.5 mb-6 text-amber-700 text-sm font-semibold">
+          <span>⭐</span>
+          <span>별 1개 획득 · 나의 별자리 {(appState.lifetimeCompletedGoals ?? 0) + 1}번째 별</span>
+        </div>
 
         {didLevelUp && (
           <div className="bg-gradient-to-r from-[var(--accent-600)] to-purple-600 rounded-2xl p-5 mb-4 text-center animate-count-up-pop">

@@ -1,8 +1,8 @@
 {
   "packageId": "com.ehddn5252.study5min",
   "host": "5minuatestudy.ehddn5252.workers.dev",
-  "name": "학습 보관함",
-  "launcherName": "학습보관함",
+  "name": "같이런",
+  "launcherName": "같이런",
   "display": "standalone",
   "orientation": "portrait",
   "themeColor": "#6366f1",

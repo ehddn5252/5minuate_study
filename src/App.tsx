@@ -38,6 +38,8 @@ const AssignmentSolveScreen = lazy(() => import('./screens/AssignmentSolveScreen
 const LevelTestScreen = lazy(() => import('./screens/LevelTestScreen'));
 const FriendsScreen = lazy(() => import('./screens/FriendsScreen'));
 const SharedStudyScreen = lazy(() => import('./screens/SharedStudyScreen'));
+// Play 스토어 심사자 등 비로그인 상태에서도 열람 가능해야 해서 로그인 전/후 라우트 양쪽에 둔다.
+const PrivacyPolicyScreen = lazy(() => import('./screens/PrivacyPolicyScreen'));
 
 const LAST_USER_KEY = 'lastAuthUserId';
 // signInWithGoogle의 redirectTo가 항상 origin("/")으로 돌아오게 돼 있어(OAuth 리다이렉트는
@@ -214,6 +216,7 @@ export default function App() {
             <Routes>
               <Route path="/shorts/:templateId" element={<ShortsScreen />} />
               <Route path="/goals/create" element={<CaptureTemplateThenLogin />} />
+              <Route path="/privacy" element={<PrivacyPolicyScreen />} />
               <Route path="*" element={<LoginScreen />} />
             </Routes>
           </Suspense>
@@ -262,6 +265,7 @@ export default function App() {
         <Route path="/materials/:goalId" element={<StudyMaterialsScreen />} />
         <Route path="/shorts/:templateId" element={<ShortsScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
+        <Route path="/privacy" element={<PrivacyPolicyScreen />} />
         <Route path="/cleanup-questions" element={<CleanupQuestionsScreen />} />
       </Routes>
       </Suspense>

@@ -166,13 +166,13 @@ async function showReminder(): Promise<void> {
   try {
     if ('serviceWorker' in navigator) {
       const reg = await navigator.serviceWorker.ready;
-      await reg.showNotification('학습 보관함 알림', opts);
+      await reg.showNotification('같이런 알림', opts);
       return;
     }
   } catch {
     // fall through
   }
-  new Notification('학습 보관함 알림', opts);
+  new Notification('같이런 알림', opts);
 }
 
 export function scheduleLocalReminder(time: string): void {

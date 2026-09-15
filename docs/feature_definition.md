@@ -1745,7 +1745,63 @@
 
 ---
 
-## 자기검증 결과
+### F-87: Play 스토어 제출 대응 — 개인정보처리방침 페이지 + 테스트 로그인 비노출
+
+**한 줄 설명:** Play 스토어 등록 심사 요건 충족을 위해 로그인 없이 열람 가능한 개인정보처리방침 페이지를 추가하고, 운영 배포 URL에서 "테스트 계정" 로그인 버튼이 일반 사용자/심사자에게 노출되지 않게 게이팅한다.
+
+**배경:** Play Console은 심사자가 로그인 없이도 접근 가능한 개인정보처리방침 URL을 요구하고, 데이터 보안(Data safety) 설문 답변이 실제 코드와 일치해야 한다. 코드 감사(서브에이전트)로 실제 데이터 흐름(Google 로그인 이메일, Supabase 동기화 항목, Gemini API로 전송되는 주제/참고자료/음성, IndexedDB 전용 녹음, 분석·광고 SDK 없음, 인앱 계정삭제 기능 없음)을 먼저 확인한 뒤 문구를 작성했다. 또한 운영 배포 URL에 "테스트 계정 1/2" 로그인 버튼이 상시 노출돼 있던 것을 발견 — 스토어에 공개되는 순간 이 버튼도 그대로 보이므로 정리 대상으로 판단.
+
+**시스템 처리**
+1. `PrivacyPolicyScreen.tsx` 신규, `/privacy` 라우트를 `App.tsx`의 로그인 전/후 라우트 트리 양쪽에 등록(인증 상태 비의존).
+2. `LoginScreen`/`SettingsScreen`에 `/privacy` 링크 노출.
+3. `LoginScreen`의 `ENABLE_DEV_LOGIN`을 `import.meta.env.DEV || ?devlogin=1`로 게이팅 — 운영 배포를 그냥 열면 테스트 로그인 버튼이 사라지고, 기존 E2E 스크립트는 `?devlogin=1` 쿼리로 계속 접근 가능(회귀 없음).
+
+**검증 조건**
+- [x] `/privacy`가 비로그인 상태에서 200으로 로드되고 본문에 필수 항목(마이크/Gemini/Supabase/삭제 요청 링크)이 실제로 렌더링된다. (프로덕션에 Playwright로 접속해 텍스트 포함 여부 확인)
+- [x] 로그인 화면 하단에 개인정보처리방침 링크가 노출된다. (프로덕션 확인)
+- [x] 운영 배포 URL을 쿼리 없이 열면 "테스트 계정" 버튼이 보이지 않고, `?devlogin=1`을 붙이면 그대로 보인다. (프로덕션에서 양쪽 다 Playwright로 확인)
+- [ ] Play Console 데이터 보안/콘텐츠 등급 설문 실제 제출 결과는 스토어 심사 완료 전까지 확인 불가(`docs/PLAY_STORE_SUBMISSION.md` 5·6장 매핑을 그대로 입력하는 것을 전제로 함).
+
+---
+
+### F-88: 목표 완주 별 모으기 + 나의 별자리
+
+**한 줄 설명:** 목표를 완주할 때마다 별이 하나씩 쌓이고, 업적 화면에서 그 별들이 순서대로 이어진 개인 별자리로 시각화된다.
+
+**배경:** 사용자가 앱 UI를 별 모으는 방식으로 바꾸고 싶다고 요청. 이미 배지·XP·레벨 시스템이 있어 완전히 새로운 보상 체계를 얹기보다, 기존 목표 완료 이벤트(`GoalCompleteScreen`)에 가벼운 누적 카운터 하나를 더하는 방식으로 설계했다. `lifetimeStudyScore`가 목표 삭제 후에도 리더보드 점수가 깎이지 않도록 `AppState`에 별도 누적해두는 기존 패턴을 그대로 따라, 별 개수도 목표 레코드 자체가 나중에 보관/삭제돼도 사라지지 않게 했다. 별을 순서대로 이으면 그대로 "시퀀스"가 되는 점이 이 앱의 핵심 개념(목표를 이어가는 학습 시퀀스)과 맞아떨어져 별자리 시각화를 택했다.
+
+**시스템 처리**
+1. `AppState.lifetimeCompletedGoals: number` 신규 필드(기본값 0).
+2. `storage.ts`의 `recordCompletedGoal()` — 호출될 때마다 1 증가. 기존 `recordCompletedGoalScore()`와 동일한 트리거 지점(`GoalCompleteScreen`의 `handleArchiveDecision`)에서 함께 호출해, 목표를 "보관"하든 "삭제"하든 상관없이 완주가 확정되는 순간 정확히 1회만 누적된다.
+3. `utils/constellation.ts`의 `getStarPositions(count, width, height)` — 골든 앵글 나선(해바라기 씨앗 배치 원리)으로 별 위치를 결정론적으로 계산. `Math.random()`을 쓰지 않아 같은 개수면 재렌더링해도 별자리 모양이 흔들리지 않는다.
+4. `components/ConstellationView.tsx` — 위 좌표를 점(별)으로 찍고 순서대로 선으로 이어 SVG로 렌더링, 남색 배경(밤하늘 톤)에 마지막 별만 살짝 크게 강조. `AchievementsScreen` 최상단에 배치.
+5. `GoalCompleteScreen`에 "⭐ 별 1개 획득 · 나의 별자리 N번째 별" 배너 추가(완주 순간 즉시 피드백).
+
+**동작 규칙**
+- 별 개수는 오직 `recordCompletedGoal()` 누적치로만 결정되고, 현재 `goals` 배열을 세는 방식이 아니다 — 목표를 나중에 삭제해도 이미 받은 별은 유지된다.
+- 배지(업적)·XP/레벨 시스템과는 독립적으로 동작(공유 상태 없음, 서로 값을 읽거나 쓰지 않음) — 기존 보상 체계와 충돌하지 않는다.
+
+**검증 조건**
+- [x] `npm run build`(tsc 포함) 통과 — 타입 에러 없음.
+- [ ] 실제 목표를 하나 완주해 별 개수가 1 증가하고 `AchievementsScreen`에 별자리가 렌더링되는지는 실기기/실계정 흐름 재현이 필요해 이번 세션에서는 라이브 검증하지 못함(코드 경로상 기존 `recordCompletedGoalScore` 호출부와 동일 지점이라 회귀 위험은 낮다고 판단).
+- [ ] 별 개수가 많아졌을 때(예: 수십 개) 별자리 레이아웃이 여전히 보기 좋은지는 실사용 데이터 누적 전까지 확인 불가.
+
+---
+
+### F-89: "같이런"으로 재리브랜딩
+
+**한 줄 설명:** 표시 이름을 "학습 보관함"에서 "같이런"으로 다시 바꾼다(저장소·인프라 이름은 유지).
+
+**배경:** Play 스토어 등록을 준비하며 사용자가 "학습 보관함"이 너무 평범한 일반 명사라고 판단. 여러 후보(별자리 계열, 같이/나눔 계열, 영어 조합)를 검토하며 Google Play 실제 검색으로 이름 충돌을 확인한 결과, "위런"·"위드런"·"WeLearn"·"CoLearn"·"StudyVault"·"Learning Mate" 등 흔한 조합은 이미 다수 존재했고, 한국어 후보들은 충돌이 없었다. 최종적으로 "같이런"(Learn/Run 이중 의미의 "런" + "같이")으로 확정.
+
+**시스템 처리**
+- 표시 이름만 교체(F-89 성격상 UI 문구 치환): `vite.config.ts`(PWA manifest name/short_name), `twa-manifest.json`, `LoginScreen.tsx`, `PrivacyPolicyScreen.tsx`, `SettingsScreen.tsx`(문의 메일 제목), `notification.ts`(알림 제목), `shareCard.ts`(공유 카드 문구/파일명), `RouteAnnouncer.tsx`(탭 제목), `README.md`, `docs/ceo_prompt.md`/`docs/planning_document.md`(제품명 갱신 이력), `docs/PLAY_STORE_SUBMISSION.md`(스토어 등록정보 문구), 피처 그래픽 이미지.
+- 저장소 이름(`5minuate_study`)·`package.json`의 `name`·Cloudflare Worker 이름/배포 URL(`5minuatestudy.ehddn5252.workers.dev`)은 기존 리브랜딩(F-49 전후 문서 참고)과 동일한 이유로 그대로 유지 — 이미 설치된 PWA 사용자의 접속이 끊기지 않게 하기 위함.
+
+**검증 조건**
+- [x] `grep -rl "학습 보관함"` 결과가 역사 기록용 문구(ceo_prompt.md/planning_document.md의 "구 학습 보관함")만 남고 실제 UI 문자열에서는 전부 제거됨을 확인.
+- [x] `npm run build` 통과.
+- [ ] Play Console에 아직 등록 전이라 실제 스토어 노출 이름 충돌 여부는 심사 전까지 최종 확인 불가(사전에 Google 검색으로 확인한 것이 전부).
 
 | 점검 항목 | 결과 |
 |-----------|------|

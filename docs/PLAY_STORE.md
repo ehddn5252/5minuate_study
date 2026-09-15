@@ -1,5 +1,8 @@
 # Google Play 스토어 등록 (TWA / Android 앱)
 
+> 실제 스토어 등록 폼에 붙여넣을 문구(앱 설명·데이터 보안·콘텐츠 등급)와 "이미 끝난 것 vs
+> 직접 해야 하는 것" 체크리스트는 [`docs/PLAY_STORE_SUBMISSION.md`](PLAY_STORE_SUBMISSION.md) 참고.
+
 이 앱은 PWA다. Play 스토어에는 **TWA(Trusted Web Activity)** 로 감싸서 올린다.
 [Bubblewrap](https://github.com/GoogleChromeLabs/bubblewrap) 이 배포된 PWA
 (`https://5minuatestudy.ehddn5252.workers.dev`) 를 감싼 Android 프로젝트를 만들고,
