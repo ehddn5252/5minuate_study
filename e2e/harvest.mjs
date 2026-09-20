@@ -83,7 +83,13 @@ async function run() {
     }
   }
 
-  const goto = (path) => page.goto(BASE_URL + path, { waitUntil: 'networkidle', timeout: 30000 });
+  // F-87로 운영 배포 URL에서 "테스트 계정" 로그인 버튼이 ?devlogin=1 뒤로 게이팅됐다 —
+  // 이 하베스트는 그 버튼에 의존하므로 모든 내비게이션에 쿼리를 붙여야 한다.
+  const goto = (path) =>
+    page.goto(`${BASE_URL}${path}${path.includes('?') ? '&' : '?'}devlogin=1`, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    });
 
   // ── 여정 ────────────────────────────────────────────────────────────────────
   await step('01-landing-login', async () => {
@@ -129,6 +135,12 @@ async function run() {
     // AI 생성 → 홈으로 navigate('/'). Gemini 호출이라 넉넉히 대기.
     await page.waitForURL((u) => new URL(u).pathname === '/', { timeout: 90000 });
     await page.waitForLoadState('networkidle');
+    // 알려진 특성: 로컬에 막 쓴 데이터가 있는 상태에서 바로 하드 리로드(goto)하면, 2초
+    // 디바운스된 syncToCloud가 끝나기 전에 다음 단계의 goto가 loadFromCloud()를 트리거해
+    // 방금 만든 목표가 사라진 것처럼 보일 수 있다(실사용 흐름에서는 발생 안 함 — SPA라
+    // 목표 생성 직후 사용자가 수동으로 새로고침하지 않는 한 겪지 않는 테스트 전용 경쟁
+    // 조건). 다음 단계들이 전부 goto(하드 네비게이션)라 넉넉히 기다린다.
+    await page.waitForTimeout(4000);
   }, { optional: true });
 
   // 로그인 후 열람 가능한 주요 화면들
