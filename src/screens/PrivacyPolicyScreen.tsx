@@ -23,7 +23,7 @@ export default function PrivacyPolicyScreen() {
 
         <p className="text-sm text-gray-500 mb-6">
           시행일: {EFFECTIVE_DATE}<br />
-          "같이런"(이하 "서비스")은 이용자의 개인정보를 아래와 같이 수집·이용합니다.
+          "소셜런"(이하 "서비스")은 이용자의 개인정보를 아래와 같이 수집·이용합니다.
         </p>
 
         <section className="mb-6">
@@ -78,7 +78,7 @@ export default function PrivacyPolicyScreen() {
             아래 이메일로 삭제를 요청해주세요. 요청 확인 후 지체 없이 삭제해드립니다.
           </p>
           <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[같이런] 계정 및 데이터 삭제 요청')}&body=${encodeURIComponent('가입에 사용한 이메일 주소를 알려주시면 확인 후 삭제해드립니다.\n\n')}`}
+            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[소셜런] 계정 및 데이터 삭제 요청')}&body=${encodeURIComponent('가입에 사용한 이메일 주소를 알려주시면 확인 후 삭제해드립니다.\n\n')}`}
             className="inline-block mt-2 text-sm font-medium text-[var(--accent-600)] hover:underline"
           >
             계정·데이터 삭제 요청하기 →

@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.ehddn5252.study5min",
+      "package_name": "com.sociallearnapp.app",
       "sha256_cert_fingerprints": []
     }
   }

@@ -32,7 +32,7 @@ export default function LoginScreen() {
   return (
     <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">같이런</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">소셜런</h1>
         <p className="text-gray-500 text-sm mb-8">
           목표만 정하면, 나만의 학습 시퀀스와 문제를 자동으로 만들어드려요.
         </p>

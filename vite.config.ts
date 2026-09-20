@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
-        name: '같이런',
-        short_name: '같이런',
+        name: '소셜런',
+        short_name: '소셜런',
         description: '내가 정한 목표를, 나만의 학습 시퀀스로 꾸준히',
         theme_color: '#6366f1',
         background_color: '#6366f1',

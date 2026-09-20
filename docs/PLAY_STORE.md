@@ -56,7 +56,7 @@ npm run android:install     # 연결된 기기/에뮬레이터에 APK 설치
 이 **정확히 같아야** 한다. 현재 기본값:
 
 ```
-com.ehddn5252.study5min
+com.sociallearnapp.app
 ```
 
 스토어 등록 후에는 절대 못 바꾼다. 다른 이름을 원하면 지금 두 파일에서 함께 바꾼다.

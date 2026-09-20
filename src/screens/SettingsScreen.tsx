@@ -394,7 +394,7 @@ export default function SettingsScreen() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3">고객센터</h2>
           <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[같이런] 문의')}&body=${encodeURIComponent('아래에 문의 내용을 자유롭게 작성해주세요.\n\n')}`}
+            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[소셜런] 문의')}&body=${encodeURIComponent('아래에 문의 내용을 자유롭게 작성해주세요.\n\n')}`}
             className="w-full flex items-center justify-between py-2 text-sm text-gray-700 hover:text-[var(--accent-600)] transition-colors"
           >
             <span>문의하기</span>

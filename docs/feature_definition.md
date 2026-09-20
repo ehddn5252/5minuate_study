@@ -1803,6 +1803,24 @@
 - [x] `npm run build` 통과.
 - [ ] Play Console에 아직 등록 전이라 실제 스토어 노출 이름 충돌 여부는 심사 전까지 최종 확인 불가(사전에 Google 검색으로 확인한 것이 전부).
 
+---
+
+### F-90: "소셜런"으로 재리브랜딩 + Android 패키지 ID 변경
+
+**한 줄 설명:** 표시 이름을 "같이런"에서 "소셜런"으로 다시 바꾸고, 아직 미등록 상태인 Android 패키지 ID를 개인 계정명이 노출되는 `com.ehddn5252.study5min`에서 `com.sociallearnapp.app`으로 변경한다.
+
+**배경:** 서명 키 생성 과정에서 "위드런"(실제로 같은 교육 카테고리 앱 `com.forwiz.withlearn`과 충돌), "아이런"(마라톤 브랜드 "아이런코리아"와 충돌 + "아이(어린이)"로 오독 위험), "Learners Hi"(발음이 기존 "러너스하이"/Runner's High 브랜드와 거의 동일)를 순서대로 검토·기각한 뒤 "소셜런"(Social+Learn/Run)으로 확정 — Google 검색으로 충돌 없음 확인. 같은 대화에서 패키지 ID 논의로 이어져, "Play 스토어 앱 URL에 패키지 ID가 그대로 노출된다"는 점을 짚자 사용자가 개인 식별자(`ehddn5252`, 실제 이메일 계정명과 동일)를 빼기로 결정. 패키지 ID는 스토어 등록 후 변경 불가하므로 등록 전인 지금이 마지막 변경 시점이었다.
+
+**시스템 처리**
+- 표시 이름 교체: F-89와 동일한 파일 목록(`vite.config.ts`, `twa-manifest.json`, `LoginScreen.tsx`, `PrivacyPolicyScreen.tsx`, `SettingsScreen.tsx`, `notification.ts`, `shareCard.ts`, `RouteAnnouncer.tsx`, `README.md`, `docs/ceo_prompt.md`/`docs/planning_document.md`, `docs/PLAY_STORE_SUBMISSION.md`, 피처 그래픽) 전부 "소셜런"으로 재교체.
+- 패키지 ID 교체: `twa-manifest.json`의 `packageId`(`com.ehddn5252.study5min` → `com.sociallearnapp.app`)와 `signingKey.alias`(`study5min` → `sociallearn`), `public/.well-known/assetlinks.json`의 `package_name`을 동일하게 변경. 두 파일의 값은 반드시 정확히 일치해야 Digital Asset Link 검증이 통과한다(`docs/PLAY_STORE.md` 2-1 참고).
+- `android/twa-manifest.json`(bubblewrap 작업 사본)도 루트 파일과 동기화.
+
+**검증 조건**
+- [x] `npm run build` 통과.
+- [x] `grep -rl "com.ehddn5252.study5min"` 결과가 이력 설명 문구(`docs/ceo_prompt.md`의 변경 사유 서술) 하나만 남고 `twa-manifest.json`/`assetlinks.json`/`docs/PLAY_STORE.md`의 실제 값에서는 전부 교체됨을 확인.
+- [ ] 이 시점까지 `android/signing.keystore`가 아직 생성되지 않아(사용자가 `bubblewrap init` 진행 중), 새 패키지 ID로 실제 서명 키 생성·AAB 빌드·assetlinks 검증까지는 확인하지 못함 — 다음 단계에서 반드시 재확인 필요.
+
 | 점검 항목 | 결과 |
 |-----------|------|
 | 기획 문서의 모든 기능 영역이 커버됐나? | 목표 관리(F-01~F-06), 학습(F-07~F-10), 테스트(F-11~F-13), 독려/동기부여(F-14~F-17) 모두 커버 완료 |

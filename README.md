@@ -1,4 +1,4 @@
-# 같이런 (구 "학습 보관함", "5분 학습", 저장소명: 5minuate_study)
+# 소셜런 (구 "같이런", "학습 보관함", "5분 학습", 저장소명: 5minuate_study)
 
 듀오링고에서 영감받아 만든 PWA — 내가 정한 학습 목표를 AI가 매일 분량으로 쪼갠 **시퀀스(sequence)** 로 제공해, 자격증·어학·개발 공부를 꾸준히 이어가게 돕습니다.
 
@@ -108,7 +108,7 @@ npm run build
 npx wrangler deploy
 ```
 
-배포 URL·Cloudflare Worker 이름(`5minuatestudy`)·저장소 이름은 표시 이름 리브랜딩("같이런")과 무관하게 그대로 유지합니다 — 이미 설치된 PWA 사용자의 접속이 끊기지 않도록 하기 위함입니다.
+배포 URL·Cloudflare Worker 이름(`5minuatestudy`)·저장소 이름은 표시 이름 리브랜딩("소셜런")과 무관하게 그대로 유지합니다 — 이미 설치된 PWA 사용자의 접속이 끊기지 않도록 하기 위함입니다.
 
 ### Supabase 스키마
 `supabase/migrations/` 폴더의 SQL을 **파일명 순서대로** Supabase SQL Editor에서 실행 (service_role 권한 필요, 이 저장소의 anon key로는 실행 불가). 모두 재실행해도 안전하게 작성되어 있음.
