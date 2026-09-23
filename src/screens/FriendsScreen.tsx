@@ -231,6 +231,17 @@ export default function FriendsScreen() {
       return;
     }
     const shareUrl = buildStudyShareLink(input);
+    // 카카오톡 등 메신저로 바로 보낼 수 있도록, 지원하는 환경에서는 OS 공유 시트를 먼저 띄운다
+    // (설치된 앱 목록에 카카오톡이 자동으로 뜸) — 링크 복사는 미지원 환경의 대체 수단.
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${input.topic} ${shareLabel} 공유`, url: shareUrl });
+        return;
+      } catch (e) {
+        // 사용자가 공유 시트를 취소한 경우(AbortError)는 조용히 넘어가고, 그 외 실패만 복사로 대체한다
+        if (e instanceof Error && e.name === 'AbortError') return;
+      }
+    }
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopyMessage(`"${input.topic}" ${shareLabel} 공유 링크를 복사했어요. 친구에게 보내보세요.`);
@@ -562,7 +573,7 @@ export default function FriendsScreen() {
             disabled={shareDisabled}
             className="w-full py-3 rounded-xl bg-[var(--accent-50)] text-[var(--accent-700)] font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {shareType === 'goal' ? '목표 링크 복사' : shareType === 'session' ? '세션 링크 복사' : '문제집 링크 복사'}
+            {shareType === 'goal' ? '목표 공유하기' : shareType === 'session' ? '세션 공유하기' : '문제집 공유하기'}
           </button>
           {copyMessage && <p className="mt-3 text-sm text-gray-600">{copyMessage}</p>}
         </div>

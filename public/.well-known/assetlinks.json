@@ -4,7 +4,7 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.sociallearnapp.app",
-      "sha256_cert_fingerprints": []
+      "sha256_cert_fingerprints": ["86:BB:92:55:84:41:D4:C7:79:BA:79:3F:67:59:3A:A3:8D:1E:91:18:C9:FD:E0:42:EC:47:FA:47:CD:12:EC:52"]
     }
   }
 ]
