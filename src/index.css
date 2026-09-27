@@ -18,6 +18,22 @@
   --accent-900: #312e81;
 }
 
+/* 2026-09-27: "등산로" 리브랜딩 — 트레일 마커 러스트오렌지를 새 기본 포인트 컬러로.
+   기존 사용자는 accentTheme을 이미 저장해뒀으므로(F-41 패턴과 동일) 영향 없고,
+   새로 설치하는 사용자만 이 색을 기본으로 본다(storage.ts DEFAULT_APP_STATE 참고). */
+html[data-theme='trail'] {
+  --accent-50: #fbf0e8;
+  --accent-100: #f6dec9;
+  --accent-200: #ebbd97;
+  --accent-300: #de9a67;
+  --accent-400: #d07f45;
+  --accent-500: #c1622d;
+  --accent-600: #a54d22;
+  --accent-700: #833c1b;
+  --accent-800: #632d14;
+  --accent-900: #46200e;
+}
+
 html[data-theme='rose'] {
   --accent-50: #fff1f2;
   --accent-100: #ffe4e6;
@@ -136,9 +152,11 @@ html[data-theme='orange'] {
 }
 
 /* F-41: 배경 스킨 — 화면 바탕색만 살짝 바꾸는 옵션. 전부 흰 카드(bg-white)·회색 텍스트와
-   대비가 충분한 아주 옅은 톤이라 라이트 테마 가독성엔 영향이 없다(다크모드 아님). */
+   대비가 충분한 아주 옅은 톤이라 라이트 테마 가독성엔 영향이 없다(다크모드 아님).
+   2026-09-27: 기본값을 중립 회색(#f9fafb)에서 "등산로" 리브랜딩에 맞춘 옅은 지면(종이+이끼)
+   톤으로 변경 — 기존에 배경을 직접 고른 사용자는 영향 없음(위 accent와 동일한 이유). */
 :root {
-  --page-bg: #f9fafb;
+  --page-bg: #eeefe7;
   --page-fg: #111827;
 }
 
@@ -185,6 +203,13 @@ html[data-bg='wine'] {
   body {
     @apply text-gray-900;
     background-color: var(--page-bg);
+    /* 2026-09-27: D-7·43%·Lv.3처럼 숫자가 자주 나란히 붙는 화면이 많아, 숫자 폭을
+       고정시켜 자릿수가 바뀔 때 레이아웃이 흔들리지 않게 한다. */
+    font-variant-numeric: tabular-nums;
+  }
+  h1 {
+    font-family: 'Big Shoulders Display', sans-serif;
+    letter-spacing: 0.01em;
   }
 }
 

@@ -3,7 +3,7 @@ export type SessionStatus = 'pending' | 'in_progress' | 'completed';
 export type QuizType = 'multiple_choice' | 'short_answer';
 export type QuizLevel = 'beginner' | 'intermediate' | 'advanced';
 export type MateTone = 'friendly' | 'hype' | 'plain';
-export type AccentTheme = 'indigo' | 'rose' | 'emerald' | 'amber' | 'violet' | 'blue' | 'sky' | 'teal' | 'pink' | 'orange';
+export type AccentTheme = 'trail' | 'indigo' | 'rose' | 'emerald' | 'amber' | 'violet' | 'blue' | 'sky' | 'teal' | 'pink' | 'orange';
 export type BackgroundTheme = 'default' | 'ivory' | 'lavender' | 'charcoal' | 'navy' | 'forest' | 'plum' | 'wine';
 export type BackgroundPattern = 'none' | 'dots' | 'stars' | 'waves';
 

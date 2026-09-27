@@ -6,6 +6,12 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        // 2026-09-27 "등산로" 리브랜딩: 표지판/포스터 느낌의 압축 서체. 한글 글리프가 없어
+        // 한글 텍스트는 기존 시스템 폰트로 자연스럽게 대체된다 — 영문/숫자(D-7, Lv.3 등)에서만
+        // 실제로 눈에 띈다.
+        display: ['"Big Shoulders Display"', 'sans-serif'],
+      },
       keyframes: {
         'feedback-pop': {
           '0%': { transform: 'scale(0.92)', opacity: '0' },

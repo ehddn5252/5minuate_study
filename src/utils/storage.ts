@@ -289,7 +289,7 @@ const DEFAULT_APP_STATE: AppState = {
   audioModeEnabled: false,
   celebrationEffectsEnabled: true,
   notificationTrigger: '',
-  accentTheme: 'indigo',
+  accentTheme: 'trail',
   bgTheme: 'default',
   bgPattern: 'none',
   lifetimeStudyScore: 0,

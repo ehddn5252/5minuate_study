@@ -18,6 +18,7 @@ const ACCENT_DEFAULT_COUNT = 4;
 const BG_DEFAULT_COUNT = 4;
 
 const ACCENT_THEMES: { id: AccentTheme; label: string; swatch: string }[] = [
+  { id: 'trail', label: '트레일', swatch: '#c1622d' },
   { id: 'indigo', label: '인디고', swatch: '#4f46e5' },
   { id: 'rose', label: '로즈', swatch: '#e11d48' },
   { id: 'emerald', label: '에메랄드', swatch: '#059669' },
@@ -33,7 +34,7 @@ const ACCENT_THEMES: { id: AccentTheme; label: string; swatch: string }[] = [
 // 옅은 색은 3개(그레이/아이보리/라벤더)만 남기고, 나머지는 서로 뚜렷이 구분되는
 // 어두운 색상으로 다양화했다(회색조 2개뿐이던 것에 숲/플럼/와인 색조 추가).
 const BG_THEMES: { id: BackgroundTheme; label: string; swatch: string; dark?: boolean }[] = [
-  { id: 'default', label: '그레이', swatch: '#f9fafb' },
+  { id: 'default', label: '기본', swatch: '#eeefe7' },
   { id: 'ivory', label: '아이보리', swatch: '#fdf8f0' },
   { id: 'lavender', label: '라벤더', swatch: '#f6f4fc' },
   { id: 'charcoal', label: '차콜', swatch: '#1f2937', dark: true },
